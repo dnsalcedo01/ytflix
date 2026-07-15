@@ -1,0 +1,80 @@
+# ===================================================================================
+# YTFLIX SECURITY & ACCESS CONTROL (.htaccess)
+# ===================================================================================
+
+# 1. PREVENT DIRECTORY BROWSING (Directory Engineering Protection)
+# This prevents users from viewing the file list of any folder if an index file is missing.
+Options -Indexes
+AddType application/manifest+json .json
+AddType application/javascript .js
+
+# 2. PROTECT SENSITIVE FILES
+# Allow PWA files explicitly to prevent host redirects
+<FilesMatch "^(manifest\.json|sw\.js)$">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</FilesMatch>
+
+# Block access to .htaccess itself, .git, and other hidden files.
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 3. BLOCK SENSITIVE FILE EXTENSIONS
+# Block common files that might contain credentials or system info.
+<FilesMatch "\.(bak|config|sql|ini|log|sh|inc|swp|dist)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 4. ENTRY POINT ENFORCEMENT
+# In a single-file architecture like this, we only need index.php to be public.
+# This prevents direct execution of any other .php files if they are added later.
+<FilesMatch "\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Explicitly allow index.php
+<Files index.php>
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</Files>
+
+# 5. SECURITY HEADERS (Optional but Recommended)
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "no-referrer-when-downgrade"
+</IfModule>
+
+# 6. UPLOADS PROTECTION (Note)
+# It is strongly recommended to also place a .htaccess inside the /uploads folder
+# with "php_flag engine off" to prevent malicious script execution.

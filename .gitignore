@@ -1,0 +1,21 @@
+# User uploaded avatars and files
+uploads/
+
+# IDE and Editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Log files
+*.log
+error_log
+
+# Environment and configuration
+# We will extract DB credentials to this file shortly
+config.php
+.env
+
+# Experimental/Old files
+index0.php
