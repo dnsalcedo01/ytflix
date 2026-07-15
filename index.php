@@ -1503,18 +1503,21 @@ if (isset($_SESSION['profile_id'])) {
         /* Media Queries */
         @media (max-width: 768px) {
             .slider-controls { display: none; }
-            nav { flex-wrap: wrap; padding: 10px 4% !important; justify-content: space-between; gap: 5px; }
-            .nav-left, .nav-right { flex: initial; }
-            .nav-center { order: 3; width: 100%; flex: 100%; gap: 20px; font-size: 0.85rem; overflow-x: auto; padding-bottom: 4px; justify-content: center; white-space: nowrap; }
-            .nav-center a { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+            nav { flex-wrap: nowrap; padding: 10px 4% !important; justify-content: space-between; gap: 8px; align-items: center; }
+            .nav-left { flex: 0 0 auto; gap: 10px !important; }
+            .nav-right { flex: 0 0 auto; }
+            .nav-center { order: initial; width: auto; flex: 1; gap: 8px; font-size: 0.85rem; overflow-x: auto; padding-bottom: 0; justify-content: center; white-space: nowrap; margin: 0; scrollbar-width: none; }
+            .nav-center a { flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 6px 10px; }
             .nav-center a span { display: none; }
-            .nav-center a i { display: inline-block !important; font-size: 1.4rem; margin: 0 !important; }
-            #installAppBtn i { font-size: 1.4rem; margin: 0 !important; }
-            .nav-center::-webkit-scrollbar { height: 3px; display: block; }
-            .nav-center::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
-            .nav-center::-webkit-scrollbar-track { background: transparent; }
+            .nav-center a i { display: inline-block !important; font-size: 1.15rem; margin: 0 !important; }
+            #installAppBtn i { font-size: 1.15rem; margin: 0 !important; }
+            .nav-center::-webkit-scrollbar { display: none; }
             
-            .hero-wrapper { padding: 120px 4% 25px 4%; }
+            .logo-img { height: 32px !important; }
+            .profile-icon { width: 30px !important; height: 30px !important; font-size: 1rem !important; }
+            .nav-left > a > i { font-size: 1.15rem !important; }
+            
+            .hero-wrapper { padding: 80px 4% 25px 4%; }
             .hero-carousel { height: 65vh; min-height: 400px; max-height: 550px; border-radius: 8px; }
             .hero-slide { padding-bottom: 4%; }
             .hero-content { width: 100%; }
