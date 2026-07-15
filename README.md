@@ -15,7 +15,7 @@ YTFlix is a self-hosted, premium streaming interface designed to organize and pl
 
 I created YTFlix as a project because I wanted a way to watch movies legally without relying on piracy due to ethical concerns. Since YouTube has many official channels that offer free, full-length movies, I realized: *why not compile them into a playlist and display them in a dedicated streaming interface?*
 
-This project was built to give those who are short on a budget a premium viewing experience. It provides a clean player interface, removing the clutter of standard video platforms, and organizes everything into a beautiful, easy-to-navigate catalog.
+This project was built to give those who are short on a budget a premium viewing experience. It provides a clean, ad-free player interface, removing the clutter and interruptions of standard video platforms, and organizes everything into a beautiful, easy-to-navigate catalog.
 
 ## ✨ Features
 
