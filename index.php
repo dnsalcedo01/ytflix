@@ -1133,7 +1133,7 @@ if (isset($_SESSION['profile_id'])) {
         }
 
         .slider-poster, .slider-backdrop {
-            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: left center; transition: opacity 0.3s ease;
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; transition: opacity 0.3s ease;
         }
         .slider-poster { opacity: 1; }
         .slider-backdrop { opacity: 0; }
@@ -1706,11 +1706,11 @@ if (isset($_SESSION['profile_id'])) {
         if ($isShowsPage || $isHomePage) $progressMap[$row['id']] = ['time' => (int)$row['progress_time'], 'duration' => (int)$row['duration']];
     }
 
-    $cwMoviesQ = $pdo->prepare("SELECT m.*, p.progress_time, p.duration, p.last_watched, 'movie' as media_type FROM movies m JOIN playback_progress p ON m.id = p.movie_id WHERE p.profile_id = ? AND p.progress_time > 0");
+    $cwMoviesQ = $pdo->prepare("SELECT m.*, p.progress_time, p.duration, p.last_watched, 'movie' as media_type FROM movies m JOIN playback_progress p ON m.id = p.movie_id WHERE p.profile_id = ? AND p.progress_time > 0 AND (p.duration = 0 OR p.duration - p.progress_time > 15)");
     $cwMoviesQ->execute([$_SESSION['profile_id']]);
     $cwMoviesData = $cwMoviesQ->fetchAll(PDO::FETCH_ASSOC);
 
-    $cwShowsQ = $pdo->prepare("SELECT e.*, s.id as show_id, s.clean_title as show_title, s.genre as show_genre, s.poster_path as show_poster, s.backdrop_path as show_backdrop, p.progress_time, p.duration, p.last_watched, 'show' as media_type FROM episodes e JOIN episode_playback_progress p ON e.id = p.episode_id JOIN shows s ON e.show_id = s.id WHERE p.profile_id = ? AND p.progress_time > 0");
+    $cwShowsQ = $pdo->prepare("SELECT e.*, s.id as show_id, s.clean_title as show_title, s.genre as show_genre, s.poster_path as show_poster, s.backdrop_path as show_backdrop, p.progress_time, p.duration, p.last_watched, 'show' as media_type FROM episodes e JOIN episode_playback_progress p ON e.id = p.episode_id JOIN shows s ON e.show_id = s.id WHERE p.profile_id = ? AND p.progress_time > 0 AND (p.duration = 0 OR p.duration - p.progress_time > 15)");
     $cwShowsQ->execute([$_SESSION['profile_id']]);
     $cwShowsData = $cwShowsQ->fetchAll(PDO::FETCH_ASSOC);
 
@@ -2572,7 +2572,7 @@ if (isset($_SESSION['profile_id'])) {
         <div class="admin-nav-tabs">
             <div class="admin-tab tv-focusable <?= $activeTab == 'account' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=account'" tabindex="0">Account Settings</div>
             <?php if ($is_main_profile): ?>
-            <div class="admin-tab tv-focusable <?= $activeTab == 'library' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=library'" tabindex="0">Manage Library</div>
+            <div class="admin-tab tv-focusable <?= $activeTab == 'library' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=library'" tabindex="0">Manage Movies</div>
             <div class="admin-tab tv-focusable <?= $activeTab == 'shows' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=shows'" tabindex="0">Manage Shows</div>
             <?php endif; ?>
         </div>
@@ -3035,15 +3035,7 @@ if (isset($_SESSION['profile_id'])) {
                 focused = true;
             }
 
-            // CRITICAL: Clear memory if we found the target OR if we are on a page where 
-            // the intended section doesn't exist (prevents focus haunting other pages)
-            let sectionStillRelevant = !lastSection || 
-                                       (lastSection === 'hero' && document.getElementById('heroCarousel')) ||
-                                       (lastSection === 'search' && document.getElementById('searchResultsGrid')) ||
-                                       document.getElementById(lastSection) || 
-                                       document.querySelector(`[data-section="${lastSection}"]`);
-
-            if (focused || !sectionStillRelevant) {
+            if (focused) {
                 sessionStorage.removeItem('lastMovieId');
                 sessionStorage.removeItem('lastSection');
                 sessionStorage.removeItem('lastSliderIdx');
