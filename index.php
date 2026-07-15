@@ -969,6 +969,7 @@ if (isset($_SESSION['profile_id'])) {
         }
         .nav-center a i { display: inline-block; }
         .nav-center a:hover, .nav-center a:focus { color: #fff; transform: scale(1.05); background: rgba(255,255,255,0.1); border-color: transparent; }
+        .nav-center a.active { outline: none !important; color: white; border-color: transparent; background: rgba(255,255,255,0.2); }
         .nav-center a.tv-focusable:focus { outline: none !important; color: white; border-color: white; background: rgba(255,255,255,0.1); transform: scale(1.05); }
 
         @media (min-width: 769px) {
@@ -1147,7 +1148,7 @@ if (isset($_SESSION['profile_id'])) {
         .slider-img-title { font-weight: 800; font-size: clamp(1rem, 1.5vw, 1.4rem); color: white; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
 
         .slider-resume-btn {
-            background: white; color: black; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; margin-bottom: 0; border: none; display: flex; align-items: center; gap: 6px; 
+            background: white; color: black; padding: 6px 14px; border-radius: 30px; font-weight: bold; font-size: 0.85rem; margin-bottom: 0; border: none; display: flex; align-items: center; gap: 6px; 
             z-index: 4;
         }
 
@@ -1641,13 +1642,13 @@ if (isset($_SESSION['profile_id'])) {
         </div>
 
         <div class="nav-center">
-            <a href="?p=search" class="tv-focusable" title="Search"><i class="fas fa-search"></i></a>
+            <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search"><i class="fas fa-search"></i></a>
             <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" title="Home"><i class="fas fa-home"></i><span>Home</span></a>
             <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
             <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
             <a href="javascript:void(0)" id="installAppBtn" class="tv-focusable" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
             <?php if ($is_main_profile): ?>
-            <a href="?p=admin&tab=account" class="tv-focusable" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+            <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
             <?php endif; ?>
         </div>
 
@@ -1750,7 +1751,7 @@ if (isset($_SESSION['profile_id'])) {
     $_SESSION['home_seed'] = mt_rand();
     mt_srand($_SESSION['home_seed']);
     shuffle($uniqueGenres);
-    $randomGenres = array_slice($uniqueGenres, 0, 2);
+    $randomGenres = array_slice($uniqueGenres, 0, 3);
     
     if(!function_exists('renderSliderItem')) {
         function renderSliderItem($m, $isContinueWatching = false) {
@@ -2048,11 +2049,11 @@ if (isset($_SESSION['profile_id'])) {
             </a>
         </div>
         <div class="nav-center">
-            <a href="?p=search" class="tv-focusable" title="Search" style="border-color:white; background:rgba(255,255,255,0.1); color:white;"><i class="fas fa-search" style="font-size:18px;"></i></a>
-            <a href="?p=home" class="tv-focusable">Home</a>
-            <a href="?p=home#movies" class="tv-focusable">Movies</a>
-            <a href="?p=home#shows" class="tv-focusable">Shows</a>
-            <a href="?p=admin&tab=account" class="tv-focusable">Settings</a>
+            <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search"><i class="fas fa-search"></i></a>
+            <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" title="Home"><i class="fas fa-home"></i><span>Home</span></a>
+            <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
+            <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
+            <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
         </div>
         <div class="nav-links nav-right">
             <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
