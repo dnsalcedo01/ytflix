@@ -3,8 +3,13 @@
 YTFlix is a self-hosted, premium streaming interface designed to organize and play your favorite free YouTube movies and web series. It provides a cinematic, modern experience completely free of charge.
 
 ![Home Page](ytflix-homepage.jpeg)
+**YTFlix Homepage**
+
 ![Content Page](ytflix-content-page.jpeg)
+**YTFlix Content Page**
+
 ![Player Interface](ytflix-player.jpeg)
+**YTFlix Player Interface**
 
 ## 📖 The Story Behind YTFlix
 
