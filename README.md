@@ -33,6 +33,8 @@ This project was built to give those who are short on a budget a premium viewing
 
 YTFlix **does not** host, provide, or distribute any movies or copyrighted content out of the box. It is merely a user interface (player). You, the user, must provide your own content by linking to publicly available YouTube playlists and videos.
 
+**Fair Use & Ethical Standards:** This project was created with the strict intention of providing a clean interface for legally available, free-to-watch content on YouTube. We kindly, but firmly, request that developers refrain from forking or repurposing this codebase to build, support, or distribute unauthorized piracy platforms. Please respect the original ethical vision of this project.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
