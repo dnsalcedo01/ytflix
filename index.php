@@ -972,16 +972,9 @@ if (isset($_SESSION['profile_id'])) {
         .nav-center a.active { outline: none !important; color: white; border-color: transparent; background: rgba(255,255,255,0.2); }
         body.is-keyboard .nav-center a.tv-focusable:focus-visible { outline: none !important; color: white; border-color: white; background: rgba(255,255,255,0.1); transform: scale(1.05); }
 
-        @media (min-width: 769px) {
-            /* On Desktop: hide icons for links that have text labels (except Search which has no label) */
-            .nav-center a span { display: inline-block; }
-            .nav-center a:has(span) i { display: none; }
-        }
-
-        @media (max-width: 768px) {
-            .nav-center span { display: none; }
-            .nav-center a i { display: block; font-size: 1.2rem; }
-        }
+        /* Globally hide icons for links that have text labels (except Search) */
+        .nav-center a span { display: inline-block; }
+        .nav-center a:has(span) i { display: none; }
         
         .nav-right { flex: 1; justify-content: flex-end; }
         
@@ -1486,13 +1479,11 @@ if (isset($_SESSION['profile_id'])) {
         /* Media Queries */
         @media (max-width: 768px) {
             .slider-controls { display: none; }
-            nav { flex-wrap: nowrap; padding: 10px 4% !important; justify-content: space-between; gap: 8px; align-items: center; }
+            nav { flex-wrap: nowrap; padding: 15px 4% 10px 4% !important; justify-content: space-between; gap: 8px; align-items: center; }
             .nav-left { flex: 0 0 auto; gap: 10px !important; }
             .nav-right { flex: 0 0 auto; }
-            .nav-center { order: initial; width: auto; flex: 1; gap: 8px; font-size: 0.85rem; overflow-x: auto; padding-bottom: 0; justify-content: center; white-space: nowrap; margin: 0; scrollbar-width: none; }
-            .nav-center a { flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 6px 10px; }
-            .nav-center a span { display: none; }
-            .nav-center a i { display: inline-block !important; font-size: 1.15rem; margin: 0 !important; }
+            .nav-center { order: initial; width: auto; flex: 1; gap: 6px; font-size: 0.85rem; overflow-x: auto; padding-bottom: 0; justify-content: center; white-space: nowrap; margin: 0; scrollbar-width: none; }
+            .nav-center a { flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 5px 12px; font-size: 0.85rem; }
             #installAppBtn i { font-size: 1.15rem; margin: 0 !important; }
             .nav-center::-webkit-scrollbar { display: none; }
             
