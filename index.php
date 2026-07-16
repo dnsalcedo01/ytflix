@@ -937,7 +937,7 @@ if (isset($_SESSION['profile_id'])) {
 
         .logo-img { max-height: 100%; object-fit: contain; }
 
-        .tv-focusable:focus {
+        body.is-keyboard .tv-focusable:focus-visible {
             outline: 4px solid white !important;
             outline-offset: 2px;
             transform: scale(1.05);
@@ -970,7 +970,7 @@ if (isset($_SESSION['profile_id'])) {
         .nav-center a i { display: inline-block; }
         .nav-center a:hover, .nav-center a:focus { color: #fff; transform: scale(1.05); background: rgba(255,255,255,0.1); border-color: transparent; }
         .nav-center a.active { outline: none !important; color: white; border-color: transparent; background: rgba(255,255,255,0.2); }
-        .nav-center a.tv-focusable:focus { outline: none !important; color: white; border-color: white; background: rgba(255,255,255,0.1); transform: scale(1.05); }
+        body.is-keyboard .nav-center a.tv-focusable:focus-visible { outline: none !important; color: white; border-color: white; background: rgba(255,255,255,0.1); transform: scale(1.05); }
 
         @media (min-width: 769px) {
             /* On Desktop: hide icons for links that have text labels (except Search which has no label) */
@@ -1064,7 +1064,9 @@ if (isset($_SESSION['profile_id'])) {
         .hero-wrapper { padding: 85px 4% 30px 4%; }
         .hero-carousel { 
             position: relative; width: 100%; overflow: hidden; background: #111; 
-            height: 80vh; max-height: 800px; 
+            aspect-ratio: 16 / 9;
+            min-height: 55vh; min-height: 55svh; 
+            max-height: 80vh; max-height: min(80svh, 800px);
             border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 10px 40px rgba(0,0,0,0.8);
         }
@@ -1114,7 +1116,7 @@ if (isset($_SESSION['profile_id'])) {
             transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         
-        .slider-item.tv-focusable:focus, .slider-item:hover { 
+        body.is-keyboard .slider-item.tv-focusable:focus-visible { 
             outline: none !important; transform: none !important; box-shadow: none !important; z-index: 10;
             width: calc( var(--slider-h) * 1.77777 + 10px ); 
         }
@@ -1129,7 +1131,7 @@ if (isset($_SESSION['profile_id'])) {
             transition: outline 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .slider-item:hover .slider-img-box, .slider-item.tv-focusable:focus .slider-img-box { 
+        body.is-keyboard .slider-item.tv-focusable:focus-visible .slider-img-box { 
             outline: 4px solid white; outline-offset: 2px; box-shadow: 0 0 20px rgba(255,255,255,0.4);
         }
 
@@ -1139,11 +1141,11 @@ if (isset($_SESSION['profile_id'])) {
         .slider-poster { opacity: 1; }
         .slider-backdrop { opacity: 0; }
 
-        .slider-item:hover .slider-poster, .slider-item.tv-focusable:focus .slider-poster { opacity: 0; }
-        .slider-item:hover .slider-backdrop, .slider-item.tv-focusable:focus .slider-backdrop { opacity: 1; }
+        body.is-keyboard .slider-item.tv-focusable:focus-visible .slider-poster { opacity: 0; }
+        body.is-keyboard .slider-item.tv-focusable:focus-visible .slider-backdrop { opacity: 1; }
 
         .slider-img-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%); display: flex; align-items: flex-end; justify-content: flex-start; padding: 12px; opacity: 0; transition: opacity 0.3s ease; z-index: 2; pointer-events: none;}
-        .slider-item:hover .slider-img-overlay, .slider-item.tv-focusable:focus .slider-img-overlay { opacity: 1; }
+        body.is-keyboard .slider-item.tv-focusable:focus-visible .slider-img-overlay { opacity: 1; }
         
         .slider-img-title { font-weight: 800; font-size: clamp(1rem, 1.5vw, 1.4rem); color: white; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
 
@@ -1162,19 +1164,14 @@ if (isset($_SESSION['profile_id'])) {
             opacity: 0; pointer-events: none; width: 100%;
             transition: opacity 0.3s ease;
         }
-        .slider-item:hover .slider-info, .slider-item.tv-focusable:focus .slider-info { 
+        body.is-keyboard .slider-item.tv-focusable:focus-visible .slider-info { 
             opacity: 1;
         }
         
         .slider-meta { font-size: 0.85rem; color: #ccc; font-weight: 600; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
         .slider-desc { font-size: 0.8rem; color: #999; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
 
-        /* Modified specifically to tighten gaps */
-        .cw-slider { 
-            display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth; 
-            padding: 15px 4% 65px 4%; scrollbar-width: none; align-items: flex-start;
-        }
-        .cw-slider::-webkit-scrollbar { display: none; }
+
         
         .cw-info { 
             position: absolute; top: 100%; left: 0;
@@ -1182,28 +1179,13 @@ if (isset($_SESSION['profile_id'])) {
             opacity: 0; pointer-events: none; width: 100%; 
             transition: opacity 0.3s ease;
         }
-        .slider-item:hover .cw-info, .slider-item.tv-focusable:focus .cw-info { 
+        body.is-keyboard .slider-item.tv-focusable:focus-visible .cw-info { 
             opacity: 1;
         }
         .cw-title { font-weight: bold; font-size: 1rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
         .cw-meta { font-size: 0.9rem; color: #aaa; font-weight: 500; }
 
-        /* Touch devices: disable sticky :hover effects on sliders */
-        @media (hover: none) {
-            .slider-item:hover {
-                width: calc( var(--slider-h) * 0.66666 + 10px );
-                z-index: auto;
-            }
-            .slider-item:hover .slider-poster { opacity: 1; }
-            .slider-item:hover .slider-backdrop { opacity: 0; }
-            .slider-item:hover .slider-img-overlay { opacity: 0; }
-            .slider-item:hover .slider-img-box { 
-                outline: 2px solid transparent; 
-                box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
-            }
-            .slider-item:hover .slider-info { opacity: 0; }
-            .slider-item:hover .cw-info { opacity: 0; }
-        }
+        /* Hover expansion disabled globally */
 
         /* ==================== SEARCH PAGE ==================== */
         .search-page {
@@ -1240,7 +1222,7 @@ if (isset($_SESSION['profile_id'])) {
             font-family: inherit; display: flex; align-items: center; justify-content: center;
         }
         .vk-key:hover { background: #555; color: white; }
-        .vk-key.tv-focusable:focus {
+        body.is-keyboard .vk-key.tv-focusable:focus-visible {
             outline: none !important; background: #666; color: white;
             border-color: white; transform: scale(1.05); box-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
@@ -1257,7 +1239,7 @@ if (isset($_SESSION['profile_id'])) {
             text-align: left; font-family: inherit;
         }
         .genre-item:hover { color: white; background: rgba(255,255,255,0.08); }
-        .genre-item.tv-focusable:focus {
+        body.is-keyboard .genre-item.tv-focusable:focus-visible {
             outline: none !important; color: white; border-color: white;
             background: rgba(255,255,255,0.1); transform: none; box-shadow: none;
         }
@@ -1283,7 +1265,7 @@ if (isset($_SESSION['profile_id'])) {
             font-weight: bold; font-size: 0.85rem; color: white;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .search-card:hover, .search-card.tv-focusable:focus {
+        body.is-keyboard .search-card.tv-focusable:focus-visible {
             border-color: white;
             transform: scale(1.04); z-index: 5;
             box-shadow: 0 0 15px rgba(255,255,255,0.3);
@@ -1427,7 +1409,7 @@ if (isset($_SESSION['profile_id'])) {
             outline: none;
             border: 1px solid transparent;
         }
-        .cast-card:hover, .cast-card.tv-focusable:focus {
+        .cast-card:hover, body.is-keyboard .cast-card.tv-focusable:focus-visible {
             background: rgba(255,255,255,0.1);
             border-color: rgba(255,255,255,0.3);
             transform: scale(1.02);
@@ -1536,6 +1518,7 @@ if (isset($_SESSION['profile_id'])) {
             .movies-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
             .player-controls { padding: 15px; }
         }
+
     </style>
 </head>
 <body>
@@ -2106,8 +2089,7 @@ if (isset($_SESSION['profile_id'])) {
                 ?>
                     <button class="vk-key tv-focusable" data-char="<?= $k ?>"><?= $k ?></button>
                 <?php endforeach; ?>
-                <button class="vk-key vk-wide vk-action tv-focusable" data-action="clear" title="Clear All"><i class="fas fa-times" style="margin-right:6px;"></i> Clear</button>
-                <button class="vk-key vk-wide vk-action tv-focusable" data-action="clear" title="Clear All" style="visibility:hidden;"></button>
+                <button class="vk-key vk-action tv-focusable" style="grid-column: span 6;" data-action="clear" title="Clear All"><i class="fas fa-times" style="margin-right:6px;"></i> Clear</button>
             </div>
         </div>
 
@@ -2978,6 +2960,13 @@ if (isset($_SESSION['profile_id'])) {
 <!-- ==================== JAVASCRIPT LOGIC ==================== -->
 <script>
     let lastFocusedElement = null; 
+    
+    // Global keyboard/mouse state for CSS DPAD isolation
+    document.addEventListener('keydown', function(e) {
+        if(e.key.startsWith('Arrow') || e.key === 'Enter') document.body.classList.add('is-keyboard');
+    });
+    document.addEventListener('mousedown', function() { document.body.classList.remove('is-keyboard'); });
+    document.addEventListener('touchstart', function() { document.body.classList.remove('is-keyboard'); }, {passive: true});
 
     /* ==================== INITIAL TV FOCUS ==================== */
     function restoreFocus() {
