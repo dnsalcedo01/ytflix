@@ -12,8 +12,7 @@ YTFlix is a self-hosted, premium streaming interface designed to organize and pl
 **YTFlix Player Interface**
 
 ![Paused Movie Description Overlay](ytflix-player-pausedoverlaydescription.png)
-
-**YTFlix Player Interface**
+**YTFlix Paused Movie Description Overlay**
 
 ## 📖 The Story Behind YTFlix
 
