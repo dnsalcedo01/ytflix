@@ -606,6 +606,7 @@ if (isset($_POST['sync_playlist']) && $is_main_profile) {
         }
 
         $nextPageToken = '';
+        $fetchedVidIds = [];
         do {
             $ytUrl = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId={$playlistId}&key={$admin['yt_api_key']}";
             if ($nextPageToken) $ytUrl .= "&pageToken={$nextPageToken}";
@@ -625,6 +626,8 @@ if (isset($_POST['sync_playlist']) && $is_main_profile) {
                     $rawTitle = $item['snippet']['title'];
                     if ($rawTitle == 'Private video' || $rawTitle == 'Deleted video') continue;
                     
+                    $fetchedVidIds[] = $vidId;
+
                     $check = $pdo->prepare("SELECT id FROM movies WHERE yt_video_id = ?");
                     $check->execute([$vidId]);
                     $existing = $check->fetch(PDO::FETCH_ASSOC);
@@ -643,6 +646,13 @@ if (isset($_POST['sync_playlist']) && $is_main_profile) {
                 }
             } else break; 
         } while ($nextPageToken);
+
+        // Automatically clean up deleted videos
+        if (!empty($fetchedVidIds)) {
+            $placeholders = implode(',', array_fill(0, count($fetchedVidIds), '?'));
+            $delStmt = $pdo->prepare("DELETE FROM movies WHERE yt_video_id NOT IN ($placeholders)");
+            $delStmt->execute($fetchedVidIds);
+        }
     }
     header("Location: ?p=admin&tab=library&synced=1");
     exit;
@@ -896,6 +906,14 @@ if (isset($_SESSION['user_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $currentUser = $stmt->fetch();
+    
+    // Fix: If the session has an invalid or legacy token, destroy it and force re-login
+    if (!$currentUser) {
+        session_destroy();
+        setcookie('ytflix_user', '', time() - 3600, "/");
+        header("Location: ?p=login");
+        exit;
+    }
 }
 if (isset($_SESSION['profile_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM profiles WHERE id = ?");
@@ -976,6 +994,9 @@ if (isset($_SESSION['profile_id'])) {
         .nav-center a span { display: inline-block; }
         .nav-center a:has(span) i { display: none; }
         
+        .nav-left-mobile { display: none !important; }
+        .nav-left-desktop { display: flex !important; }
+        
         .nav-right { flex: 1; justify-content: flex-end; }
         
         .profile-icon {
@@ -987,8 +1008,21 @@ if (isset($_SESSION['profile_id'])) {
         /* ==================== PROFILES ==================== */
         .auth-container {
             height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://assets.nflxext.com/ffe/siteui/vlv3/93da5c27-be66-427c-8b72-5cb39d275279/94eb5ad7-10d8-4cca-bf45-ac52e0a052c0/US-en-20240226-popsignuptwoweeks-perspective_alpha_website_large.jpg');
-            background-size: cover;
+            position: relative; z-index: 10;
+        }
+        .login-bg-grid {
+            position: fixed; inset: -100px; z-index: -2;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;
+            opacity: 0.35; pointer-events: none; overflow: hidden;
+            transform: rotate(-6deg) scale(1.15);
+            align-content: center; justify-content: center;
+        }
+        .login-bg-grid img {
+            width: 100%; height: auto; border-radius: 4px; object-fit: cover; aspect-ratio: 2/3;
+        }
+        .login-bg-overlay {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.9) 100%);
         }
         .auth-box {
             background: rgba(0,0,0,0.75); padding: 60px 68px 40px; border-radius: 4px;
@@ -1000,9 +1034,10 @@ if (isset($_SESSION['profile_id'])) {
             background: #333; color: white; border: none; border-radius: 4px;
         }
         .auth-box button {
-            width: 100%; padding: 16px; background: var(--primary); color: white;
-            font-size: 1rem; font-weight: bold; border-radius: 4px; margin-top: 24px;
+            width: 100%; padding: 16px; background: #e50914; color: white;
+            font-size: 1rem; font-weight: bold; border-radius: 4px; margin-top: 24px; transition: background 0.2s;
         }
+        .auth-box button:hover { background: #f40612; }
 
         .profiles-wrapper { text-align: center; margin-top: 15vh; }
         .profiles-wrapper h2 { font-size: clamp(28px, 3.5vw, 60px); margin-bottom: 1.5em; font-weight:normal; }
@@ -1078,6 +1113,7 @@ if (isset($_SESSION['profile_id'])) {
         }
         .hero-content { position: relative; z-index: 3; width: 45%; min-width: 300px; }
         .hero-title { font-size: clamp(32px, 3.5vw, 64px); font-weight: bold; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); line-height: 1.1; }
+        .hero-title .mobile-title { display: none; }
         .hero-desc { font-size: clamp(14px, 1.1vw, 20px); margin-bottom: 1.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; color: #e5e5e5; }
         .btn-group { display: flex; gap: 1rem; }
         .btn { padding: 10px 26px; border-radius: 30px; font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
@@ -1481,6 +1517,8 @@ if (isset($_SESSION['profile_id'])) {
             .slider-controls { display: none; }
             nav { flex-wrap: nowrap; padding: 15px 4% 10px 4% !important; justify-content: space-between; gap: 8px; align-items: center; }
             .nav-left { flex: 0 0 auto; gap: 10px !important; }
+            .nav-left-desktop { display: none !important; }
+            .nav-left-mobile { display: flex !important; }
             .nav-right { flex: 0 0 auto; }
             .nav-center { order: initial; width: auto; flex: 1; gap: 6px; font-size: 0.85rem; overflow-x: auto; padding-bottom: 0; justify-content: center; white-space: nowrap; margin: 0; scrollbar-width: none; }
             .nav-center a { flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 5px 12px; font-size: 0.85rem; }
@@ -1492,12 +1530,14 @@ if (isset($_SESSION['profile_id'])) {
             .nav-left > a > i { font-size: 1.15rem !important; }
             
             .hero-wrapper { padding: 80px 4% 25px 4%; }
-            .hero-carousel { height: 65vh; min-height: 400px; max-height: 550px; border-radius: 8px; }
+            .hero-carousel { border-radius: 8px; height: auto; min-height: unset; max-height: unset; }
             .hero-slide { padding-bottom: 4%; }
             .hero-content { width: 100%; }
-            .hero-title { font-size: clamp(24px, 8vw, 36px); line-height: 1.2; }
+            .hero-title { font-size: clamp(20px, 6vw, 26px); line-height: 1.2; }
+            .hero-title .desktop-title { display: none; }
+            .hero-title .mobile-title { display: inline; }
             .hero-meta { font-size: 0.8rem; margin-bottom: 10px; }
-            .hero-desc { font-size: 0.85rem; -webkit-line-clamp: 3; }
+            .hero-desc { display: none; }
             .btn { padding: 8px 16px; font-size: 0.95rem; }
             
             .movie-content { flex-direction: column; margin-top: -15vh; }
@@ -1515,6 +1555,20 @@ if (isset($_SESSION['profile_id'])) {
 <body>
 
 <?php if ($page == 'login'): ?>
+    <?php
+        $bgMoviesQ = $pdo->query("SELECT poster_path FROM movies WHERE poster_path IS NOT NULL AND poster_path != ''");
+        $bgShowsQ = $pdo->query("SELECT poster_path FROM shows WHERE poster_path IS NOT NULL AND poster_path != ''");
+        $bgPosters = array_merge($bgMoviesQ->fetchAll(PDO::FETCH_COLUMN), $bgShowsQ->fetchAll(PDO::FETCH_COLUMN));
+        shuffle($bgPosters);
+        $bgPosters = array_slice($bgPosters, 0, 40);
+    ?>
+    <div class="login-bg-grid">
+        <?php foreach($bgPosters as $poster): ?>
+            <img src="<?= htmlspecialchars($poster) ?>" alt="" loading="lazy">
+        <?php endforeach; ?>
+    </div>
+    <div class="login-bg-overlay"></div>
+
     <!-- LOGIN VIEW -->
     <div class="auth-container">
         <img src="ytflix.png" alt="YTFlix" class="logo-img" style="position:absolute; top: 20px; left: 4%; height: 45px;">
@@ -1602,7 +1656,8 @@ if (isset($_SESSION['profile_id'])) {
 <?php elseif ($page == 'home' || $page == 'movies' || $page == 'shows'): ?>
     <!-- HOME VIEW -->
     <nav id="navbar">
-        <div class="nav-links nav-left" style="display:flex; gap:15px; align-items:center;">
+        <!-- Desktop Nav Left -->
+        <div class="nav-links nav-left nav-left-desktop" style="display:flex; gap:15px; align-items:center;">
             <?php 
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
                 $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
@@ -1613,6 +1668,17 @@ if (isset($_SESSION['profile_id'])) {
             <a href="?logout=1" class="tv-focusable" title="Logout" style="color:white; opacity:0.8; transition:0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
                 <i class="fas fa-sign-out-alt" style="font-size: 20px;"></i>
             </a>
+        </div>
+
+        <!-- Mobile Nav Left (Dropdown) -->
+        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center;">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
+                <?= htmlspecialchars($pAvatarContent) ?>
+            </div>
+            <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
+                <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
         </div>
 
         <div class="nav-center">
@@ -1801,7 +1867,14 @@ if (isset($_SESSION['profile_id'])) {
                 ?>
                 <div class="hero-slide <?= $index === 0 ? 'active' : '' ?>" style="background-image: url('<?= htmlspecialchars($hm['backdrop_path'] ?: $hm['poster_path']) ?>');">
                     <div class="hero-content">
-                        <h1 class="hero-title"><?= htmlspecialchars($hm['clean_title']) ?></h1>
+                        <?php 
+                            $cTitle = $hm['clean_title']; 
+                            $mTitle = mb_strlen($cTitle) > 26 ? mb_substr($cTitle, 0, 26) . '...' : $cTitle;
+                        ?>
+                        <h1 class="hero-title">
+                            <span class="desktop-title"><?= htmlspecialchars($cTitle) ?></span>
+                            <span class="mobile-title"><?= htmlspecialchars($mTitle) ?></span>
+                        </h1>
                         <div class="hero-meta" style="display:flex; align-items:center; gap:10px; margin-bottom:12px; font-size:0.9rem; color:#ccc;">
                             <?php if($hm['genre']): ?>
                                 <?php $formattedGenre = implode(' &bull; ', array_map('trim', explode(',', $hm['genre']))); ?>
@@ -2531,17 +2604,47 @@ if (isset($_SESSION['profile_id'])) {
 <?php elseif ($page == 'admin'): ?>
     <?php $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'account'; ?>
     <!-- ADMIN VIEW -->
-    <nav style="background: var(--bg); position:relative; padding: 20px 4%;">
-        <div class="nav-links nav-left">
-            <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;">
-                <img src="ytflix.png" alt="YTFlix" class="logo-img" style="height: 35px;">
-            </a>
-            <a href="?logout=1" class="tv-focusable" title="Logout" style="color:white; opacity:0.8; transition:0.2s; margin-left: 10px;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+    <nav id="navbar">
+        <!-- Desktop Nav Left -->
+        <div class="nav-links nav-left nav-left-desktop" style="display:flex; gap:15px; align-items:center;">
+            <?php 
+                $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
+                $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
+            ?>
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
+                <?= htmlspecialchars($pAvatarContent) ?>
+            </div>
+            <a href="?logout=1" class="tv-focusable" title="Logout" style="color:white; opacity:0.8; transition:0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
                 <i class="fas fa-sign-out-alt" style="font-size: 20px;"></i>
             </a>
         </div>
-        <div class="nav-links nav-right" style="display:flex; gap: 20px; align-items:center;">
-            <a href="?p=home" class="tv-focusable" style="color:white; font-weight:bold; font-size:1rem;"><i class="fas fa-arrow-left"></i> Back to Home</a>
+
+        <!-- Mobile Nav Left (Dropdown) -->
+        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center;">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
+                <?= htmlspecialchars($pAvatarContent) ?>
+            </div>
+            <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
+                <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+
+        <div class="nav-center">
+            <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search"><i class="fas fa-search"></i></a>
+            <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" title="Home"><i class="fas fa-home"></i><span>Home</span></a>
+            <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
+            <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
+            <a href="javascript:void(0)" id="installAppBtn" class="tv-focusable" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
+            <?php if ($is_main_profile): ?>
+            <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+            <?php endif; ?>
+        </div>
+
+        <div class="nav-links nav-right">
+            <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
+                <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
+            </a>
         </div>
     </nav>
 
@@ -3927,12 +4030,15 @@ if (isset($_SESSION['profile_id'])) {
         }
 
         if (current.closest('nav') && e.key === 'ArrowDown') {
-            let playBtn = document.querySelector('.hero-slide.active .btn-play');
-            if (playBtn) {
-                playBtn.focus();
-                window.scrollTo({ top: 0, behavior: 'smooth' }); 
-                e.preventDefault();
-                return;
+            let dropMenu = current.closest('.nav-left-mobile') ? current.closest('.nav-left-mobile').querySelector('.mobile-dropdown-menu') : null;
+            if (!(dropMenu && dropMenu.style.display === 'flex')) {
+                let playBtn = document.querySelector('.hero-slide.active .btn-play');
+                if (playBtn) {
+                    playBtn.focus();
+                    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+                    e.preventDefault();
+                    return;
+                }
             }
         }
         
@@ -4087,6 +4193,29 @@ if (isset($_SESSION['profile_id'])) {
         if (installBtn) installBtn.style.display = 'none';
     });
 
+    function toggleMobileDropdown() {
+        var menus = document.querySelectorAll('.mobile-dropdown-menu');
+        menus.forEach(function(m) {
+            m.style.display = (m.style.display === 'none' || m.style.display === '') ? 'flex' : 'none';
+        });
+    }
+    
+    function closeDropdownsOutside(e) {
+        var menus = document.querySelectorAll('.mobile-dropdown-menu');
+        var icons = document.querySelectorAll('.nav-left-mobile .profile-icon');
+        for(var i=0; i<menus.length; i++) {
+            if (menus[i].style.display === 'flex' && !menus[i].contains(e.target) && icons[i] && !icons[i].contains(e.target)) {
+                menus[i].style.display = 'none';
+            }
+        }
+    }
+    
+    document.addEventListener('click', closeDropdownsOutside);
+    document.addEventListener('mouseover', closeDropdownsOutside);
+    window.addEventListener('scroll', function() {
+        var menus = document.querySelectorAll('.mobile-dropdown-menu');
+        menus.forEach(function(m) { m.style.display = 'none'; });
+    }, {passive: true});
 </script>
 </body>
 </html>
