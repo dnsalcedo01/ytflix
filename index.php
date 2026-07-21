@@ -1489,7 +1489,7 @@ if (isset($_SESSION['profile_id'])) {
         .cc-active { color: #E50914 !important; border-bottom: 2px solid #E50914; }
 
         /* ==================== ADMIN PANEL ==================== */
-        .admin-panel { padding: 40px 4%; max-width: 1200px; margin: auto; }
+        .admin-panel { padding: 100px 4% 40px 4%; max-width: 1200px; margin: auto; }
         .admin-nav-tabs { display: flex; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .admin-tab { color: var(--gray); font-size: 1.2rem; padding: 10px 15px; cursor: pointer; font-weight: bold; transition: color 0.3s; }
         .admin-tab.active { color: white; border-bottom: 3px solid var(--primary); }
@@ -2083,7 +2083,8 @@ if (isset($_SESSION['profile_id'])) {
 <?php elseif ($page == 'search'): ?>
     <!-- SEARCH VIEW -->
     <nav id="navbar">
-        <div class="nav-links nav-left" style="display:flex; gap:15px; align-items:center;">
+        <!-- Desktop Nav Left -->
+        <div class="nav-links nav-left nav-left-desktop" style="display:flex; gap:15px; align-items:center;">
             <?php 
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
                 $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
@@ -2094,6 +2095,17 @@ if (isset($_SESSION['profile_id'])) {
             <a href="?logout=1" class="tv-focusable" title="Logout" style="color:white; opacity:0.8; transition:0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
                 <i class="fas fa-sign-out-alt" style="font-size: 20px;"></i>
             </a>
+        </div>
+
+        <!-- Mobile Nav Left (Dropdown) -->
+        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center;">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
+                <?= htmlspecialchars($pAvatarContent) ?>
+            </div>
+            <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
+                <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
         </div>
         <div class="nav-center">
             <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search"><i class="fas fa-search"></i></a>
@@ -2522,7 +2534,7 @@ if (isset($_SESSION['profile_id'])) {
             </div>
         </div>
 
-        <div style="padding: 0 4% 50px 4%; position: relative; z-index: 10; max-width: 1200px; margin: 0 auto;">
+        <div style="padding: 40px 4% 50px 4%; position: relative; z-index: 10; max-width: 1200px; margin: 0 auto;">
             <h2 style="font-size: clamp(24px, 3vw, 36px); font-weight: bold; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #333;">Episodes</h2>
             
             <?php if(empty($episodes)): ?>
