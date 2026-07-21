@@ -152,6 +152,24 @@ try {
     die("<h2 style='color:red; font-family:sans-serif;'>Database Connection Failed. Please ensure MySQL is running.</h2> Error: " . $e->getMessage());
 }
 
+// --- AJAX Endpoint for Pause Overlay Metadata ---
+if (isset($_GET['ajax_metadata']) && isset($_GET['type']) && isset($_GET['id'])) {
+    header('Content-Type: application/json');
+    $id = (int)$_GET['id'];
+    $type = $_GET['type'];
+    
+    if ($type === 'movie') {
+        $stmt = $pdo->prepare("SELECT clean_title as title, release_year as year, genre, 'N/A' as duration, description as desc_text, actors FROM movies WHERE id = ?");
+        $stmt->execute([$id]);
+        echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+    } else if ($type === 'episode') {
+        $stmt = $pdo->prepare("SELECT CONCAT(s.clean_title, ' - E', e.episode_number, ' ', e.title) as title, s.release_year as year, s.genre, e.duration as duration, e.description as desc_text, s.actors FROM episodes e JOIN shows s ON e.show_id = s.id WHERE e.id = ?");
+        $stmt->execute([$id]);
+        echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+    }
+    exit;
+}
+
 /* ===================================================================================
    HELPER FUNCTIONS & API LOGIC
    =================================================================================== */
@@ -1514,6 +1532,7 @@ if (isset($_SESSION['profile_id'])) {
 
         /* Media Queries */
         @media (max-width: 768px) {
+            #virtualKeyboard { display: none !important; }
             .slider-controls { display: none; }
             nav { flex-wrap: nowrap; padding: 15px 4% 10px 4% !important; justify-content: space-between; gap: 8px; align-items: center; }
             .nav-left { flex: 0 0 auto; gap: 10px !important; }
@@ -1643,10 +1662,10 @@ if (isset($_SESSION['profile_id'])) {
                 <input type="hidden" name="login_pin" id="hiddenPinInput">
                 
                 <div class="pin-box-container">
-                    <input type="password" class="pin-box tv-focusable" id="pinBox1" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                    <input type="password" class="pin-box tv-focusable" id="pinBox2" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                    <input type="password" class="pin-box tv-focusable" id="pinBox3" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                    <input type="password" class="pin-box tv-focusable" id="pinBox4" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+                    <input type="tel" class="pin-box tv-focusable" id="pinBox1" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security: disc; text-security: disc;">
+                    <input type="tel" class="pin-box tv-focusable" id="pinBox2" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security: disc; text-security: disc;">
+                    <input type="tel" class="pin-box tv-focusable" id="pinBox3" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security: disc; text-security: disc;">
+                    <input type="tel" class="pin-box tv-focusable" id="pinBox4" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security: disc; text-security: disc;">
                 </div>
             </form>
             <button type="button" onclick="closePinModal()" class="btn tv-focusable" style="width:100%; justify-content:center; background:#444; margin-top:10px; color:white;">Cancel</button>
@@ -1816,8 +1835,8 @@ if (isset($_SESSION['profile_id'])) {
                 echo '
                 <div class="slider-item tv-focusable" tabindex="0" data-movie-id="'.$id.'" onclick="var w=this.closest(\'.slider-wrapper\'); sessionStorage.setItem(\'lastMovieId\', \''.$id.'\'); sessionStorage.setItem(\'lastSection\', w?w.id||w.getAttribute(\'data-section\')||\'\':\'\'  ); window.location.href=\'?p='.$targetType.'&id='.$targetId.'\'">
                     <div class="slider-img-box">
-                        <img src="'.$poster.'" alt="'.$title.'" class="slider-poster" onerror="this.src=\'https://via.placeholder.com/300x450/222/fff?text=No+Poster\'">
-                        <img src="'.$backdrop.'" alt="'.$title.'" class="slider-backdrop" onerror="this.src=\'https://via.placeholder.com/600x337/222/fff?text=No+Image\'">
+                        <img src="'.$poster.'" alt="'.$title.'" class="slider-poster" onerror="this.onerror=null; this.src=\'https://via.placeholder.com/300x450/222/fff?text=No+Poster\'">
+                        <img src="'.$backdrop.'" alt="'.$title.'" class="slider-backdrop" onerror="this.onerror=null; this.src=\'https://via.placeholder.com/600x337/222/fff?text=No+Image\'">
                         
                         <div class="slider-img-overlay">
                             <div class="slider-resume-btn"><i class="fas fa-play" style="margin-right:5px;"></i> Resume</div>
@@ -1833,8 +1852,8 @@ if (isset($_SESSION['profile_id'])) {
                 echo '
                 <div class="slider-item tv-focusable" tabindex="0" data-movie-id="'.$id.'" onclick="var w=this.closest(\'.slider-wrapper\'); sessionStorage.setItem(\'lastMovieId\', \''.$id.'\'); sessionStorage.setItem(\'lastSection\', w?w.id||w.getAttribute(\'data-section\')||\'\':\'\'  ); window.location.href=\'?p='.$targetType.'&id='.$targetId.'\'">
                     <div class="slider-img-box">
-                        <img src="'.$poster.'" alt="'.$title.'" class="slider-poster" onerror="this.src=\'https://via.placeholder.com/300x450/222/fff?text=No+Poster\'">
-                        <img src="'.$backdrop.'" alt="'.$title.'" class="slider-backdrop" onerror="this.src=\'https://via.placeholder.com/600x337/222/fff?text=No+Image\'">
+                        <img src="'.$poster.'" alt="'.$title.'" class="slider-poster" onerror="this.onerror=null; this.src=\'https://via.placeholder.com/300x450/222/fff?text=No+Poster\'">
+                        <img src="'.$backdrop.'" alt="'.$title.'" class="slider-backdrop" onerror="this.onerror=null; this.src=\'https://via.placeholder.com/600x337/222/fff?text=No+Image\'">
                         
                         <div class="slider-img-overlay">
                             <div class="slider-img-title">'.$title.'</div>
@@ -2039,7 +2058,22 @@ if (isset($_SESSION['profile_id'])) {
         </div>
         <div id="playerOverlay" style="position:absolute; inset:0; z-index:1;"></div>
         
-        <div id="playerControls" class="player-controls" style="z-index:2;">
+        <div id="playerPauseOverlay" style="display:flex; opacity:0; transition: opacity 0.4s ease-in-out; position:absolute; inset:0; z-index:2; background: rgba(0,0,0,0.85); align-items:center; justify-content:flex-start; padding: 4% 8%; pointer-events:none;">
+            <div style="max-width: 600px; text-align: left; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
+                <p style="color:#ddd; margin-bottom:10px; font-size: 1.1rem; font-weight: 500;">You're watching</p>
+                <div style="border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom:15px;">
+                    <h1 id="pauseTitle" style="margin:0; font-size: clamp(28px, 4vw, 42px); font-weight: bold; line-height:1.1;"></h1>
+                </div>
+                <div style="display:flex; gap:10px; font-weight:bold; font-size:1rem; margin-bottom: 20px; color:#bbb;">
+                    <span id="pauseYear"></span> &bull; 
+                    <span id="pauseGenre"></span><span id="pauseDurationSpan"> &bull; <span id="pauseDuration"></span></span>
+                </div>
+                <p id="pauseDescription" style="line-height: 1.5; margin-bottom: 25px; font-size: 1.05rem; display:-webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></p>
+                <p style="color:#aaa; font-size: 0.95rem;"><span style="color:white; font-weight:bold;">Cast:</span> <span id="pauseCast"></span></p>
+            </div>
+        </div>
+
+        <div id="playerControls" class="player-controls" style="z-index:3;">
             <div class="player-header">
                 <button class="tv-focusable player-btn" onclick="closePlayer()" style="font-size:1.8rem;">
                     <i class="fas fa-arrow-left"></i>
@@ -2154,7 +2188,7 @@ if (isset($_SESSION['profile_id'])) {
 
     <div class="search-page">
         <div class="search-left">
-            <input type="text" id="searchInput" class="search-input-box tv-focusable" placeholder="Search movies..." autocomplete="off" readonly>
+            <input type="text" id="searchInput" class="search-input-box tv-focusable" placeholder="Search movies..." autocomplete="off">
 
             <div class="vk-grid" id="virtualKeyboard">
                 <button class="vk-key vk-wide vk-action tv-focusable" data-action="space" title="Space"><span style="letter-spacing:1px; font-weight:bold; font-size:0.9rem;">SPACE</span></button>
@@ -2174,7 +2208,7 @@ if (isset($_SESSION['profile_id'])) {
             <div class="search-grid" id="searchResultsGrid">
                 <?php foreach($recommendMovies as $m): ?>
                     <div class="search-card tv-focusable" tabindex="0" data-movie-id="<?= $m['id'] ?>" onclick="sessionStorage.setItem('lastMovieId', '<?= $m['id'] ?>'); sessionStorage.setItem('lastSection', 'search'); window.location.href='?p=movie&id=<?= $m['id'] ?>'">
-                        <img src="<?= htmlspecialchars($m['poster_path'] ?: $m['backdrop_path']) ?>" alt="<?= htmlspecialchars($m['clean_title']) ?>" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
+                        <img src="<?= htmlspecialchars($m['poster_path'] ?: $m['backdrop_path']) ?>" alt="<?= htmlspecialchars($m['clean_title']) ?>" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
                         <div class="search-card-overlay">
                             <div class="search-card-title"><?= htmlspecialchars($m['clean_title']) ?></div>
                         </div>
@@ -2273,7 +2307,7 @@ if (isset($_SESSION['profile_id'])) {
                                 $img = $actor['profile'] ? $actor['profile'] : 'avatar-cast.jpg';
                             ?>
                             <div class="cast-card tv-focusable" tabindex="0">
-                                <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.src='avatar-cast.jpg'">
+                                <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.onerror=null; this.src='avatar-cast.jpg'">
                                 <div class="cast-details">
                                     <div class="cast-name"><?= htmlspecialchars($actor['name']) ?></div>
                                     <div class="cast-char"><?= htmlspecialchars($actor['character']) ?></div>
@@ -2295,7 +2329,24 @@ if (isset($_SESSION['profile_id'])) {
             <div id="ytplayer"></div>
         </div>
         <div id="playerOverlay" style="position:absolute; inset:0; z-index:1;"></div>
-        <div id="playerControls" class="player-controls" style="z-index:2;">
+        <div id="playerPauseOverlay" style="display:flex; opacity:0; transition: opacity 0.4s ease-in-out; position:absolute; inset:0; z-index:2; background: rgba(0,0,0,0.85); align-items:center; justify-content:flex-start; padding: 4% 8%; pointer-events:none;">
+            <div style="max-width: 600px; text-align: left; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
+                <p style="color:#ddd; margin-bottom:10px; font-size: 1.1rem; font-weight: 500;">You're watching</p>
+                <div style="border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom:15px;">
+                    <h1 id="pauseTitle" style="margin:0; font-size: clamp(28px, 4vw, 42px); font-weight: bold; line-height:1.1;"></h1>
+                    <div style="margin-top: 8px; font-size: 1rem; color: #ccc; display:flex; gap:15px; align-items:center;">
+                        <span id="pauseYear"></span>
+                        <span id="pauseDurationSpan" style="display:none;"><i class="fas fa-clock"></i> <span id="pauseDuration"></span></span>
+                        <span id="pauseGenre" style="border:1px solid #666; padding:2px 8px; border-radius:12px; font-size:0.85rem;"></span>
+                    </div>
+                </div>
+                <p id="pauseDescription" style="font-size: 1.05rem; line-height: 1.5; color: #ddd; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></p>
+                <div style="font-size:0.95rem; color:#aaa;">
+                    <strong>Cast:</strong> <span id="pauseCast" style="color:#ccc;"></span>
+                </div>
+            </div>
+        </div>
+        <div id="playerControls" class="player-controls" style="z-index:3;">
             <div class="player-header">
                 <button class="tv-focusable player-btn" onclick="closePlayer()" style="font-size:1.8rem;">
                     <i class="fas fa-arrow-left"></i>
@@ -2336,7 +2387,24 @@ if (isset($_SESSION['profile_id'])) {
             <div id="ytplayer"></div>
         </div>
         <div id="playerOverlay" style="position:absolute; inset:0; z-index:1;"></div>
-        <div id="playerControls" class="player-controls" style="z-index:2;">
+        <div id="playerPauseOverlay" style="display:flex; opacity:0; transition: opacity 0.4s ease-in-out; position:absolute; inset:0; z-index:2; background: rgba(0,0,0,0.85); align-items:center; justify-content:flex-start; padding: 4% 8%; pointer-events:none;">
+            <div style="max-width: 600px; text-align: left; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
+                <p style="color:#ddd; margin-bottom:10px; font-size: 1.1rem; font-weight: 500;">You're watching</p>
+                <div style="border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom:15px;">
+                    <h1 id="pauseTitle" style="margin:0; font-size: clamp(28px, 4vw, 42px); font-weight: bold; line-height:1.1;"></h1>
+                    <div style="margin-top: 8px; font-size: 1rem; color: #ccc; display:flex; gap:15px; align-items:center;">
+                        <span id="pauseYear"></span>
+                        <span id="pauseDurationSpan" style="display:none;"><i class="fas fa-clock"></i> <span id="pauseDuration"></span></span>
+                        <span id="pauseGenre" style="border:1px solid #666; padding:2px 8px; border-radius:12px; font-size:0.85rem;"></span>
+                    </div>
+                </div>
+                <p id="pauseDescription" style="font-size: 1.05rem; line-height: 1.5; color: #ddd; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></p>
+                <div style="font-size:0.95rem; color:#aaa;">
+                    <strong>Cast:</strong> <span id="pauseCast" style="color:#ccc;"></span>
+                </div>
+            </div>
+        </div>
+        <div id="playerControls" class="player-controls" style="z-index:3;">
             <div class="player-header">
                 <button class="tv-focusable player-btn" onclick="closePlayer()" style="font-size:1.8rem;">
                     <i class="fas fa-arrow-left"></i>
@@ -2519,7 +2587,7 @@ if (isset($_SESSION['profile_id'])) {
                                 $character = $actor['character'] ?? '';
                             ?>
                             <div class="cast-card tv-focusable" tabindex="0">
-                                <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.src='avatar-cast.jpg'">
+                                <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.onerror=null; this.src='avatar-cast.jpg'">
                                 <div class="cast-details">
                                     <div class="cast-name"><?= htmlspecialchars($actor['name'] ?? 'Unknown Actor') ?></div>
                                     <div class="cast-char"><?= htmlspecialchars($character) ?></div>
@@ -2551,7 +2619,7 @@ if (isset($_SESSION['profile_id'])) {
                     ?>
                     <div class="tv-focusable" style="display: flex; flex-direction: row; gap: 20px; padding: 15px; border-radius: 12px; background: <?= $isActive ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.4)' ?>; border: 2px solid <?= $isActive ? 'rgba(255,255,255,0.5)' : 'transparent' ?>; cursor: pointer; transition: all 0.2s;" tabindex="0" onclick="openPlayer('<?= $ep['yt_video_id'] ?>', '<?= addslashes(htmlspecialchars($show['clean_title'] . ' - E' . $ep['episode_number'] . ' ' . $ep['title'])) ?>', <?= $epTime ?>, <?= $ep['id'] ?>, 'episode')">
                         <div style="position: relative; width: 250px; flex-shrink: 0; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; background: #222;">
-                            <img src="<?= htmlspecialchars($thumbnail) ?>" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/600x337/222/fff?text=Episode'">
+                            <img src="<?= htmlspecialchars($thumbnail) ?>" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x337/222/fff?text=Episode'">
                             <?php if($epPct > 0): ?>
                                 <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.3);">
                                     <div style="height: 100%; background: var(--primary); width: <?= $epPct ?>%;"></div>
@@ -2576,7 +2644,24 @@ if (isset($_SESSION['profile_id'])) {
             <div id="ytplayer"></div>
         </div>
         <div id="playerOverlay" style="position:absolute; inset:0; z-index:1;"></div>
-        <div id="playerControls" class="player-controls" style="z-index:2;">
+        <div id="playerPauseOverlay" style="display:flex; opacity:0; transition: opacity 0.4s ease-in-out; position:absolute; inset:0; z-index:2; background: rgba(0,0,0,0.85); align-items:center; justify-content:flex-start; padding: 4% 8%; pointer-events:none;">
+            <div style="max-width: 600px; text-align: left; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
+                <p style="color:#ddd; margin-bottom:10px; font-size: 1.1rem; font-weight: 500;">You're watching</p>
+                <div style="border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom:15px;">
+                    <h1 id="pauseTitle" style="margin:0; font-size: clamp(28px, 4vw, 42px); font-weight: bold; line-height:1.1;"></h1>
+                    <div style="margin-top: 8px; font-size: 1rem; color: #ccc; display:flex; gap:15px; align-items:center;">
+                        <span id="pauseYear"></span>
+                        <span id="pauseDurationSpan" style="display:none;"><i class="fas fa-clock"></i> <span id="pauseDuration"></span></span>
+                        <span id="pauseGenre" style="border:1px solid #666; padding:2px 8px; border-radius:12px; font-size:0.85rem;"></span>
+                    </div>
+                </div>
+                <p id="pauseDescription" style="font-size: 1.05rem; line-height: 1.5; color: #ddd; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></p>
+                <div style="font-size:0.95rem; color:#aaa;">
+                    <strong>Cast:</strong> <span id="pauseCast" style="color:#ccc;"></span>
+                </div>
+            </div>
+        </div>
+        <div id="playerControls" class="player-controls" style="z-index:3;">
             <div class="player-header">
                 <button class="tv-focusable player-btn" onclick="closePlayer()" style="font-size:1.8rem;">
                     <i class="fas fa-arrow-left"></i>
@@ -2768,7 +2853,7 @@ if (isset($_SESSION['profile_id'])) {
                     <?php endif; ?>
                     
                     <label>4-Digit PIN (Leave blank to remove PIN Lock)</label>
-                    <input type="password" name="new_pin" maxlength="4" pattern="\d{4}" title="Please enter exactly 4 digits" class="tv-focusable" placeholder="e.g. 1234" inputmode="numeric">
+                    <input type="tel" name="new_pin" maxlength="4" pattern="\d{4}" title="Please enter exactly 4 digits" class="tv-focusable" placeholder="e.g. 1234" inputmode="numeric" style="-webkit-text-security: disc; text-security: disc;">
                     <button type="submit" name="update_pin" class="btn-primary tv-focusable" style="margin-top:10px;">Save PIN</button>
                 </form>
             </div>
@@ -2852,7 +2937,7 @@ if (isset($_SESSION['profile_id'])) {
                     while($m = $mStmt->fetch()):
                     ?>
                     <div class="movie-grid-item">
-                        <img src="<?= htmlspecialchars($m['poster_path']) ?>" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
+                        <img src="<?= htmlspecialchars($m['poster_path']) ?>" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
                         <div class="movie-grid-info">
                             <div class="movie-grid-title m-title" title="<?= htmlspecialchars($m['clean_title']) ?>"><?= htmlspecialchars($m['clean_title']) ?></div>
                             <div class="movie-grid-year m-year"><?= htmlspecialchars($m['release_year']) ?></div>
@@ -2917,7 +3002,7 @@ if (isset($_SESSION['profile_id'])) {
                     while($s = $sStmt->fetch()):
                     ?>
                     <div class="movie-grid-item" style="display:flex; flex-direction:column;">
-                        <img src="<?= htmlspecialchars($s['poster_path']) ?>" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
+                        <img src="<?= htmlspecialchars($s['poster_path']) ?>" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
                         <div class="movie-grid-info" style="display:flex; flex-direction:column; flex:1;">
                             <div class="movie-grid-title s-title" title="<?= htmlspecialchars($s['clean_title']) ?>"><?= htmlspecialchars($s['clean_title']) ?></div>
                             <div class="movie-grid-year s-year"><?= htmlspecialchars($s['release_year']) ?></div>
@@ -2970,7 +3055,7 @@ if (isset($_SESSION['profile_id'])) {
                     while($ep = $eStmt->fetch()):
                     ?>
                     <div style="display:flex; gap:15px; background:#222; padding:15px; border-radius:8px; border:1px solid #444; align-items:center;">
-                        <img src="<?= htmlspecialchars($ep['thumbnail_path']) ?>" style="width:120px; aspect-ratio:16/9; object-fit:cover; border-radius:4px;" onerror="this.src='https://via.placeholder.com/120x68/222/fff?text=No+Thumb'">
+                        <img src="<?= htmlspecialchars($ep['thumbnail_path']) ?>" style="width:120px; aspect-ratio:16/9; object-fit:cover; border-radius:4px;" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x68/222/fff?text=No+Thumb'">
                         <div style="flex:1;">
                             <div style="font-weight:bold; font-size:1.1rem;">E<?= $ep['episode_number'] ?>: <?= htmlspecialchars($ep['title']) ?></div>
                             <div style="color:#aaa; font-size:0.85rem; margin-top:5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;"><?= htmlspecialchars($ep['description']) ?></div>
@@ -3315,7 +3400,7 @@ if (isset($_SESSION['profile_id'])) {
         grid.innerHTML = movies.map(m => {
             let imgSrc = m.poster_path || m.backdrop_path || 'https://via.placeholder.com/300x450/222/fff?text=No+Poster';
             return `<div class="search-card tv-focusable" tabindex="0" data-movie-id="${m.id}" onclick="sessionStorage.setItem('lastMovieId', '${m.id}'); sessionStorage.setItem('lastSection', 'search'); window.location.href='?p=movie&id=${m.id}'"> 
-                <img src="${imgSrc}" alt="${(m.clean_title || '').replace(/"/g, '&quot;')}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
+                <img src="${imgSrc}" alt="${(m.clean_title || '').replace(/"/g, '&quot;')}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
                 <div class="search-card-overlay">
                     <div class="search-card-title">${m.clean_title || m.raw_title || 'Untitled'}</div>
                 </div>
@@ -3575,6 +3660,47 @@ if (isset($_SESSION['profile_id'])) {
         currentDbType = dbMediaType;
         document.getElementById('playerContainer').style.display = 'block';
         
+        let overlay = document.getElementById('playerPauseOverlay');
+        if (overlay) overlay.style.opacity = '0';
+        
+        if (dbMovieId) {
+            fetch(`?ajax_metadata=1&type=${dbMediaType}&id=${dbMovieId}`)
+                .then(res => res.json())
+                .then(meta => {
+                    document.getElementById('pauseTitle').innerText = meta.title || title;
+                    document.getElementById('pauseYear').innerText = meta.year || '';
+                    document.getElementById('pauseGenre').innerText = meta.genre || '';
+                    
+                    let durStr = '';
+                    if (meta.duration && meta.duration !== 'N/A') {
+                        let totalMins = parseInt(meta.duration);
+                        if (!isNaN(totalMins)) {
+                            let h = Math.floor(totalMins / 60);
+                            let m = totalMins % 60;
+                            durStr = h > 0 ? `${h}h ${m}min` : `${m}min`;
+                        } else {
+                            durStr = meta.duration;
+                        }
+                    }
+                    document.getElementById('pauseDuration').innerText = durStr;
+                    document.getElementById('pauseDurationSpan').style.display = durStr ? 'inline' : 'none';
+                    document.getElementById('pauseDescription').innerText = meta.desc_text || '';
+                    let castStr = 'N/A';
+                    if (meta.actors) {
+                        try {
+                            let actorsArr = JSON.parse(meta.actors);
+                            if (Array.isArray(actorsArr) && actorsArr.length > 0) {
+                                castStr = actorsArr.map(a => a.name).join(', ');
+                            }
+                        } catch (e) {
+                            castStr = meta.actors;
+                        }
+                    }
+                    document.getElementById('pauseCast').innerText = castStr;
+                })
+                .catch(err => console.error('Metadata fetch error', err));
+        }
+
         let prevBtn = document.getElementById('prevEpBtn');
         let nextBtn = document.getElementById('nextEpBtn');
         if (prevBtn && nextBtn) {
@@ -3705,10 +3831,17 @@ if (isset($_SESSION['profile_id'])) {
 
     function onPlayerStateChange(event) {
         const btn = document.getElementById('playPauseBtn');
+        const overlay = document.getElementById('playerPauseOverlay');
         if (event.data == YT.PlayerState.PLAYING) {
             btn.innerHTML = '<i class="fas fa-pause"></i>'; 
+            if (overlay) overlay.style.opacity = '0';
         } else {
             btn.innerHTML = '<i class="fas fa-play"></i>'; 
+            if (event.data == YT.PlayerState.PAUSED) {
+                if (overlay) overlay.style.opacity = '1';
+            } else {
+                if (overlay) overlay.style.opacity = '0';
+            }
         }
     }
 
@@ -3891,7 +4024,7 @@ if (isset($_SESSION['profile_id'])) {
 
         // Search page: physical keyboard passthrough for typing
         let searchInput = document.getElementById('searchInput');
-        if (searchInput) {
+        if (searchInput && document.activeElement !== searchInput) {
             let playerContainer = document.getElementById('playerContainer');
             let movieModal = document.getElementById('movieModal');
             let isPlayerOpen = playerContainer && playerContainer.style.display === 'block';
@@ -4051,6 +4184,16 @@ if (isset($_SESSION['profile_id'])) {
                     e.preventDefault();
                     return;
                 }
+            }
+        }
+
+        if (current.closest('.hero-carousel') && e.key === 'ArrowUp') {
+            let navItem = document.querySelector('nav .tv-focusable.active') || document.querySelector('nav .tv-focusable');
+            if (navItem) {
+                navItem.focus();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                e.preventDefault();
+                return;
             }
         }
         
