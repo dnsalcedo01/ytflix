@@ -1539,7 +1539,7 @@ if (isset($_SESSION['profile_id'])) {
             .nav-left-desktop { display: none !important; }
             .nav-left-mobile { display: flex !important; }
             .nav-right { flex: 0 0 auto; }
-            .nav-center { order: initial; width: auto; flex: 1; gap: 6px; font-size: 0.85rem; overflow-x: auto; padding-bottom: 0; justify-content: center; white-space: nowrap; margin: 0; scrollbar-width: none; }
+            .nav-center { order: initial; width: auto; flex: 1; gap: 6px; font-size: 0.85rem; overflow-x: auto; padding-bottom: 0; justify-content: flex-start; white-space: nowrap; margin: 0; scrollbar-width: none; }
             .nav-center a { flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 5px 12px; font-size: 0.85rem; }
             #installAppBtn i { font-size: 1.15rem; margin: 0 !important; }
             .nav-center::-webkit-scrollbar { display: none; }
@@ -1567,6 +1567,76 @@ if (isset($_SESSION['profile_id'])) {
             .nav-links { gap: 15px; }
             .movies-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
             .player-controls { padding: 15px; }
+        }
+
+        /* Portrait Orientation Player Fixes */
+        @media (orientation: portrait) {
+            #playerPauseOverlay {
+                padding: 0 5% !important;
+                justify-content: center !important;
+                text-align: center !important;
+            }
+            #playerPauseOverlay > div {
+                border-left: none !important;
+                padding-left: 0 !important;
+            }
+            #pauseTitle {
+                font-size: clamp(22px, 6vw, 32px) !important;
+            }
+            #pauseDescription {
+                font-size: 0.95rem !important;
+                -webkit-line-clamp: 5 !important;
+                margin-bottom: 15px !important;
+            }
+            .player-controls {
+                padding: 15px !important;
+            }
+            .player-header {
+                font-size: 1.2rem !important;
+                gap: 10px !important;
+            }
+            .player-header .player-btn {
+                font-size: 1.2rem !important;
+                padding: 4px 8px !important;
+            }
+            .controls-row {
+                font-size: 1.2rem !important;
+                gap: 8px !important;
+            }
+            .time-display {
+                font-size: 0.85rem !important;
+                margin-left: 5px !important;
+            }
+            .total-time {
+                display: none !important;
+            }
+            .play-controls-group .player-btn {
+                padding: 6px 10px !important;
+            }
+            .player-settings {
+                gap: 8px !important;
+            }
+        }
+
+        /* Mobile Landscape Player Fixes (Prevent Overlap) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            #playerPauseOverlay {
+                padding: 0 5% !important;
+            }
+            #pauseTitle {
+                font-size: clamp(20px, 4vw, 24px) !important;
+            }
+            #pauseDescription {
+                font-size: 0.85rem !important;
+                -webkit-line-clamp: 2 !important;
+                margin-bottom: 5px !important;
+            }
+            .cast-label {
+                font-size: 0.85rem !important;
+            }
+            .player-controls {
+                padding: 10px 15px !important;
+            }
         }
 
     </style>
@@ -1662,10 +1732,10 @@ if (isset($_SESSION['profile_id'])) {
                 <input type="hidden" name="login_pin" id="hiddenPinInput">
                 
                 <div class="pin-box-container">
-                    <input type="tel" class="pin-box tv-focusable" id="pinBox1" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security: disc; text-security: disc;">
-                    <input type="tel" class="pin-box tv-focusable" id="pinBox2" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security: disc; text-security: disc;">
-                    <input type="tel" class="pin-box tv-focusable" id="pinBox3" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security: disc; text-security: disc;">
-                    <input type="tel" class="pin-box tv-focusable" id="pinBox4" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="-webkit-text-security: disc; text-security: disc;">
+                    <input type="tel" class="pin-box tv-focusable" id="pinBox1" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+                    <input type="tel" class="pin-box tv-focusable" id="pinBox2" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+                    <input type="tel" class="pin-box tv-focusable" id="pinBox3" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+                    <input type="tel" class="pin-box tv-focusable" id="pinBox4" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
                 </div>
             </form>
             <button type="button" onclick="closePinModal()" class="btn tv-focusable" style="width:100%; justify-content:center; background:#444; margin-top:10px; color:white;">Cancel</button>
@@ -2853,7 +2923,7 @@ if (isset($_SESSION['profile_id'])) {
                     <?php endif; ?>
                     
                     <label>4-Digit PIN (Leave blank to remove PIN Lock)</label>
-                    <input type="tel" name="new_pin" maxlength="4" pattern="\d{4}" title="Please enter exactly 4 digits" class="tv-focusable" placeholder="e.g. 1234" inputmode="numeric" style="-webkit-text-security: disc; text-security: disc;">
+                    <input type="password" name="new_pin" maxlength="4" pattern="\d{4}" title="Please enter exactly 4 digits" class="tv-focusable" placeholder="e.g. 1234" inputmode="numeric">
                     <button type="submit" name="update_pin" class="btn-primary tv-focusable" style="margin-top:10px;">Save PIN</button>
                 </form>
             </div>
@@ -3441,13 +3511,21 @@ if (isset($_SESSION['profile_id'])) {
     if (pinBoxes[0]) {
         pinBoxes.forEach((box, index) => {
             box.addEventListener('input', (e) => {
-                box.value = box.value.replace(/[^0-9]/g, ''); 
-                if (box.value.length === 1) {
+                let val = box.value.replace(/[^0-9•]/g, ''); 
+                if (val.length > 0) {
+                    let lastChar = val.charAt(val.length - 1);
+                    if (lastChar !== '•') {
+                        box.dataset.realValue = lastChar;
+                    }
+                    box.value = '•';
                     if (index < 3) {
                         pinBoxes[index + 1].focus();
                     } else {
                         submitPin(); 
                     }
+                } else {
+                    box.dataset.realValue = '';
+                    box.value = '';
                 }
             });
 
@@ -3456,6 +3534,7 @@ if (isset($_SESSION['profile_id'])) {
                     if (index > 0) {
                         pinBoxes[index - 1].focus();
                         pinBoxes[index - 1].value = ''; 
+                        pinBoxes[index - 1].dataset.realValue = '';
                     }
                 }
             });
@@ -3463,7 +3542,7 @@ if (isset($_SESSION['profile_id'])) {
     }
 
     function submitPin() {
-        let pin = pinBoxes.map(b => b.value).join('');
+        let pin = pinBoxes.map(b => b.dataset.realValue || '').join('');
         if(pin.length === 4) {
             document.getElementById('hiddenPinInput').value = pin;
             document.getElementById('pinForm').submit();
@@ -3472,7 +3551,10 @@ if (isset($_SESSION['profile_id'])) {
 
     function clearPinBoxes() {
         if(pinBoxes[0]) {
-            pinBoxes.forEach(b => b.value = '');
+            pinBoxes.forEach(b => {
+                b.value = '';
+                b.dataset.realValue = '';
+            });
         }
     }
     
@@ -3660,6 +3742,12 @@ if (isset($_SESSION['profile_id'])) {
         currentDbType = dbMediaType;
         document.getElementById('playerContainer').style.display = 'block';
         
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(()=>{});
+            }
+        } catch(e) {}
+        
         let overlay = document.getElementById('playerPauseOverlay');
         if (overlay) overlay.style.opacity = '0';
         
@@ -3719,7 +3807,8 @@ if (isset($_SESSION['profile_id'])) {
         document.body.style.overflow = 'hidden';
         
         document.getElementById('progressFilled').style.width = '0%';
-        document.getElementById('timeDisplay').innerText = '0:00 / 0:00';
+        document.getElementById('timeDisplay').innerHTML = '0:00 <span class="total-time">/ 0:00</span>';
+        showRemainingTime = false;
         document.getElementById('playerEndTime').innerText = '';
 
         if (player) {
@@ -3783,6 +3872,12 @@ if (isset($_SESSION['profile_id'])) {
     }
 
     function closePlayer() {
+        try {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        } catch(e) {}
+
         document.getElementById('playerContainer').style.display = 'none';
         document.body.style.overflow = 'auto';
         
@@ -3807,7 +3902,7 @@ if (isset($_SESSION['profile_id'])) {
         if(document.getElementById('speedBtn')) document.getElementById('speedBtn').innerText = '1x';
         
         document.getElementById('progressFilled').style.width = '0%';
-        document.getElementById('timeDisplay').innerText = '0:00 / 0:00';
+        document.getElementById('timeDisplay').innerHTML = '0:00 <span class="total-time">/ 0:00</span>';
         document.getElementById('playerEndTime').innerText = '';
         
         let menu = document.getElementById('playerSettingsMenu');
@@ -3935,12 +4030,29 @@ if (isset($_SESSION['profile_id'])) {
 
     function toggleFullscreen() {
         let elem = document.getElementById("playerContainer");
-        if (!document.fullscreenElement) {
-            elem.requestFullscreen().catch(err => {
-                console.warn(`Fullscreen API Error`);
-            });
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            let p = null;
+            if (elem.requestFullscreen) p = elem.requestFullscreen();
+            else if (elem.webkitRequestFullscreen) p = elem.webkitRequestFullscreen();
+            else if (elem.msRequestFullscreen) p = elem.msRequestFullscreen();
+            
+            if (p && p.catch) p.catch(err => console.warn(`Fullscreen API Error`));
+            
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(()=>{});
+                }
+            } catch(e) {}
         } else {
-            document.exitFullscreen();
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+            
+            try {
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            } catch(e) {}
         }
     }
 
@@ -3953,7 +4065,7 @@ if (isset($_SESSION['profile_id'])) {
                 document.getElementById('progressFilled').style.width = percent + '%';
                 
                 let displayCurrentStr = showRemainingTime ? '-' + formatTime(duration - current) : formatTime(current);
-                document.getElementById('timeDisplay').innerText = displayCurrentStr + ' / ' + formatTime(duration);
+                document.getElementById('timeDisplay').innerHTML = displayCurrentStr + ' <span class="total-time">/ ' + formatTime(duration) + '</span>';
                 
                 let speed = player.getPlaybackRate ? player.getPlaybackRate() : 1;
                 if (speed <= 0) speed = 1; 
