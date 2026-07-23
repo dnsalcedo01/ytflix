@@ -944,11 +944,11 @@ if (isset($_SESSION['profile_id'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>YTFLIX</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
-    <meta name="theme-color" content="#E50914">
+    <meta name="theme-color" content="#000000">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ==================== GLOBAL STYLES ==================== */
@@ -966,6 +966,8 @@ if (isset($_SESSION['profile_id'])) {
             color: var(--text);
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
         a { text-decoration: none; color: inherit; }
         button { cursor: pointer; border: none; outline: none; font-family: inherit; }
@@ -1631,7 +1633,7 @@ if (isset($_SESSION['profile_id'])) {
                 -webkit-line-clamp: 2 !important;
                 margin-bottom: 5px !important;
             }
-            .cast-label {
+            .cast-wrapper, #pauseCast {
                 font-size: 0.85rem !important;
             }
             .player-controls {
@@ -2411,7 +2413,7 @@ if (isset($_SESSION['profile_id'])) {
                     </div>
                 </div>
                 <p id="pauseDescription" style="font-size: 1.05rem; line-height: 1.5; color: #ddd; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></p>
-                <div style="font-size:0.95rem; color:#aaa;">
+                <div class="cast-wrapper" style="font-size:0.95rem; color:#aaa;">
                     <strong>Cast:</strong> <span id="pauseCast" style="color:#ccc;"></span>
                 </div>
             </div>
@@ -2469,7 +2471,7 @@ if (isset($_SESSION['profile_id'])) {
                     </div>
                 </div>
                 <p id="pauseDescription" style="font-size: 1.05rem; line-height: 1.5; color: #ddd; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></p>
-                <div style="font-size:0.95rem; color:#aaa;">
+                <div class="cast-wrapper" style="font-size:0.95rem; color:#aaa;">
                     <strong>Cast:</strong> <span id="pauseCast" style="color:#ccc;"></span>
                 </div>
             </div>
@@ -2726,7 +2728,7 @@ if (isset($_SESSION['profile_id'])) {
                     </div>
                 </div>
                 <p id="pauseDescription" style="font-size: 1.05rem; line-height: 1.5; color: #ddd; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></p>
-                <div style="font-size:0.95rem; color:#aaa;">
+                <div class="cast-wrapper" style="font-size:0.95rem; color:#aaa;">
                     <strong>Cast:</strong> <span id="pauseCast" style="color:#ccc;"></span>
                 </div>
             </div>
