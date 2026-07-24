@@ -1031,13 +1031,16 @@ if (isset($_SESSION['profile_id'])) {
             position: relative; z-index: 10;
         }
         .login-bg-grid {
-            position: fixed; inset: -100px; z-index: -2;
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;
-            opacity: 0.35; pointer-events: none; overflow: hidden;
-            transform: rotate(-6deg) scale(1.15);
+            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; z-index: -2;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px;
+            opacity: 0.45; pointer-events: none; overflow: hidden;
+            transform: perspective(1000px) rotateX(30deg) rotateZ(-10deg) scale(1.1);
+            transform-origin: center center;
             align-content: center; justify-content: center;
         }
         .login-bg-grid img {
+            width: 100%; height: auto; border-radius: 4px; object-fit: cover; aspect-ratio: 2/3;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
             width: 100%; height: auto; border-radius: 4px; object-fit: cover; aspect-ratio: 2/3;
         }
         .login-bg-overlay {
@@ -1651,7 +1654,12 @@ if (isset($_SESSION['profile_id'])) {
         $bgShowsQ = $pdo->query("SELECT poster_path FROM shows WHERE poster_path IS NOT NULL AND poster_path != ''");
         $bgPosters = array_merge($bgMoviesQ->fetchAll(PDO::FETCH_COLUMN), $bgShowsQ->fetchAll(PDO::FETCH_COLUMN));
         shuffle($bgPosters);
-        $bgPosters = array_slice($bgPosters, 0, 40);
+        if (!empty($bgPosters)) {
+            while(count($bgPosters) < 250) {
+                $bgPosters = array_merge($bgPosters, $bgPosters);
+            }
+            $bgPosters = array_slice($bgPosters, 0, 250);
+        }
     ?>
     <div class="login-bg-grid">
         <?php foreach($bgPosters as $poster): ?>
