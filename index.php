@@ -1327,7 +1327,7 @@ if (isset($_SESSION['profile_id'])) {
         }
 
         @media (max-width: 768px) {
-            .search-page { flex-direction: column; padding-top: 120px; gap: 20px; }
+            .search-page { flex-direction: column; gap: 20px; }
             .search-left { flex: initial; position: static; width: 100%; }
             .vk-grid { grid-template-columns: repeat(6, 1fr); }
             .search-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
@@ -1512,7 +1512,7 @@ if (isset($_SESSION['profile_id'])) {
         .cc-active { color: #E50914 !important; border-bottom: 2px solid #E50914; }
 
         /* ==================== ADMIN PANEL ==================== */
-        .admin-panel { padding: 100px 4% 40px 4%; max-width: 1200px; margin: auto; }
+        .admin-panel { padding: 90px 4% 40px 4%; max-width: 1200px; margin: auto; }
         .admin-nav-tabs { display: flex; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .admin-tab { color: var(--gray); font-size: 1.2rem; padding: 10px 15px; cursor: pointer; font-weight: bold; transition: color 0.3s; }
         .admin-tab.active { color: white; border-bottom: 3px solid var(--primary); }
@@ -1536,6 +1536,11 @@ if (isset($_SESSION['profile_id'])) {
         .action-btn:hover, .action-btn:focus { filter: brightness(1.2); }
 
         /* Media Queries */
+        @media (max-width: 1024px) {
+            .slider { padding-bottom: 15px !important; }
+            .slider-wrapper { margin-bottom: 10px !important; }
+        }
+
         @media (max-width: 768px) {
             #virtualKeyboard { display: none !important; }
             .slider-controls { display: none; }
@@ -1544,10 +1549,9 @@ if (isset($_SESSION['profile_id'])) {
             .nav-left-desktop { display: none !important; }
             .nav-left-mobile { display: flex !important; }
             .nav-right { flex: 0 0 auto; }
-            .nav-center { order: initial; width: auto; flex: 1; gap: 6px; font-size: 0.85rem; overflow-x: auto; padding-bottom: 0; justify-content: flex-start; white-space: nowrap; margin: 0; scrollbar-width: none; }
-            .nav-center a { flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 5px 12px; font-size: 0.85rem; }
-            #installAppBtn i { font-size: 1.15rem; margin: 0 !important; }
-            .nav-center::-webkit-scrollbar { display: none; }
+            .nav-center { display: none !important; }
+            .nav-right-hamburger { display: flex !important; align-items: center; justify-content: center; width: 40px; height: 40px; }
+            .installAppBtnClass i { font-size: 1.15rem; margin: 0 !important; }
             
             .logo-img { height: 32px !important; }
             .profile-icon { width: 30px !important; height: 30px !important; font-size: 1rem !important; }
@@ -1770,10 +1774,13 @@ if (isset($_SESSION['profile_id'])) {
         </div>
 
         <!-- Mobile Nav Left (Dropdown) -->
-        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center;">
+        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
             <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
+            <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 12px;">
+                <i class="fas fa-search"></i>
+            </a>
             <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                 <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
                 <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -1785,13 +1792,25 @@ if (isset($_SESSION['profile_id'])) {
             <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" title="Home"><i class="fas fa-home"></i><span>Home</span></a>
             <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
             <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
-            <a href="javascript:void(0)" id="installAppBtn" class="tv-focusable" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
+            <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
             <?php if ($is_main_profile): ?>
             <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
             <?php endif; ?>
         </div>
 
-        <div class="nav-links nav-right">
+        <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
+            <button class="tv-focusable nav-right-hamburger" onclick="toggleHamburgerMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="hamburger-dropdown-menu" id="hamburgerMenu" style="display:none; position:absolute; top:45px; right:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 150px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-home"></i> Home</a>
+                <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
+                <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
+                <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
+                <?php if ($is_main_profile): ?>
+                <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
+                <?php endif; ?>
+            </div>
             <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
             </a>
@@ -2212,10 +2231,13 @@ if (isset($_SESSION['profile_id'])) {
         </div>
 
         <!-- Mobile Nav Left (Dropdown) -->
-        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center;">
+        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
             <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
+            <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 12px;">
+                <i class="fas fa-search"></i>
+            </a>
             <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                 <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
                 <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -2226,9 +2248,24 @@ if (isset($_SESSION['profile_id'])) {
             <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" title="Home"><i class="fas fa-home"></i><span>Home</span></a>
             <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
             <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
+            <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
+            <?php if ($is_main_profile): ?>
             <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+            <?php endif; ?>
         </div>
-        <div class="nav-links nav-right">
+        <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
+            <button class="tv-focusable nav-right-hamburger" onclick="toggleHamburgerMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="hamburger-dropdown-menu" id="hamburgerMenu3" style="display:none; position:absolute; top:45px; right:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 150px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-home"></i> Home</a>
+                <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
+                <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
+                <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
+                <?php if ($is_main_profile): ?>
+                <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
+                <?php endif; ?>
+            </div>
             <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
             </a>
@@ -2797,10 +2834,13 @@ if (isset($_SESSION['profile_id'])) {
         </div>
 
         <!-- Mobile Nav Left (Dropdown) -->
-        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center;">
+        <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
             <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
+            <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 5px;">
+                <i class="fas fa-search"></i>
+            </a>
             <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                 <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
                 <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -2812,13 +2852,25 @@ if (isset($_SESSION['profile_id'])) {
             <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" title="Home"><i class="fas fa-home"></i><span>Home</span></a>
             <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
             <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
-            <a href="javascript:void(0)" id="installAppBtn" class="tv-focusable" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
+            <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
             <?php if ($is_main_profile): ?>
             <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
             <?php endif; ?>
         </div>
 
-        <div class="nav-links nav-right">
+        <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
+            <button class="tv-focusable nav-right-hamburger" onclick="toggleHamburgerMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; margin-right:12px; cursor:pointer;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="hamburger-dropdown-menu" id="hamburgerMenu2" style="display:none; position:absolute; top:45px; right:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 150px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-home"></i> Home</a>
+                <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
+                <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
+                <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
+                <?php if ($is_main_profile): ?>
+                <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
+                <?php endif; ?>
+            </div>
             <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
             </a>
@@ -4441,34 +4493,43 @@ if (isset($_SESSION['profile_id'])) {
     }
 
     let deferredPrompt;
-    const installBtn = document.getElementById('installAppBtn');
+    const installBtns = document.querySelectorAll('.installAppBtnClass');
 
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        if (installBtn) {
-            installBtn.style.display = 'flex';
+        installBtns.forEach(btn => {
+            if (btn) btn.style.display = 'flex';
+        });
+    });
+
+    installBtns.forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    installBtns.forEach(b => { if(b) b.style.display = 'none'; });
+                }
+            });
         }
     });
 
-    if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('User accepted the install prompt');
-                }
-                deferredPrompt = null;
-                installBtn.style.display = 'none';
-            }
-        });
-    }
-
     window.addEventListener('appinstalled', (evt) => {
         console.log('YTFlix was installed');
-        if (installBtn) installBtn.style.display = 'none';
+        installBtns.forEach(btn => { if(btn) btn.style.display = 'none'; });
     });
+
+    function toggleHamburgerMenu() {
+        var menus = document.querySelectorAll('.hamburger-dropdown-menu');
+        menus.forEach(function(m) {
+            m.style.display = (m.style.display === 'none' || m.style.display === '') ? 'flex' : 'none';
+        });
+    }
 
     function toggleMobileDropdown() {
         var menus = document.querySelectorAll('.mobile-dropdown-menu');
@@ -4483,6 +4544,14 @@ if (isset($_SESSION['profile_id'])) {
         for(var i=0; i<menus.length; i++) {
             if (menus[i].style.display === 'flex' && !menus[i].contains(e.target) && icons[i] && !icons[i].contains(e.target)) {
                 menus[i].style.display = 'none';
+            }
+        }
+        
+        var hamburgerMenus = document.querySelectorAll('.hamburger-dropdown-menu');
+        var hamburgerIcons = document.querySelectorAll('.nav-right-hamburger');
+        for(var i=0; i<hamburgerMenus.length; i++) {
+            if (hamburgerMenus[i].style.display === 'flex' && !hamburgerMenus[i].contains(e.target) && hamburgerIcons[i] && !hamburgerIcons[i].contains(e.target)) {
+                hamburgerMenus[i].style.display = 'none';
             }
         }
     }
