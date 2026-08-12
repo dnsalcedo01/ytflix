@@ -26,7 +26,7 @@ This project was built to give those who are short on a budget a premium viewing
 ## ✨ Features
 
 - **Cinematic Interface**: A modern, sleek UI with hero carousels, backdrop banners, and responsive grids.
-- **TV & Controller Friendly**: Full DPAD/keyboard navigation support, making it perfect for living room setups or Smart TVs.
+- **TV & Controller Friendly**: Full DPAD navigation support, making it perfect for living room setups or Smart TVs.
 - **Progress Tracking**: Automatically saves your watch history and resume points for all movies and episodes.
 - **Watchlist**: Add your favorite movies and shows to your personal watchlist.
 - **Multi-Profile Support**: Create different profiles with custom avatars and optional PIN locks.
