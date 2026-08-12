@@ -4550,6 +4550,7 @@ if (isset($_SESSION['profile_id'])) {
         installBtns.forEach(btn => { if(btn) btn.style.display = 'none'; });
     });
 
+    // Updated mobile layout styling - Sidebar Hamburger Menu
     function toggleHamburgerMenu() {
         var sidebars = document.querySelectorAll('.hamburger-sidebar');
         var overlays = document.querySelectorAll('.hamburger-overlay');
