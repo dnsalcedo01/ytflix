@@ -1024,6 +1024,26 @@ if (isset($_SESSION['profile_id'])) {
             align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; cursor: pointer;
             background-size: cover; background-position: center;
         }
+        .hamburger-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000;
+        }
+        .hamburger-sidebar {
+            position: fixed; top: 0; right: 0; width: 250px; height: 100vh; background: #141414;
+            border-left: 1px solid #333; padding: 20px 15px; display: flex; flex-direction: column; gap: 15px;
+            z-index: 1001; box-shadow: -4px 0 15px rgba(0,0,0,0.8); overflow-y: auto;
+            transform: translateX(100%); transition: transform 0.3s ease-in-out;
+        }
+        .hamburger-sidebar.open {
+            transform: translateX(0);
+        }
+        .hamburger-sidebar a {
+            color: white; text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 10px; font-size: 1.1rem; border-radius: 4px; transition: background 0.2s;
+        }
+        .hamburger-sidebar a:hover, .hamburger-sidebar a:focus {
+            background: rgba(255,255,255,0.1);
+        }
+        body.no-scroll { overflow: hidden !important; }
+
 
         /* ==================== PROFILES ==================== */
         .auth-container {
@@ -1799,10 +1819,12 @@ if (isset($_SESSION['profile_id'])) {
         </div>
 
         <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
-            <button class="tv-focusable nav-right-hamburger" onclick="toggleHamburgerMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
+            <button class="tv-focusable nav-right-hamburger" onclick="event.preventDefault(); event.stopPropagation(); toggleHamburgerMenu();" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="hamburger-dropdown-menu" id="hamburgerMenu" style="display:none; position:absolute; top:45px; right:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 150px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+            <div class="hamburger-overlay" onclick="toggleHamburgerMenu()" style="display:none;"></div>
+            <div class="hamburger-sidebar" id="hamburgerMenu">
+                <img src="ytflix.png" alt="YTFlix" style="height: 35px; margin-bottom: 20px; align-self: flex-start;">
                 <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-home"></i> Home</a>
                 <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
                 <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
@@ -2254,10 +2276,12 @@ if (isset($_SESSION['profile_id'])) {
             <?php endif; ?>
         </div>
         <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
-            <button class="tv-focusable nav-right-hamburger" onclick="toggleHamburgerMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
+            <button class="tv-focusable nav-right-hamburger" onclick="event.preventDefault(); event.stopPropagation(); toggleHamburgerMenu();" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="hamburger-dropdown-menu" id="hamburgerMenu3" style="display:none; position:absolute; top:45px; right:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 150px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+            <div class="hamburger-overlay" onclick="toggleHamburgerMenu()" style="display:none;"></div>
+            <div class="hamburger-sidebar" id="hamburgerMenu3">
+                <img src="ytflix.png" alt="YTFlix" style="height: 35px; margin-bottom: 20px; align-self: flex-start;">
                 <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-home"></i> Home</a>
                 <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
                 <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
@@ -2859,10 +2883,12 @@ if (isset($_SESSION['profile_id'])) {
         </div>
 
         <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
-            <button class="tv-focusable nav-right-hamburger" onclick="toggleHamburgerMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; margin-right:12px; cursor:pointer;">
+            <button class="tv-focusable nav-right-hamburger" onclick="event.preventDefault(); event.stopPropagation(); toggleHamburgerMenu();" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; margin-right:12px; cursor:pointer;">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="hamburger-dropdown-menu" id="hamburgerMenu2" style="display:none; position:absolute; top:45px; right:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 150px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+            <div class="hamburger-overlay" onclick="toggleHamburgerMenu()" style="display:none;"></div>
+            <div class="hamburger-sidebar" id="hamburgerMenu2">
+                <img src="ytflix.png" alt="YTFlix" style="height: 35px; margin-bottom: 20px; align-self: flex-start;">
                 <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-home"></i> Home</a>
                 <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
                 <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
@@ -4525,10 +4551,21 @@ if (isset($_SESSION['profile_id'])) {
     });
 
     function toggleHamburgerMenu() {
-        var menus = document.querySelectorAll('.hamburger-dropdown-menu');
-        menus.forEach(function(m) {
-            m.style.display = (m.style.display === 'none' || m.style.display === '') ? 'flex' : 'none';
+        var sidebars = document.querySelectorAll('.hamburger-sidebar');
+        var overlays = document.querySelectorAll('.hamburger-overlay');
+        var isOpen = false;
+        sidebars.forEach(function(sb) {
+            sb.classList.toggle('open');
+            if(sb.classList.contains('open')) isOpen = true;
         });
+        overlays.forEach(function(ov) {
+            ov.style.display = isOpen ? 'block' : 'none';
+        });
+        if (isOpen) {
+            document.body.classList.add('no-scroll');
+        } else {
+            document.body.classList.remove('no-scroll');
+        }
     }
 
     function toggleMobileDropdown() {
@@ -4546,12 +4583,16 @@ if (isset($_SESSION['profile_id'])) {
                 menus[i].style.display = 'none';
             }
         }
-        
-        var hamburgerMenus = document.querySelectorAll('.hamburger-dropdown-menu');
-        var hamburgerIcons = document.querySelectorAll('.nav-right-hamburger');
-        for(var i=0; i<hamburgerMenus.length; i++) {
-            if (hamburgerMenus[i].style.display === 'flex' && !hamburgerMenus[i].contains(e.target) && hamburgerIcons[i] && !hamburgerIcons[i].contains(e.target)) {
-                hamburgerMenus[i].style.display = 'none';
+        if (e.type === 'click') {
+            var hamburgerMenus = document.querySelectorAll('.hamburger-sidebar');
+            var hamburgerIcons = document.querySelectorAll('.nav-right-hamburger');
+            var overlays = document.querySelectorAll('.hamburger-overlay');
+            for(var i=0; i<hamburgerMenus.length; i++) {
+                if (hamburgerMenus[i].classList.contains('open') && !hamburgerMenus[i].contains(e.target) && hamburgerIcons[i] && !hamburgerIcons[i].contains(e.target)) {
+                    hamburgerMenus[i].classList.remove('open');
+                    if (overlays[i]) overlays[i].style.display = 'none';
+                    document.body.classList.remove('no-scroll');
+                }
             }
         }
     }
