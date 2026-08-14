@@ -1559,6 +1559,7 @@ if (isset($_SESSION['profile_id'])) {
         @media (max-width: 1024px) {
             .slider { padding-bottom: 15px !important; }
             .slider-wrapper { margin-bottom: 10px !important; }
+            .slider-info, .cw-info { display: none !important; }
         }
 
         @media (max-width: 768px) {
