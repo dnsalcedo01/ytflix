@@ -1591,7 +1591,7 @@ if (isset($_SESSION['profile_id'])) {
             
             .movie-content { flex-direction: column; margin-top: -15vh; }
             .movie-info-right { flex: 1; margin-top: 0; }
-            .movie-hero { height: 55vh; }
+            .movie-hero { height: auto; aspect-ratio: 16 / 9; min-height: unset; background-position: center; }
             .movie-title { font-size: clamp(28px, 8vw, 42px); }
             .slider { --slider-h: max(46vw - 15px, 150px); }
             .nav-links { gap: 15px; }
