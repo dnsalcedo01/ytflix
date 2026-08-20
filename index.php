@@ -3826,6 +3826,9 @@ if (isset($_SESSION['profile_id'])) {
     }
 
     function openPlayer(videoId, title, startAtTime = 0, dbMovieId = null, dbMediaType = 'movie') {
+        if (dbMovieId && typeof progressMap !== 'undefined' && progressMap[dbMovieId] && typeof progressMap[dbMovieId].time !== 'undefined') {
+            startAtTime = progressMap[dbMovieId].time;
+        }
         currentPlayerVideoId = videoId;
         currentDbMovieId = dbMovieId;
         currentDbType = dbMediaType;
