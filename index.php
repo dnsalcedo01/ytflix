@@ -1529,7 +1529,7 @@ if (isset($_SESSION['profile_id'])) {
         .controls-row { display: flex; align-items: center; gap: 15px; font-size: 1.5rem; }
         .player-btn { background: transparent; color: white; display: flex; justify-content: center; align-items: center; padding: 8px 12px; transition: 0.2s; border-radius: 4px; cursor: pointer; border: none; }
         .player-btn:hover, .player-btn:focus { background: rgba(255,255,255,0.2); }
-        .cc-active { color: #E50914 !important; border-bottom: 2px solid #E50914; }
+        .cc-active { color: #E50914 !important; border-bottom: 2px solid #E50914; border-radius: 0 !important; }
 
         /* ==================== ADMIN PANEL ==================== */
         .admin-panel { padding: 90px 4% 40px 4%; max-width: 1200px; margin: auto; }
