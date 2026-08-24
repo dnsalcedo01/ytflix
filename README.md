@@ -47,6 +47,8 @@ While YTFlix strives to provide a seamless, custom cinematic player interface, y
 
 **This is a technical limitation.** The underlying YouTube API architecture does not allow developers to completely hide or disable certain core UI elements, such as annotations, end video suggestions, or the native player controls. These elements may still occasionally appear during specific playback interactions to ensure the video stream functions correctly.
 
+**Playback Restrictions:** Please note that not all movies or shows hosted on YouTube can be streamed outside of the official YouTube platform. Due to strict copyright restrictions, uploader settings, or region availability, certain videos may be blocked from playing in embedded third-party players like YTFlix.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
