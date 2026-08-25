@@ -1814,9 +1814,7 @@ if (isset($_SESSION['profile_id'])) {
             <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
             <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
             <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
-            <?php if ($is_main_profile): ?>
             <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
-            <?php endif; ?>
         </div>
 
         <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
@@ -1830,9 +1828,7 @@ if (isset($_SESSION['profile_id'])) {
                 <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
                 <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
                 <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
-                <?php if ($is_main_profile): ?>
                 <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
-                <?php endif; ?>
             </div>
             <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
@@ -2272,9 +2268,7 @@ if (isset($_SESSION['profile_id'])) {
             <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
             <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
             <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
-            <?php if ($is_main_profile): ?>
             <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
-            <?php endif; ?>
         </div>
         <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
             <button class="tv-focusable nav-right-hamburger" onclick="event.preventDefault(); event.stopPropagation(); toggleHamburgerMenu();" style="display:none; background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
@@ -2287,9 +2281,7 @@ if (isset($_SESSION['profile_id'])) {
                 <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
                 <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
                 <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
-                <?php if ($is_main_profile): ?>
                 <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
-                <?php endif; ?>
             </div>
             <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
@@ -2878,9 +2870,7 @@ if (isset($_SESSION['profile_id'])) {
             <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" title="Movies"><i class="fas fa-film"></i><span>Movies</span></a>
             <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" title="Shows"><i class="fas fa-tv"></i><span>Shows</span></a>
             <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" title="Install App" style="display:none; align-items:center; color: #FFD700; font-weight: bold;"><i class="fas fa-download"></i> <span>Install App</span></a>
-            <?php if ($is_main_profile): ?>
             <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" title="Settings"><i class="fas fa-cog"></i><span>Settings</span></a>
-            <?php endif; ?>
         </div>
 
         <div class="nav-links nav-right" style="display:flex; align-items:center; position:relative;">
@@ -2894,9 +2884,7 @@ if (isset($_SESSION['profile_id'])) {
                 <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-film"></i> Movies</a>
                 <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-tv"></i> Shows</a>
                 <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
-                <?php if ($is_main_profile): ?>
                 <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
-                <?php endif; ?>
             </div>
             <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
