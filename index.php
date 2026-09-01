@@ -3837,7 +3837,14 @@ if (isset($_SESSION['profile_id'])) {
                 .then(meta => {
                     document.getElementById('pauseTitle').innerText = meta.title || title;
                     document.getElementById('pauseYear').innerText = meta.year || '';
-                    document.getElementById('pauseGenre').innerText = meta.genre || '';
+                    let genreEl = document.getElementById('pauseGenre');
+                    if (meta.genre && meta.genre.trim() !== '') {
+                        genreEl.innerText = meta.genre;
+                        genreEl.style.display = 'inline';
+                    } else {
+                        genreEl.innerText = '';
+                        genreEl.style.display = 'none';
+                    }
                     
                     let durStr = '';
                     if (meta.duration && meta.duration !== 'N/A') {
@@ -4004,16 +4011,26 @@ if (isset($_SESSION['profile_id'])) {
         progressInterval = setInterval(() => { saveProgress(); }, 5000); 
     }
 
+    let pauseOverlayTimeout = null;
+
     function onPlayerStateChange(event) {
         const btn = document.getElementById('playPauseBtn');
         const overlay = document.getElementById('playerPauseOverlay');
+        
+        if (pauseOverlayTimeout) {
+            clearTimeout(pauseOverlayTimeout);
+            pauseOverlayTimeout = null;
+        }
+        
         if (event.data == YT.PlayerState.PLAYING) {
             btn.innerHTML = '<i class="fas fa-pause"></i>'; 
             if (overlay) overlay.style.opacity = '0';
         } else {
             btn.innerHTML = '<i class="fas fa-play"></i>'; 
             if (event.data == YT.PlayerState.PAUSED) {
-                if (overlay) overlay.style.opacity = '1';
+                pauseOverlayTimeout = setTimeout(() => {
+                    if (overlay) overlay.style.opacity = '1';
+                }, 10000);
             } else {
                 if (overlay) overlay.style.opacity = '0';
             }
