@@ -3141,6 +3141,7 @@ if (isset($_SESSION['profile_id'])) {
                 </div>
                 <?php endif; ?>
                 <h2>Manage Shows Library</h2>
+                <p style="color:var(--gray); margin-bottom:10px;">Use the search bar below to seamlessly find specific shows.</p>
                 <input type="text" id="adminShowSearch" onkeyup="filterAdminShowsTable()" placeholder="🔍 Search shows by title or year..." class="tv-focusable" style="margin-bottom:20px; width:100%; padding:15px; background:#222; border:1px solid #444; color:white; border-radius:8px; font-size:1.1rem;">
 
                 <div class="movies-grid" id="showsGrid">
