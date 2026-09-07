@@ -1523,10 +1523,29 @@ if (isset($_SESSION['profile_id'])) {
 
         /* ==================== PLAYER ==================== */
         .player-container {
-            position: fixed; inset: 0; background: black; z-index: 2000; display: none;
+            position: fixed; inset: 0; background: black; z-index: 2000; display: none; overflow: hidden;
         }
-        #yt-iframe-wrapper { position: relative; width: 100%; height: 100%; pointer-events: none; overflow: hidden; } 
-        #ytplayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #yt-iframe-wrapper, .yt-iframe-wrapper { 
+            position: absolute; 
+            inset: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; 
+            overflow: hidden; 
+        } 
+        #ytplayer, #yt-iframe-wrapper iframe, .yt-iframe-wrapper iframe { 
+            position: relative !important;
+            width: 100% !important; 
+            height: 100% !important; 
+            max-width: calc(100vh * 16 / 9) !important;
+            max-height: calc(100vw * 9 / 16) !important;
+            aspect-ratio: 16 / 9 !important;
+            margin: auto !important;
+            border: none;
+        }
 
         .player-controls {
             position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
@@ -2183,7 +2202,7 @@ if (isset($_SESSION['profile_id'])) {
 
     <!-- Custom Video Player -->
     <div id="playerContainer" class="player-container">
-        <div id="yt-iframe-wrapper">
+        <div id="yt-iframe-wrapper" class="yt-iframe-wrapper">
             <div id="ytplayer"></div>
         </div>
         <div id="playerOverlay" style="position:absolute; inset:0; z-index:1;"></div>
@@ -2471,65 +2490,7 @@ if (isset($_SESSION['profile_id'])) {
     
     <!-- Custom Video Player (Movie page) -->
     <div id="playerContainer" class="player-container">
-        <div id="yt-iframe-wrapper">
-            <div id="ytplayer"></div>
-        </div>
-        <div id="playerOverlay" style="position:absolute; inset:0; z-index:1;"></div>
-        <div id="playerPauseOverlay" style="display:flex; opacity:0; transition: opacity 0.4s ease-in-out; position:absolute; inset:0; z-index:2; background: rgba(0,0,0,0.85); align-items:center; justify-content:flex-start; padding: 4% 8%; pointer-events:none;">
-            <div style="max-width: 600px; text-align: left; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
-                <p style="color:#ddd; margin-bottom:10px; font-size: 1.1rem; font-weight: 500;">You're watching</p>
-                <div style="border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom:15px;">
-                    <h1 id="pauseTitle" style="margin:0; font-size: clamp(28px, 4vw, 42px); font-weight: bold; line-height:1.1;"></h1>
-                    <div style="margin-top: 8px; font-size: 1rem; color: #ccc; display:flex; gap:15px; align-items:center;">
-                        <span id="pauseYear"></span>
-                        <span id="pauseDurationSpan" style="display:none;"><i class="fas fa-clock"></i> <span id="pauseDuration"></span></span>
-                        <span id="pauseGenre" style="border:1px solid #666; padding:2px 8px; border-radius:12px; font-size:0.85rem;"></span>
-                    </div>
-                </div>
-                <p id="pauseDescription" style="font-size: 1.05rem; line-height: 1.5; color: #ddd; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></p>
-                <div class="cast-wrapper" style="font-size:0.95rem; color:#aaa;">
-                    <strong>Cast:</strong> <span id="pauseCast" style="color:#ccc;"></span>
-                </div>
-            </div>
-        </div>
-        <div id="playerControls" class="player-controls" style="z-index:3;">
-            <div class="player-header">
-                <button class="tv-focusable player-btn" onclick="closePlayer()" style="font-size:1.8rem;">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <span id="playerTitle" style="font-weight:bold; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
-                <span id="playerEndTime" style="font-size:1rem; color:#ccc; white-space: nowrap; margin-left: 15px;"></span>
-            </div>
-            <div id="universalPlayerMenu" style="display:none; position:absolute; bottom:90px; right:30px; background:rgba(0,0,0,0.9); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:5px; min-width:150px; max-height: 250px; overflow-y: auto; z-index:20;"></div>
-            <div class="player-bottom">
-                <div class="progress-bar" id="progressBar" onclick="seekVideo(event)">
-                    <div class="progress-filled" id="progressFilled"></div>
-                </div>
-                <div class="controls-row">
-                    <div class="play-controls-group" style="display:flex; align-items:center; gap:15px;">
-                        <button class="tv-focusable player-btn" onclick="skip(-10)" title="Back 10 Seconds"><i class="fas fa-undo"></i></button>
-                        <button class="tv-focusable player-btn" id="playPauseBtn" onclick="togglePlay()"><i class="fas fa-pause"></i></button>
-                        <button class="tv-focusable player-btn" onclick="skip(10)" title="Forward 10 Seconds"><i class="fas fa-redo"></i></button>
-                        <span class="time-display tv-focusable" style="font-size:1rem; margin-left: 10px; cursor: pointer; user-select: none;" id="timeDisplay" onclick="toggleTimeDisplay()" tabindex="0">0:00 / 0:00</span>
-                    </div>
-                    <div style="flex-grow:1"></div>
-                    <div class="player-settings" style="display:flex; align-items:center; gap:15px;">
-                        <button class="tv-focusable player-btn" id="ccBtn" onclick="toggleCCMenu()" title="Subtitles / CC">
-                            <i class="fas fa-closed-captioning" style="font-size:1.5rem;"></i>
-                        </button>
-                        <button class="tv-focusable player-btn" id="speedBtn" onclick="toggleSpeed()" title="Playback Speed" style="font-weight:bold; font-size:1.1rem;">1x</button>
-                        <button class="tv-focusable player-btn" onclick="toggleFullscreen()" title="Fullscreen">
-                            <i class="fas fa-expand" style="font-size:1.5rem;"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom Video Player (Search page) -->
-    <div id="playerContainer" class="player-container">
-        <div id="yt-iframe-wrapper">
+        <div id="yt-iframe-wrapper" class="yt-iframe-wrapper">
             <div id="ytplayer"></div>
         </div>
         <div id="playerOverlay" style="position:absolute; inset:0; z-index:1;"></div>
@@ -2786,7 +2747,7 @@ if (isset($_SESSION['profile_id'])) {
     
     <!-- Custom Video Player (Show page) -->
     <div id="playerContainer" class="player-container">
-        <div id="yt-iframe-wrapper">
+        <div id="yt-iframe-wrapper" class="yt-iframe-wrapper">
             <div id="ytplayer"></div>
         </div>
         <div id="playerOverlay" style="position:absolute; inset:0; z-index:1;"></div>
