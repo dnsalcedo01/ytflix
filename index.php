@@ -1523,9 +1523,9 @@ if (isset($_SESSION['profile_id'])) {
 
         /* ==================== PLAYER ==================== */
         .player-container {
-            position: fixed; inset: 0; background: black; z-index: 2000; display: none;
+            position: fixed; inset: 0; background: black; z-index: 2000; display: none; overflow: hidden;
         }
-        #yt-iframe-wrapper { position: relative; width: 100%; height: 100%; pointer-events: none; overflow: hidden; } 
+        #yt-iframe-wrapper { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; } 
         #ytplayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
         .player-controls {
@@ -4022,6 +4022,9 @@ if (isset($_SESSION['profile_id'])) {
         
         if(progressInterval) clearInterval(progressInterval);
         progressInterval = setInterval(() => { saveProgress(); }, 5000); 
+
+        // Apply iOS safe area compensation after iframe is created
+        setTimeout(compensateIframeSafeArea, 100);
     }
 
     let pauseOverlayTimeout = null;
@@ -4059,6 +4062,62 @@ if (isset($_SESSION['profile_id'])) {
             wakeUpPlayerControls();
         }
     }
+
+    // Compensate for iOS Safari safe area offset on YouTube iframe
+    function compensateIframeSafeArea() {
+        var iframe = document.querySelector('#yt-iframe-wrapper iframe');
+        if (!iframe) return;
+
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var isLandscape = window.innerWidth > window.innerHeight;
+
+        if (isIOS && isLandscape) {
+            // Try to measure safe area via env() probe first
+            var probe = document.createElement('div');
+            probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px);';
+            document.body.appendChild(probe);
+            var computed = getComputedStyle(probe);
+            var safeLeft = parseFloat(computed.paddingLeft) || 0;
+            var safeRight = parseFloat(computed.paddingRight) || 0;
+            document.body.removeChild(probe);
+
+            // If env() returned 0, fall back to device detection
+            // All iPhones since iPhone X (screen height >= 812pt) have a notch/Dynamic Island
+            if (safeLeft === 0 && safeRight === 0) {
+                var longerSide = Math.max(screen.width, screen.height);
+                if (longerSide >= 812) {
+                    safeLeft = 50;
+                    safeRight = 50;
+                }
+            }
+
+            if (safeLeft > 0 || safeRight > 0) {
+                iframe.style.setProperty('position', 'absolute', 'important');
+                iframe.style.setProperty('top', '0', 'important');
+                iframe.style.setProperty('left', (-safeLeft) + 'px', 'important');
+                iframe.style.setProperty('width', 'calc(100% + ' + (safeLeft + safeRight) + 'px)', 'important');
+                iframe.style.setProperty('height', '100%', 'important');
+            }
+        } else {
+            // Portrait or non-iOS — reset to normal
+            iframe.style.setProperty('position', 'absolute', 'important');
+            iframe.style.setProperty('top', '0', 'important');
+            iframe.style.setProperty('left', '0', 'important');
+            iframe.style.setProperty('width', '100%', 'important');
+            iframe.style.setProperty('height', '100%', 'important');
+        }
+    }
+
+    // Force iframe resize on orientation change for iOS Safari
+    function handlePlayerResize() {
+        if (document.getElementById('playerContainer').style.display === 'block') {
+            // Re-run safe area compensation after orientation settles
+            setTimeout(compensateIframeSafeArea, 400);
+        }
+    }
+    window.addEventListener('resize', handlePlayerResize);
+    window.addEventListener('orientationchange', handlePlayerResize);
 
     function skip(amount) {
         if(player && player.getCurrentTime) {
