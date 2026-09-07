@@ -1028,19 +1028,31 @@ if (isset($_SESSION['profile_id'])) {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000;
         }
         .hamburger-sidebar {
-            position: fixed; top: 0; right: 0; width: 250px; height: 100vh; background: #141414;
-            border-left: 1px solid #333; padding: 20px 15px; display: flex; flex-direction: column; gap: 15px;
-            z-index: 1001; box-shadow: -4px 0 15px rgba(0,0,0,0.8); overflow-y: auto;
-            transform: translateX(100%); transition: transform 0.3s ease-in-out;
+            position: fixed; top: 0; right: 0; width: 280px; height: 100vh; 
+            background: rgba(20, 20, 20, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-left: 1px solid rgba(255,255,255,0.08); padding: 30px 20px; display: flex; flex-direction: column; gap: 10px;
+            z-index: 1001; box-shadow: -10px 0 30px rgba(0,0,0,0.6); overflow-y: auto;
+            transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .hamburger-sidebar.open {
             transform: translateX(0);
         }
-        .hamburger-sidebar a {
-            color: white; text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 10px; font-size: 1.1rem; border-radius: 4px; transition: background 0.2s;
+        .hamburger-sidebar > img {
+            margin-bottom: 25px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
         }
-        .hamburger-sidebar a:hover, .hamburger-sidebar a:focus {
-            background: rgba(255,255,255,0.1);
+        .hamburger-sidebar a {
+            color: #d1d5db; text-decoration: none; display: flex; align-items: center; gap: 16px; 
+            padding: 14px 18px; font-size: 1.1rem; border-radius: 12px; font-weight: 500;
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+        .hamburger-sidebar a i {
+            font-size: 1.3rem; width: 24px; text-align: center; color: #9ca3af; transition: color 0.3s ease;
+        }
+        .hamburger-sidebar a:hover, .hamburger-sidebar a:focus, .hamburger-sidebar a.active {
+            background: rgba(255,255,255,0.1); color: white; transform: translateX(6px);
+        }
+        .hamburger-sidebar a:hover i, .hamburger-sidebar a:focus i, .hamburger-sidebar a.active i {
+            color: #E50914;
         }
         body.no-scroll { overflow: hidden !important; }
 
