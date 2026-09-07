@@ -4104,6 +4104,7 @@ if (isset($_SESSION['profile_id'])) {
                 note.style = "color:gray; padding:5px; font-size: 0.9rem;";
                 note.innerText = "(Auto-generated / Default)";
                 menu.appendChild(note);
+                
             } else {
                 tracks.forEach(track => {
                     let btn = document.createElement('button');
