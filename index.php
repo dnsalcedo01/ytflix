@@ -1410,7 +1410,7 @@ if (isset($_SESSION['profile_id'])) {
             font-size: clamp(36px, 5vw, 64px);
             font-weight: bold;
             line-height: 1.1;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
         .movie-meta {
