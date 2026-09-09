@@ -1544,6 +1544,7 @@ if (isset($_SESSION['profile_id'])) {
             max-height: calc(100vw * 9 / 16) !important;
             aspect-ratio: 16 / 9 !important;
             margin: auto !important;
+            left: var(--safe-offset, calc((env(safe-area-inset-right, 0px) - env(safe-area-inset-left, 0px)) / 2)) !important;
             border: none;
         }
 
@@ -3795,6 +3796,7 @@ if (isset($_SESSION['profile_id'])) {
         currentDbMovieId = dbMovieId;
         currentDbType = dbMediaType;
         document.getElementById('playerContainer').style.display = 'block';
+        updateIframeSafeOffset();
         
         try {
             if (screen.orientation && screen.orientation.lock) {
@@ -3899,6 +3901,9 @@ if (isset($_SESSION['profile_id'])) {
                 'onStateChange': onPlayerStateChange
             }
         });
+        
+        updateIframeSafeOffset();
+        setTimeout(updateIframeSafeOffset, 150);
     }
 
     function saveProgress() {
@@ -4010,6 +4015,55 @@ if (isset($_SESSION['profile_id'])) {
             }
         }
     }
+
+    // Fine-tune centering offset for iOS landscape safe area
+    function updateIframeSafeOffset() {
+        var isLandscape = false;
+        if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) {
+            isLandscape = true;
+        } else if (window.innerWidth > window.innerHeight) {
+            isLandscape = true;
+        } else if (typeof window.orientation !== 'undefined' && Math.abs(window.orientation) === 90) {
+            isLandscape = true;
+        }
+
+        var offset = 0;
+        if (isLandscape) {
+            var probe = document.createElement('div');
+            probe.style.cssText = 'position:fixed;top:0;left:0;width:10px;height:10px;visibility:hidden;pointer-events:none;padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px);';
+            document.body.appendChild(probe);
+            var cs = getComputedStyle(probe);
+            var safeLeft = parseFloat(cs.paddingLeft) || 0;
+            var safeRight = parseFloat(cs.paddingRight) || 0;
+            document.body.removeChild(probe);
+
+            if (safeLeft > 0 || safeRight > 0) {
+                offset = (safeRight - safeLeft) / 2;
+            } else {
+                var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                if (isIOS) {
+                    var longer = Math.max(screen.width, screen.height);
+                    if (longer >= 800) {
+                        var notch = (longer >= 852) ? 59 : 47;
+                        offset = (window.orientation === -90) ? (notch / 2) : (-notch / 2);
+                    }
+                }
+            }
+        }
+
+        document.documentElement.style.setProperty('--safe-offset', offset + 'px');
+        var wrappers = document.querySelectorAll('#yt-iframe-wrapper, .yt-iframe-wrapper');
+        wrappers.forEach(function(el) {
+            el.style.setProperty('--safe-offset', offset + 'px');
+        });
+    }
+
+    window.addEventListener('resize', updateIframeSafeOffset);
+    window.addEventListener('orientationchange', function() {
+        setTimeout(updateIframeSafeOffset, 100);
+        setTimeout(updateIframeSafeOffset, 300);
+    });
 
     function togglePlay() {
         if(player && player.getPlayerState() == YT.PlayerState.PLAYING){
