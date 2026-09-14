@@ -1755,7 +1755,7 @@ if (isset($_SESSION['profile_id'])) {
 
         /* ==================== NAVBAR ==================== */
         nav {
-            position: fixed; top: 0; width: 100%; padding: 15px 4%;
+            position: fixed; top: 0; width: 100%; padding: 25px 5%;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 100; transition: transform 0.3s ease, background 0.3s ease;
             background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
