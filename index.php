@@ -2141,6 +2141,9 @@ if (isset($_SESSION['profile_id'])) {
             padding: 20px; 
         }
         /* ==================== DEDICATED MOVIE PAGE ==================== */
+        nav.movie-nav {
+            background: transparent !important;
+        }
         .movie-page-container {
             min-height: 100vh;
             background: var(--bg);
@@ -3696,15 +3699,10 @@ if (isset($_SESSION['profile_id'])) {
     }
     ?>
     
-    <nav id="navbar">
+    <nav id="navbar" class="movie-nav" style="background: transparent;">
         <div class="nav-links nav-left">
-            <a href="javascript:history.back()" class="tv-focusable" style="color:white; font-size: 1.5rem; display:flex; align-items:center; gap:10px; text-decoration: none;">
-                <i class="fas fa-arrow-left"></i> <span style="font-size:1rem; font-weight:bold;">Back</span>
-            </a>
-        </div>
-        <div class="nav-links nav-right">
-            <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
-                <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
+            <a href="javascript:window.history.length > 1 ? window.history.back() : window.location.href='?p=home'" class="actor-back-btn tv-focusable" tabindex="0" title="Go Back">
+                <i class="fas fa-arrow-left"></i> <span>Back</span>
             </a>
         </div>
     </nav>
@@ -3914,15 +3912,10 @@ if (isset($_SESSION['profile_id'])) {
     </script>";
     ?>
     
-    <nav id="navbar">
+    <nav id="navbar" class="movie-nav" style="background: transparent;">
         <div class="nav-links nav-left">
-            <a href="javascript:history.back()" class="tv-focusable" style="color:white; font-size: 1.5rem; display:flex; align-items:center; gap:10px; text-decoration: none;">
-                <i class="fas fa-arrow-left"></i> <span style="font-size:1rem; font-weight:bold;">Back</span>
-            </a>
-        </div>
-        <div class="nav-links nav-right">
-            <a href="?p=shows" class="tv-focusable" style="display:flex; align-items:center;" title="Shows">
-                <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
+            <a href="javascript:window.history.length > 1 ? window.history.back() : window.location.href='?p=shows'" class="actor-back-btn tv-focusable" tabindex="0" title="Go Back">
+                <i class="fas fa-arrow-left"></i> <span>Back</span>
             </a>
         </div>
     </nav>
