@@ -2,12 +2,14 @@
 ob_start(); // Start outer output buffer to strictly control AJAX JSON responses
 
 // 1. Session Persistence Fix (Lasts 30 Days)
-session_set_cookie_params([
-    'lifetime' => 86400 * 30,
-    'path' => '/',
-    'samesite' => 'Lax'
-]);
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 86400 * 30,
+        'path' => '/',
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
 
 /* ===================================================================================
    YTFLIX - CORE CONFIGURATION & DATABASE SETUP
@@ -676,9 +678,690 @@ if (isset($_POST['sync_playlist']) && $is_main_profile) {
     exit;
 }
 
+ob_start(); // Start outer output buffer to strictly control AJAX JSON responses
+
+// 1. Session Persistence Fix (Lasts 30 Days)
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 86400 * 30,
+        'path' => '/',
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
+
+/* ===================================================================================
+   YTFLIX - CORE CONFIGURATION & DATABASE SETUP
+   =================================================================================== */
+if (file_exists(__DIR__ . '/config.php')) {
+    require_once __DIR__ . '/config.php';
+} else {
+    die("Configuration file missing. Please copy config.example.php to config.php and add your database credentials.");
+}
+
+// Initialize Database
+try {
+    $pdo = new PDO("mysql:host=$db_host;charset=utf8mb4", $db_user, $db_pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name`");
+    $pdo->exec("USE `$db_name`");
+
+    // Create Tables
+    $pdo->exec("CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(50) UNIQUE,
+        password VARCHAR(255),
+        yt_api_key VARCHAR(255) DEFAULT '',
+        tmdb_api_key VARCHAR(255) DEFAULT '',
+        yt_playlist_id VARCHAR(255) DEFAULT ''
+    )");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS profiles (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        name VARCHAR(50),
+        color VARCHAR(20),
+        avatar_url VARCHAR(500) DEFAULT '',
+        pin VARCHAR(4) DEFAULT '',
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS movies (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        yt_video_id VARCHAR(50) UNIQUE,
+        raw_title VARCHAR(255),
+        clean_title VARCHAR(255),
+        description TEXT,
+        genre VARCHAR(100),
+        release_year VARCHAR(10),
+        rating VARCHAR(20) DEFAULT 'No Rating',
+        poster_path VARCHAR(255),
+        backdrop_path VARCHAR(255),
+        actors TEXT
+    )");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS watchlist (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        profile_id INT,
+        movie_id INT,
+        FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+        FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
+        UNIQUE(profile_id, movie_id)
+    )");
+
+    // Playback Progress Table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS playback_progress (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        profile_id INT,
+        movie_id INT,
+        progress_time INT DEFAULT 0,
+        duration INT DEFAULT 0,
+        last_watched TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+        FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
+        UNIQUE(profile_id, movie_id)
+    )");
+
+    // Shows Table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS shows (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        yt_playlist_id VARCHAR(255) UNIQUE,
+        raw_title VARCHAR(255),
+        clean_title VARCHAR(255),
+        description TEXT,
+        release_year VARCHAR(10),
+        rating VARCHAR(20) DEFAULT 'No Rating',
+        poster_path VARCHAR(255),
+        backdrop_path VARCHAR(255),
+        genre VARCHAR(100),
+        actors TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // Episodes Table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS episodes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        show_id INT,
+        yt_video_id VARCHAR(50) UNIQUE,
+        episode_number INT,
+        title VARCHAR(255),
+        description TEXT,
+        release_year VARCHAR(10),
+        thumbnail_path VARCHAR(255),
+        duration INT DEFAULT 0,
+        FOREIGN KEY (show_id) REFERENCES shows(id) ON DELETE CASCADE
+    )");
+
+    // Episode Playback Progress Table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS episode_playback_progress (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        profile_id INT,
+        episode_id INT,
+        progress_time INT DEFAULT 0,
+        duration INT DEFAULT 0,
+        last_watched TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+        FOREIGN KEY (episode_id) REFERENCES episodes(id) ON DELETE CASCADE,
+        UNIQUE(profile_id, episode_id)
+    )");
+
+    // Safe Schema Migrations
+    try { $pdo->exec("ALTER TABLE profiles ADD COLUMN avatar_url VARCHAR(500) DEFAULT '' AFTER color"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE profiles ADD COLUMN pin VARCHAR(4) DEFAULT '' AFTER avatar_url"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE movies ADD COLUMN rating VARCHAR(20) DEFAULT 'No Rating' AFTER release_year"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE movies MODIFY COLUMN rating VARCHAR(20) DEFAULT 'No Rating'"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE playback_progress ADD COLUMN duration INT DEFAULT 0 AFTER progress_time"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE watchlist ADD COLUMN show_id INT NULL DEFAULT NULL AFTER movie_id"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE watchlist MODIFY COLUMN movie_id INT NULL DEFAULT NULL"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE watchlist ADD FOREIGN KEY (show_id) REFERENCES shows(id) ON DELETE CASCADE"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE movies ADD COLUMN actors TEXT"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE shows ADD COLUMN actors TEXT"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE episodes ADD COLUMN title VARCHAR(255)"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE episodes ADD COLUMN description TEXT"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE episodes ADD COLUMN release_year VARCHAR(10)"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE episodes ADD COLUMN thumbnail_path VARCHAR(255)"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE episodes ADD COLUMN duration INT DEFAULT 0"); } catch (PDOException $e) {}
+
+    // Insert default admin if no users exist
+    $stmt = $pdo->query("SELECT COUNT(*) FROM users");
+    if ($stmt->fetchColumn() == 0) {
+        $hash = password_hash('admin', PASSWORD_DEFAULT);
+        $pdo->exec("INSERT INTO users (username, password) VALUES ('admin', '$hash')");
+    }
+
+} catch (PDOException $e) {
+    die("<h2 style='color:red; font-family:sans-serif;'>Database Connection Failed. Please ensure MySQL is running.</h2> Error: " . $e->getMessage());
+}
+
+// --- AJAX Endpoint for Pause Overlay Metadata ---
+if (isset($_GET['ajax_metadata']) && isset($_GET['type']) && isset($_GET['id'])) {
+    header('Content-Type: application/json');
+    $id = (int)$_GET['id'];
+    $type = $_GET['type'];
+    
+    if ($type === 'movie') {
+        $stmt = $pdo->prepare("SELECT clean_title as title, release_year as year, genre, 'N/A' as duration, description as desc_text, actors FROM movies WHERE id = ?");
+        $stmt->execute([$id]);
+        echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+    } else if ($type === 'episode') {
+        $stmt = $pdo->prepare("SELECT CONCAT(s.clean_title, ' - E', e.episode_number, ' ', e.title) as title, s.release_year as year, s.genre, e.duration as duration, e.description as desc_text, s.actors FROM episodes e JOIN shows s ON e.show_id = s.id WHERE e.id = ?");
+        $stmt->execute([$id]);
+        echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+    }
+    exit;
+}
+
+/* ===================================================================================
+   HELPER FUNCTIONS & API LOGIC
+   =================================================================================== */
+function fetchTMDB_dup1($titleInfo, $tmdbKey) {
+    $tmdbKey = trim($tmdbKey);
+    if(empty($tmdbKey)) return false;
+    
+    $query = urlencode($titleInfo['title']);
+    $baseUrl = "https://api.themoviedb.org/3/search/movie?api_key={$tmdbKey}&include_adult=false";
+    $url = $titleInfo['year'] ? $baseUrl . "&query={$query}&year=" . $titleInfo['year'] : $baseUrl . "&query={$query}";
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $data = json_decode(curl_exec($ch), true);
+    
+    if (empty($data['results']) && $titleInfo['year']) {
+        curl_setopt($ch, CURLOPT_URL, $baseUrl . "&query={$query}");
+        $data = json_decode(curl_exec($ch), true);
+    }
+    if (empty($data['results'])) {
+        $words = explode(' ', $titleInfo['title']);
+        if (count($words) >= 2) {
+            $shortQuery = urlencode($words[0] . ' ' . $words[1]);
+            curl_setopt($ch, CURLOPT_URL, $baseUrl . "&query={$shortQuery}");
+            $data = json_decode(curl_exec($ch), true);
+        }
+    }
+    curl_close($ch);
+    
+    if (!empty($data['results'][0])) {
+        $movie = $data['results'][0];
+        $creditsUrl = "https://api.themoviedb.org/3/movie/{$movie['id']}/credits?api_key={$tmdbKey}";
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $creditsUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $credData = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+        
+        $actors = [];
+        if (!empty($credData['cast'])) {
+            foreach (array_slice($credData['cast'], 0, 8) as $actor) {
+                $actors[] = [
+                    'name' => $actor['name'],
+                    'character' => $actor['character'],
+                    'profile' => $actor['profile_path'] ? "https://image.tmdb.org/t/p/w185" . $actor['profile_path'] : null
+                ];
+            }
+        }
+        
+        $detailUrl = "https://api.themoviedb.org/3/movie/{$movie['id']}?api_key={$tmdbKey}&append_to_response=release_dates";
+        $ch = curl_init($detailUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $detailData = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+        
+        $genres = [];
+        if(!empty($detailData['genres'])) {
+            foreach($detailData['genres'] as $g) { $genres[] = $g['name']; }
+        }
+
+        // Flawless Certification Extraction
+        $rating = 'No Rating';
+        if (!empty($detailData['release_dates']['results'])) {
+            // Priority 1: Direct US Certification
+            foreach ($detailData['release_dates']['results'] as $rd) {
+                if (isset($rd['iso_3166_1']) && $rd['iso_3166_1'] === 'US') {
+                    if (!empty($rd['release_dates'])) {
+                        foreach ($rd['release_dates'] as $r) {
+                            if (!empty($r['certification'])) {
+                                $rating = $r['certification'];
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+            // Priority 2: Fallback to ANY valid country certification
+            if ($rating === 'No Rating') {
+                foreach ($detailData['release_dates']['results'] as $rd) {
+                    if (!empty($rd['release_dates'])) {
+                        foreach ($rd['release_dates'] as $r) {
+                            if (!empty($r['certification'])) {
+                                $rating = $r['certification'];
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return [
+            'title' => $movie['title'],
+            'description' => $movie['overview'],
+            'year' => substr($movie['release_date'] ?? '', 0, 4),
+            'rating' => $rating,
+            'poster_path' => $movie['poster_path'] ? "https://image.tmdb.org/t/p/w500" . $movie['poster_path'] : "",
+            'backdrop_path' => $movie['backdrop_path'] ? "https://image.tmdb.org/t/p/original" . $movie['backdrop_path'] : "",
+            'actors' => json_encode($actors), 
+            'genre' => implode(", ", array_slice($genres, 0, 3)) 
+        ];
+    }
+    return false;
+}
+
+function fetchTMDBById_dup1($tmdbId, $tmdbKey) {
+    $tmdbKey = trim($tmdbKey);
+    if(empty($tmdbKey)) return false;
+    
+    $url = "https://api.themoviedb.org/3/movie/{$tmdbId}?api_key={$tmdbKey}";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $movieData = json_decode(curl_exec($ch), true);
+    curl_close($ch);
+
+    if (isset($movieData['id'])) {
+        $credUrl = "https://api.themoviedb.org/3/movie/{$tmdbId}/credits?api_key={$tmdbKey}";
+        $ch = curl_init($credUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $credData = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
+        $actors = [];
+        if (!empty($credData['cast'])) {
+            foreach (array_slice($credData['cast'], 0, 8) as $actor) {
+                $actors[] = [
+                    'name' => $actor['name'],
+                    'character' => $actor['character'],
+                    'profile' => $actor['profile_path'] ? "https://image.tmdb.org/t/p/w185" . $actor['profile_path'] : null
+                ];
+            }
+        }
+
+        $detailUrl = "https://api.themoviedb.org/3/movie/{$tmdbId}?api_key={$tmdbKey}&append_to_response=release_dates";
+        $ch = curl_init($detailUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $detailData = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
+        $genres = [];
+        if(!empty($movieData['genres'])) {
+            foreach($movieData['genres'] as $g) { $genres[] = $g['name']; }
+        }
+
+        // Flawless Certification Extraction
+        $rating = 'No Rating';
+        if (!empty($detailData['release_dates']['results'])) {
+            foreach ($detailData['release_dates']['results'] as $rd) {
+                if (isset($rd['iso_3166_1']) && $rd['iso_3166_1'] === 'US') {
+                    if (!empty($rd['release_dates'])) {
+                        foreach ($rd['release_dates'] as $r) {
+                            if (!empty($r['certification'])) {
+                                $rating = $r['certification'];
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+            if ($rating === 'No Rating') {
+                foreach ($detailData['release_dates']['results'] as $rd) {
+                    if (!empty($rd['release_dates'])) {
+                        foreach ($rd['release_dates'] as $r) {
+                            if (!empty($r['certification'])) {
+                                $rating = $r['certification'];
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return [
+            'title' => $movieData['title'],
+            'description' => $movieData['overview'],
+            'year' => substr($movieData['release_date'] ?? '', 0, 4),
+            'rating' => $rating,
+            'poster_path' => $movieData['poster_path'] ? "https://image.tmdb.org/t/p/w500" . $movieData['poster_path'] : "",
+            'backdrop_path' => $movieData['backdrop_path'] ? "https://image.tmdb.org/t/p/original" . $movieData['backdrop_path'] : "",
+            'actors' => json_encode($actors), 
+            'genre' => implode(", ", array_slice($genres, 0, 3)) 
+        ];
+    }
+    return false;
+}
+
+function handleAvatarUpload_dup1($fileArray) {
+    if (isset($fileArray) && $fileArray['error'] == UPLOAD_ERR_OK) {
+        $uploadDir = 'uploads/avatars/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        $fileTmpPath = $fileArray['tmp_name'];
+        $fileName = $fileArray['name'];
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $allowedfileExtensions = array('jpg', 'gif', 'png', 'jpeg', 'webp');
+        if (in_array($fileExtension, $allowedfileExtensions)) {
+            $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
+            $dest_path = $uploadDir . $newFileName;
+            if(move_uploaded_file($fileTmpPath, $dest_path)) {
+                return $dest_path;
+            }
+        }
+    }
+    return '';
+}
+
+/* ===================================================================================
+   AUTHENTICATION & AUTO-LOGIN COOKIE LAYER
+   =================================================================================== */
+if (!isset($_SESSION['user_id']) && isset($_COOKIE['ytflix_user'])) {
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
+    $stmt->execute([$_COOKIE['ytflix_user']]);
+    if ($stmt->fetch()) {
+        $_SESSION['user_id'] = $_COOKIE['ytflix_user'];
+        if (isset($_COOKIE['ytflix_profile'])) {
+            $_SESSION['profile_id'] = $_COOKIE['ytflix_profile'];
+        }
+    } else {
+        setcookie('ytflix_user', '', time() - 3600, "/");
+    }
+}
+
+$is_main_profile = false;
+$main_profile_id = null;
+if (isset($_SESSION['user_id']) && isset($_SESSION['profile_id'])) {
+    $mainProfStmt = $pdo->prepare("SELECT id FROM profiles WHERE user_id = ? ORDER BY id ASC LIMIT 1");
+    $mainProfStmt->execute([$_SESSION['user_id']]);
+    $main_profile_id = $mainProfStmt->fetchColumn();
+    if ($main_profile_id == $_SESSION['profile_id']) {
+        $is_main_profile = true;
+    }
+}
+
+/* ===================================================================================
+   AJAX ENDPOINTS & POST HANDLERS
+   =================================================================================== */
+if (isset($_GET['ajax'])) {
+    if ($_GET['ajax'] == 'toggle_watchlist' && isset($_SESSION['profile_id'])) {
+        header('Content-Type: application/json');
+        $movieId = $_POST['movie_id'];
+        $profId = $_SESSION['profile_id'];
+        $stmt = $pdo->prepare("SELECT id FROM watchlist WHERE profile_id = ? AND movie_id = ?");
+        $stmt->execute([$profId, $movieId]);
+        if ($stmt->fetch()) {
+            $pdo->prepare("DELETE FROM watchlist WHERE profile_id = ? AND movie_id = ?")->execute([$profId, $movieId]);
+            echo json_encode(['status' => 'removed']);
+        } else {
+            $pdo->prepare("INSERT INTO watchlist (profile_id, movie_id) VALUES (?, ?)")->execute([$profId, $movieId]);
+            echo json_encode(['status' => 'added']);
+        }
+        exit;
+    }
+    
+    if ($_GET['ajax'] == 'toggle_show_watchlist' && isset($_SESSION['profile_id'])) {
+        header('Content-Type: application/json');
+        $showId = $_POST['show_id'];
+        $profId = $_SESSION['profile_id'];
+        $stmt = $pdo->prepare("SELECT id FROM watchlist WHERE profile_id = ? AND show_id = ?");
+        $stmt->execute([$profId, $showId]);
+        if ($stmt->fetch()) {
+            $pdo->prepare("DELETE FROM watchlist WHERE profile_id = ? AND show_id = ?")->execute([$profId, $showId]);
+            echo json_encode(['status' => 'removed']);
+        } else {
+            $pdo->prepare("INSERT INTO watchlist (profile_id, show_id) VALUES (?, ?)")->execute([$profId, $showId]);
+            echo json_encode(['status' => 'added']);
+        }
+        exit;
+    }
+
+    if ($_GET['ajax'] == 'save_episode_progress' && isset($_SESSION['profile_id'])) {
+        header('Content-Type: application/json');
+        $epId = (int)$_POST['episode_id'];
+        $time = (int)$_POST['time'];
+        $duration = (int)($_POST['duration'] ?? 0);
+        $profId = $_SESSION['profile_id'];
+        $stmt = $pdo->prepare("INSERT INTO episode_playback_progress (profile_id, episode_id, progress_time, duration) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE progress_time = ?, duration = ?, last_watched = CURRENT_TIMESTAMP");
+        $stmt->execute([$profId, $epId, $time, $duration, $time, $duration]);
+        echo json_encode(['status' => 'saved']);
+        exit;
+    }
+    
+    if ($_GET['ajax'] == 'save_progress' && isset($_SESSION['profile_id'])) {
+        header('Content-Type: application/json');
+        $movieId = (int)$_POST['movie_id'];
+        $time = (int)$_POST['time'];
+        $duration = (int)($_POST['duration'] ?? 0);
+        $profId = $_SESSION['profile_id'];
+        $stmt = $pdo->prepare("INSERT INTO playback_progress (profile_id, movie_id, progress_time, duration) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE progress_time = ?, duration = ?, last_watched = CURRENT_TIMESTAMP");
+        $stmt->execute([$profId, $movieId, $time, $duration, $time, $duration]);
+        echo json_encode(['status' => 'saved']);
+        exit;
+    }
+}
+
+if (isset($_POST['login'])) {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->execute([$_POST['username']]);
+    $user = $stmt->fetch();
+    if ($user && password_verify($_POST['password'], $user['password'])) {
+        $_SESSION['user_id'] = $user['id'];
+        setcookie('ytflix_user', $user['id'], time() + (86400 * 30), "/"); // 30 Day Auto-Login
+        header("Location: ?p=profiles");
+        exit;
+    } else {
+        $login_error = "Invalid credentials.";
+    }
+}
+
+if (isset($_POST['login_profile_id'])) {
+    $pid = $_POST['login_profile_id'];
+    $pin = $_POST['login_pin'] ?? '';
+    $stmt = $pdo->prepare("SELECT pin FROM profiles WHERE id = ? AND user_id = ?");
+    $stmt->execute([$pid, $_SESSION['user_id']]);
+    $profPin = $stmt->fetchColumn();
+    if ($profPin !== false && (empty($profPin) || $profPin === $pin)) {
+        $_SESSION['profile_id'] = $pid;
+        setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/"); // 30 Day Session Lock
+        header("Location: ?p=home");
+        exit;
+    } else {
+        $pin_error = "Incorrect Profile PIN.";
+    }
+}
+
+if (isset($_GET['select_profile'])) {
+    $pid = $_GET['select_profile'];
+    $stmt = $pdo->prepare("SELECT pin FROM profiles WHERE id = ? AND user_id = ?");
+    $stmt->execute([$pid, $_SESSION['user_id']]);
+    $profPin = $stmt->fetchColumn();
+    if (empty($profPin)) {
+        $_SESSION['profile_id'] = $pid;
+        setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/");
+        header("Location: ?p=home");
+        exit;
+    } else {
+        header("Location: ?p=profiles");
+        exit;
+    }
+}
+
+if (isset($_GET['logout'])) {
+    setcookie('ytflix_user', '', time() - 3600, "/");
+    setcookie('ytflix_profile', '', time() - 3600, "/");
+    session_destroy();
+    header("Location: ?p=login");
+    exit;
+}
+
+if (isset($_POST['create_profile'])) {
+    if (!isset($_SESSION['profile_id']) || $is_main_profile) {
+        $colors = ['#E50914', '#0071eb', '#00b020', '#ffb000', '#9c27b0', '#e91e63', '#00bcd4', '#3f51b5', '#ff5722', '#795548'];
+        $stmtColors = $pdo->prepare("SELECT color FROM profiles WHERE user_id = ?");
+        $stmtColors->execute([$_SESSION['user_id']]);
+        $usedColors = $stmtColors->fetchAll(PDO::FETCH_COLUMN);
+        $availableColors = array_diff($colors, $usedColors);
+        $color = empty($availableColors) ? $colors[array_rand($colors)] : $availableColors[array_rand($availableColors)];
+        
+        $avatarUrl = handleAvatarUpload($_FILES['avatar_file']);
+        $stmt = $pdo->prepare("INSERT INTO profiles (user_id, name, color, avatar_url) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$_SESSION['user_id'], $_POST['profile_name'], $color, $avatarUrl]);
+        
+        if (isset($_POST['admin_redirect'])) header("Location: ?p=admin&tab=account&profile_added=1");
+        else header("Location: ?p=profiles");
+        exit;
+    }
+}
+
+if (isset($_POST['rename_profile'])) {
+    $newName = trim($_POST['new_profile_name']);
+    if ($newName !== '') {
+        $targetId = !$is_main_profile ? $_SESSION['profile_id'] : $_POST['target_profile_id'];
+        $stmt = $pdo->prepare("UPDATE profiles SET name=? WHERE id=?");
+        $stmt->execute([$newName, $targetId]);
+    }
+    header("Location: ?p=admin&tab=account&profile_updated=1");
+    exit;
+}
+
+if (isset($_POST['update_profile_pic'])) {
+    $avatarUrl = handleAvatarUpload($_FILES['avatar_file']);
+    if ($avatarUrl !== '') {
+        $targetId = !$is_main_profile ? $_SESSION['profile_id'] : $_POST['target_profile_id'];
+        $stmt = $pdo->prepare("UPDATE profiles SET avatar_url=? WHERE id=?");
+        $stmt->execute([$avatarUrl, $targetId]);
+    }
+    header("Location: ?p=admin&tab=account&profile_updated=1");
+    exit;
+}
+
+if (isset($_POST['delete_profile_pic'])) {
+    $targetId = !$is_main_profile ? $_SESSION['profile_id'] : $_POST['target_profile_id'];
+    $stmt = $pdo->prepare("UPDATE profiles SET avatar_url='' WHERE id=?");
+    $stmt->execute([$targetId]);
+    header("Location: ?p=admin&tab=account&profile_updated=1");
+    exit;
+}
+
+if (isset($_POST['update_pin'])) {
+    $targetId = !$is_main_profile ? $_SESSION['profile_id'] : $_POST['target_profile_id'];
+    $newPin = trim($_POST['new_pin']);
+    if (empty($newPin) || preg_match('/^\d{4}$/', $newPin)) {
+        $stmt = $pdo->prepare("UPDATE profiles SET pin=? WHERE id=?");
+        $stmt->execute([$newPin, $targetId]);
+    }
+    header("Location: ?p=admin&tab=account&profile_updated=1");
+    exit;
+}
+
+if (isset($_POST['delete_profile'])) {
+    $targetId = !$is_main_profile ? $_SESSION['profile_id'] : $_POST['target_profile_id'];
+    if ($targetId != $main_profile_id) {
+        $stmt = $pdo->prepare("DELETE FROM profiles WHERE id=?");
+        $stmt->execute([$targetId]);
+        if ($targetId == $_SESSION['profile_id']) {
+            unset($_SESSION['profile_id']);
+            header("Location: ?p=profiles");
+            exit;
+        }
+    }
+    header("Location: ?p=admin&tab=account&profile_deleted=1");
+    exit;
+}
+
+if (isset($_POST['update_password']) && $is_main_profile) {
+    $hash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("UPDATE users SET password=? WHERE id=?");
+    $stmt->execute([$hash, $_SESSION['user_id']]);
+    header("Location: ?p=admin&tab=account&pw_saved=1");
+    exit;
+}
+
+if (isset($_POST['sync_playlist']) && $is_main_profile) {
+    set_time_limit(0); 
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $admin = $stmt->fetch();
+    
+    if ($admin['yt_api_key'] && $admin['yt_playlist_id']) {
+        $playlistId = $admin['yt_playlist_id'];
+        if (strpos($playlistId, 'list=') !== false) {
+            parse_str(parse_url($playlistId, PHP_URL_QUERY), $vars);
+            $playlistId = $vars['list'];
+        }
+
+        $nextPageToken = '';
+        $fetchedVidIds = [];
+        do {
+            $ytUrl = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId={$playlistId}&key={$admin['yt_api_key']}";
+            if ($nextPageToken) $ytUrl .= "&pageToken={$nextPageToken}";
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $ytUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $ytResp = json_decode(curl_exec($ch), true);
+            curl_close($ch);
+
+            if (isset($ytResp['nextPageToken'])) $nextPageToken = $ytResp['nextPageToken'];
+            else $nextPageToken = false;
+
+            if (isset($ytResp['items'])) {
+                foreach ($ytResp['items'] as $item) {
+                    $vidId = $item['snippet']['resourceId']['videoId'];
+                    $rawTitle = $item['snippet']['title'];
+                    if ($rawTitle == 'Private video' || $rawTitle == 'Deleted video') continue;
+                    
+                    $fetchedVidIds[] = $vidId;
+
+                    $check = $pdo->prepare("SELECT id FROM movies WHERE yt_video_id = ?");
+                    $check->execute([$vidId]);
+                    $existing = $check->fetch(PDO::FETCH_ASSOC);
+
+                    if (!$existing) {
+                        $cleanData = ['title' => $rawTitle, 'year' => null];
+                        $tmdbData = fetchTMDB($cleanData, $admin['tmdb_api_key']);
+                        if ($tmdbData) {
+                            $ins = $pdo->prepare("INSERT INTO movies (yt_video_id, raw_title, clean_title, description, genre, release_year, poster_path, backdrop_path, actors) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                            $ins->execute([$vidId, $rawTitle, $tmdbData['title'], $tmdbData['description'], $tmdbData['genre'], $tmdbData['year'], $tmdbData['poster_path'], $tmdbData['backdrop_path'], $tmdbData['actors']]);
+                        } else {
+                            $ins = $pdo->prepare("INSERT INTO movies (yt_video_id, raw_title, clean_title, description, poster_path) VALUES (?, ?, ?, ?, ?)");
+                            $ins->execute([$vidId, $rawTitle, $rawTitle, "Description not found on TMDB.", $item['snippet']['thumbnails']['high']['url'] ?? '']);
+                        }
+                    }
+                }
+            } else break; 
+        } while ($nextPageToken);
+
+        // Automatically clean up deleted videos
+        if (!empty($fetchedVidIds)) {
+            $placeholders = implode(',', array_fill(0, count($fetchedVidIds), '?'));
+            $delStmt = $pdo->prepare("DELETE FROM movies WHERE yt_video_id NOT IN ($placeholders)");
+            $delStmt->execute($fetchedVidIds);
+        }
+    }
+    header("Location: ?p=admin&tab=library&synced=1");
+    exit;
+}
+
 if (isset($_POST['update_settings']) && $is_main_profile) {
+    $newYtApi = !empty($_POST['yt_api']) ? trim($_POST['yt_api']) : $currentUser['yt_api_key'];
+    $newTmdbApi = !empty($_POST['tmdb_api']) ? trim($_POST['tmdb_api']) : $currentUser['tmdb_api_key'];
     $stmt = $pdo->prepare("UPDATE users SET yt_api_key=?, tmdb_api_key=?, yt_playlist_id=? WHERE id=?");
-    $stmt->execute([$_POST['yt_api'], $_POST['tmdb_api'], $_POST['yt_playlist'], $_SESSION['user_id']]);
+    $stmt->execute([$newYtApi, $newTmdbApi, $_POST['yt_playlist'], $_SESSION['user_id']]);
     header("Location: ?p=admin&tab=account&saved=1");
     exit;
 }
@@ -2888,10 +3571,10 @@ if (isset($_SESSION['profile_id'])) {
                 <p style="color:var(--gray); margin-bottom:20px;">Enter your API keys to enable automatic metadata fetching.</p>
                 <form method="POST" class="admin-form">
                     <label>YouTube Data API v3 Key</label>
-                    <input type="text" name="yt_api" value="<?= htmlspecialchars($currentUser['yt_api_key']) ?>" class="tv-focusable">
+                    <input type="password" name="yt_api" value="" placeholder="<?= !empty($currentUser['yt_api_key']) ? '******** (Saved)' : 'Enter API Key' ?>" class="tv-focusable">
                     
                     <label>TMDB API Key (v3 auth)</label>
-                    <input type="text" name="tmdb_api" value="<?= htmlspecialchars($currentUser['tmdb_api_key']) ?>" class="tv-focusable">
+                    <input type="password" name="tmdb_api" value="" placeholder="<?= !empty($currentUser['tmdb_api_key']) ? '******** (Saved)' : 'Enter API Key' ?>" class="tv-focusable">
                     
                     <label>YouTube Playlist URL or ID (Contains Free Movies)</label>
                     <input type="text" name="yt_playlist" value="<?= htmlspecialchars($currentUser['yt_playlist_id']) ?>" placeholder="e.g., PLxyz..." class="tv-focusable">
