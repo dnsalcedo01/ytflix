@@ -366,6 +366,92 @@ function fetchTMDBById($tmdbId, $tmdbKey) {
     return false;
 }
 
+
+function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
+    $tmdbKey = trim($tmdbKey);
+    if (empty($tmdbKey)) return false;
+    
+    // Session-based caching to avoid duplicate TMDB requests
+    $cacheKey = !empty($personId) ? 'id_' . (int)$personId : 'name_' . md5(strtolower(trim($actorName)));
+    if (isset($_SESSION['tmdb_actor_cache'][$cacheKey])) {
+        return $_SESSION['tmdb_actor_cache'][$cacheKey];
+    }
+    
+    if (empty($personId)) {
+        // 1. Search for person by name
+        $query = urlencode(trim($actorName));
+        $searchUrl = "https://api.themoviedb.org/3/search/person?api_key={$tmdbKey}&query={$query}&include_adult=false";
+        $ch = curl_init($searchUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $searchData = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+        
+        if (!empty($searchData["results"][0]["id"])) {
+            $personId = (int)$searchData["results"][0]["id"];
+        }
+    }
+    
+    if (!empty($personId)) {
+        // 2. Fetch person details
+        $detailUrl = "https://api.themoviedb.org/3/person/{$personId}?api_key={$tmdbKey}";
+        $ch = curl_init($detailUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $personData = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+        
+        if (isset($personData["id"])) {
+            $name = $personData["name"] ?? $actorName;
+            $slug = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $name), '-'));
+            $tmdbUrl = "https://www.themoviedb.org/person/{$personData['id']}-{$slug}";
+            
+            // Format birthday & deathday separately
+            $formattedBirthday = '';
+            $formattedDeathday = '';
+            $age = null;
+            $isDeceased = !empty($personData['deathday']);
+            if (!empty($personData['birthday'])) {
+                try {
+                    $bDate = new DateTime($personData['birthday']);
+                    $formattedBirthday = $bDate->format('F j, Y');
+                    if ($isDeceased) {
+                        $dDate = new DateTime($personData['deathday']);
+                        $formattedDeathday = $dDate->format('F j, Y');
+                        $age = $bDate->diff($dDate)->y;
+                    } else {
+                        $now = new DateTime();
+                        $age = $bDate->diff($now)->y;
+                    }
+                } catch (Exception $e) {
+                    $formattedBirthday = $personData['birthday'];
+                }
+            }
+            
+            $result = [
+                "id" => $personData["id"],
+                "name" => $name,
+                "biography" => !empty($personData["biography"]) ? trim($personData["biography"]) : "No biography available.",
+                "birthday" => $formattedBirthday,
+                "deathday" => $formattedDeathday,
+                "age" => $age,
+                "is_deceased" => $isDeceased,
+                "place_of_birth" => $personData["place_of_birth"] ?? null,
+                "known_for" => !empty($personData["known_for_department"]) ? $personData["known_for_department"] : "Acting",
+                "profile_path" => !empty($personData["profile_path"]) ? "https://image.tmdb.org/t/p/h632" . $personData["profile_path"] : null,
+                "tmdb_url" => $tmdbUrl
+            ];
+            
+            if (!isset($_SESSION['tmdb_actor_cache'])) {
+                $_SESSION['tmdb_actor_cache'] = [];
+            }
+            $_SESSION['tmdb_actor_cache'][$cacheKey] = $result;
+            return $result;
+        }
+    }
+    return false;
+}
+
 function handleAvatarUpload($fileArray) {
     if (isset($fileArray) && $fileArray['error'] == UPLOAD_ERR_OK) {
         $uploadDir = 'uploads/avatars/';
@@ -2175,6 +2261,9 @@ if (isset($_SESSION['profile_id'])) {
             transition: all 0.2s ease;
             outline: none;
             border: 1px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
         }
         .cast-card:hover, body.is-keyboard .cast-card.tv-focusable:focus-visible {
             background: rgba(255,255,255,0.1);
@@ -2202,6 +2291,323 @@ if (isset($_SESSION['profile_id'])) {
         .cast-char {
             color: #aaa;
             font-size: 0.85rem;
+        }
+
+        /* ==================== ACTOR PROFILE & KNOWN FOR ==================== */
+        .actor-page-container {
+            padding-top: 30px;
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-left: 4%;
+            padding-right: 4%;
+            padding-bottom: 70px;
+        }
+        .actor-top-nav {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .actor-back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(40, 40, 40, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #eee;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            outline: none;
+            backdrop-filter: blur(10px);
+        }
+        .actor-back-btn:hover, body.is-keyboard .actor-back-btn.tv-focusable:focus-visible {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+            transform: scale(1.05);
+        }
+        .actor-main-layout {
+            display: flex;
+            gap: 45px;
+            align-items: flex-start;
+        }
+        .actor-sidebar-col {
+            flex: 0 0 280px;
+            max-width: 280px;
+            position: sticky;
+            top: 95px;
+        }
+        .actor-poster-wrapper {
+            width: 100%;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: #151515;
+        }
+        .actor-poster-img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            display: block;
+        }
+        .actor-content-col {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .actor-name-title {
+            font-size: clamp(32px, 4vw, 48px);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 14px;
+            letter-spacing: -0.5px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .actor-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 14px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+        .actor-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+        }
+        .actor-meta-item i {
+            color: var(--primary);
+        }
+        .actor-tmdb-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(1, 180, 228, 0.12);
+            color: #01b4e4;
+            border: 1px solid rgba(1, 180, 228, 0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            outline: none;
+            white-space: nowrap;
+        }
+        .actor-tmdb-link:hover, body.is-keyboard .actor-tmdb-link.tv-focusable:focus-visible {
+            background: #01b4e4;
+            color: #000;
+            border-color: #01b4e4;
+            transform: scale(1.05);
+        }
+        .actor-bio-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .actor-bio-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .actor-bio-content {
+            color: #ccc;
+            line-height: 1.7;
+            font-size: 1.05rem;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 14px 16px;
+            margin-bottom: 35px;
+            border-radius: 10px;
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.25) transparent;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .actor-bio-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .actor-bio-content::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.25);
+            border-radius: 3px;
+        }
+        .actor-bio-content p {
+            margin-bottom: 12px;
+        }
+        .actor-bio-content p:last-child {
+            margin-bottom: 0;
+        }
+        body.is-keyboard .actor-bio-content.tv-focusable:focus-visible,
+        .actor-bio-content:focus {
+            outline: none !important;
+            border-color: white !important;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3) !important;
+            background: rgba(30, 30, 30, 0.8);
+        }
+        .known-for-section {
+            margin-top: 0;
+        }
+        .known-for-title {
+            font-size: clamp(22px, 2.5vw, 30px);
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+        }
+        .known-for-title i {
+            color: var(--primary);
+        }
+        .actor-titles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .actor-title-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            aspect-ratio: 2/3;
+            background: #222;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            border: 2px solid transparent;
+            outline: none;
+            text-decoration: none;
+            display: block;
+        }
+        .actor-title-card:hover {
+            transform: scale(1.04);
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+            z-index: 5;
+        }
+        body.is-keyboard .actor-title-card.tv-focusable:focus-visible {
+            outline: none !important;
+            border-color: white !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 0 20px rgba(255,255,255,0.4) !important;
+            z-index: 10;
+        }
+        .actor-title-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .actor-title-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 12px;
+            pointer-events: none;
+        }
+        .actor-title-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-bottom: 4px;
+            line-height: 1.25;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        }
+        .actor-title-sub {
+            font-size: 0.8rem;
+            color: #bbb;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .actor-title-type-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        @media (max-width: 900px) {
+            .actor-main-layout {
+                flex-direction: column;
+                align-items: center;
+                gap: 30px;
+            }
+            .actor-sidebar-col {
+                flex: 0 0 auto;
+                width: 200px;
+                max-width: 200px;
+                position: static;
+            }
+            .actor-content-col {
+                width: 100%;
+            }
+            .actor-name-title {
+                text-align: center;
+            }
+            .actor-meta-row {
+                justify-content: center;
+            }
+            .actor-bio-header {
+                justify-content: center;
+            }
+            .actor-bio-header::after {
+                display: none;
+            }
+            .actor-titles-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 14px;
+            }
+        }
+        @media (max-width: 480px) {
+            .actor-page-container {
+                padding-top: 20px;
+                padding-left: 3%;
+                padding-right: 3%;
+            }
+            .actor-sidebar-col {
+                width: 160px;
+            }
+            .actor-name-title {
+                font-size: 26px;
+            }
+            .actor-titles-grid {
+                grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+                gap: 10px;
+            }
         }
 
         /* ==================== PLAYER ==================== */
@@ -3070,6 +3476,195 @@ if (isset($_SESSION['profile_id'])) {
         </div>
     </div>
 
+<?php elseif ($page == 'actor'): ?>
+    <?php
+    $actorName = isset($_GET['name']) ? trim($_GET['name']) : '';
+    $personId = isset($_GET['id']) ? (int)$_GET['id'] : null;
+    
+    if (empty($actorName) && empty($personId)) {
+        header("Location: ?p=home");
+        exit;
+    }
+
+    $adminStmt = $pdo->prepare("SELECT tmdb_api_key FROM users LIMIT 1");
+    $adminStmt->execute();
+    $tmdbKey = $adminStmt->fetchColumn();
+
+    $actorInfo = false;
+    if ($tmdbKey) {
+        $actorInfo = fetchTMDBActorByName($actorName, $tmdbKey, $personId);
+    }
+    
+    // If actorInfo is retrieved from TMDB, use the canonical name from TMDB
+    $displayName = $actorInfo ? $actorInfo['name'] : $actorName;
+
+    // Search local YTFlix library for movies and shows featuring this actor
+    $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $displayName) . '%';
+    
+    // Query Movies
+    $stmtMovies = $pdo->prepare("SELECT id, clean_title as title, poster_path, genre, release_year as year, rating, actors, 'movie' as media_type FROM movies WHERE actors LIKE ? ORDER BY release_year DESC");
+    $stmtMovies->execute([$like]);
+    $moviesRaw = $stmtMovies->fetchAll(PDO::FETCH_ASSOC);
+    
+    $knownMovies = [];
+    foreach ($moviesRaw as $m) {
+        $acts = json_decode($m['actors'], true);
+        if (is_array($acts)) {
+            foreach ($acts as $a) {
+                if (!empty($a['name']) && strcasecmp(trim($a['name']), trim($displayName)) === 0) {
+                    $knownMovies[] = $m;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Query Shows
+    $stmtShows = $pdo->prepare("SELECT id, clean_title as title, poster_path, genre, release_year as year, rating, actors, 'show' as media_type FROM shows WHERE actors LIKE ? ORDER BY release_year DESC");
+    $stmtShows->execute([$like]);
+    $showsRaw = $stmtShows->fetchAll(PDO::FETCH_ASSOC);
+    
+    $knownShows = [];
+    foreach ($showsRaw as $s) {
+        $acts = json_decode($s['actors'], true);
+        if (is_array($acts)) {
+            foreach ($acts as $a) {
+                if (!empty($a['name']) && strcasecmp(trim($a['name']), trim($displayName)) === 0) {
+                    $knownShows[] = $s;
+                    break;
+                }
+            }
+        }
+    }
+
+    $totalTitles = count($knownMovies) + count($knownShows);
+    ?>
+
+    <div class="actor-page-container">
+        <!-- Top Back Navigation -->
+        <div class="actor-top-nav">
+            <a href="javascript:window.history.length > 1 ? window.history.back() : window.location.href='?p=home'" class="actor-back-btn tv-focusable" tabindex="0" title="Go Back">
+                <i class="fas fa-arrow-left"></i> <span>Back</span>
+            </a>
+        </div>
+
+        <!-- Main Actor Layout: 2-Column Desktop/TV Structure -->
+        <div class="actor-main-layout">
+            <!-- Left Sidebar: Hi-res Profile Image -->
+            <div class="actor-sidebar-col">
+                <div class="actor-poster-wrapper">
+                    <img src="<?= htmlspecialchars($actorInfo['profile_path'] ?? 'avatar-cast.jpg') ?>" class="actor-poster-img" alt="<?= htmlspecialchars($displayName) ?>" onerror="this.onerror=null; this.src='avatar-cast.jpg'">
+                </div>
+            </div>
+
+            <!-- Right Content Column: Name, Meta, Biography, and directly underneath it, Known For -->
+            <div class="actor-content-col">
+                <h1 class="actor-name-title"><?= htmlspecialchars($displayName) ?></h1>
+                
+                <div class="actor-meta-row">
+                    <?php if (!empty($actorInfo['known_for'])): ?>
+                        <div class="actor-meta-item">
+                            <i class="fas fa-star"></i>
+                            <span><?= htmlspecialchars($actorInfo['known_for']) ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($actorInfo['birthday'])): ?>
+                        <div class="actor-meta-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span>Born: <?= htmlspecialchars($actorInfo['birthday']) ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($actorInfo['is_deceased']) && !empty($actorInfo['deathday'])): ?>
+                        <div class="actor-meta-item">
+                            <i class="fas fa-monument"></i>
+                            <span>Died: <?= htmlspecialchars($actorInfo['deathday']) ?><?= !empty($actorInfo['age']) ? ' (aged ' . (int)$actorInfo['age'] . ')' : '' ?></span>
+                        </div>
+                    <?php elseif (!empty($actorInfo['age'])): ?>
+                        <div class="actor-meta-item">
+                            <i class="fas fa-user-clock"></i>
+                            <span>Age: <?= (int)$actorInfo['age'] ?> years old</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($actorInfo['place_of_birth'])): ?>
+                        <div class="actor-meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span><?= htmlspecialchars($actorInfo['place_of_birth']) ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($actorInfo['tmdb_url'])): ?>
+                        <a href="<?= htmlspecialchars($actorInfo['tmdb_url']) ?>" target="_blank" rel="noopener noreferrer" class="actor-tmdb-link tv-focusable" tabindex="0" title="Open on TMDB">
+                            <i class="fas fa-external-link-alt"></i> <span>The Movie Database</span>
+                        </a>
+                    <?php endif; ?>
+                </div>
+
+                <div class="actor-bio-header">Biography</div>
+                <div class="actor-bio-content tv-focusable tv-scrollable" tabindex="0">
+                    <?php if ($actorInfo && !empty($actorInfo['biography']) && $actorInfo['biography'] !== 'No biography available.'): ?>
+                        <?php 
+                        $paragraphs = explode("\n", str_replace(["\r\n", "\r"], "\n", $actorInfo['biography']));
+                        foreach ($paragraphs as $p) {
+                            $p = trim($p);
+                            if (!empty($p)) {
+                                echo '<p>' . htmlspecialchars($p) . '</p>';
+                            }
+                        }
+                        ?>
+                    <?php else: ?>
+                        <p style="color:#888; font-style:italic;">No biography available for this actor.</p>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Known For Section (Underneath Biography in Content Column) -->
+                <div class="known-for-section">
+                    <h2 class="known-for-title">
+                        <i class="fas fa-film"></i> Known For
+                    </h2>
+
+                    <?php if ($totalTitles > 0): ?>
+                        <div class="actor-titles-grid">
+                            <?php foreach ($knownMovies as $m): ?>
+                                <a href="?p=movie&id=<?= (int)$m['id'] ?>" class="actor-title-card tv-focusable" tabindex="0" data-movie-id="<?= (int)$m['id'] ?>">
+                                    <img src="<?= htmlspecialchars($m['poster_path'] ?: 'https://via.placeholder.com/300x450/222/fff?text=No+Poster') ?>" class="actor-title-poster" alt="<?= htmlspecialchars($m['title']) ?>" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
+                                    <div class="actor-title-overlay">
+                                        <div class="actor-title-name"><?= htmlspecialchars($m['title']) ?></div>
+                                        <div class="actor-title-sub">
+                                            <span><?= htmlspecialchars($m['year']) ?></span>
+                                            <?php if (!empty($m['rating']) && $m['rating'] !== 'No Rating'): ?>
+                                                <span style="border: 1px solid rgba(255,255,255,0.4); padding: 0 4px; border-radius: 3px; font-size: 0.72rem;"><?= htmlspecialchars($m['rating']) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </a>
+                            <?php endforeach; ?>
+
+                            <?php foreach ($knownShows as $s): ?>
+                                <a href="?p=show&id=<?= (int)$s['id'] ?>" class="actor-title-card tv-focusable" tabindex="0" data-show-id="<?= (int)$s['id'] ?>">
+                                    <img src="<?= htmlspecialchars($s['poster_path'] ?: 'https://via.placeholder.com/300x450/222/fff?text=No+Poster') ?>" class="actor-title-poster" alt="<?= htmlspecialchars($s['title']) ?>" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/222/fff?text=No+Poster'">
+                                    <div class="actor-title-overlay">
+                                        <div class="actor-title-name"><?= htmlspecialchars($s['title']) ?></div>
+                                        <div class="actor-title-sub">
+                                            <span class="actor-title-type-badge">TV</span>
+                                            <span><?= htmlspecialchars($s['year']) ?></span>
+                                        </div>
+                                    </div>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 35px; text-align: center; color: #888; font-size: 1.05rem;">
+                            No titles found in your library featuring <?= htmlspecialchars($displayName) ?>.
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <?php elseif ($page == 'movie'): ?>
     <?php
     $movieId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -3155,13 +3750,13 @@ if (isset($_SESSION['profile_id'])) {
                             <?php foreach($actors as $actor): 
                                 $img = $actor['profile'] ? $actor['profile'] : 'avatar-cast.jpg';
                             ?>
-                            <div class="cast-card tv-focusable" tabindex="0">
-                                <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.onerror=null; this.src='avatar-cast.jpg'">
+                            <a href="?p=actor&name=<?= urlencode($actor['name']) ?>" class="cast-card tv-focusable" tabindex="0">
+                                <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.onerror=null; this.src='avatar-cast.jpg'" alt="<?= htmlspecialchars($actor['name']) ?>">
                                 <div class="cast-details">
                                     <div class="cast-name"><?= htmlspecialchars($actor['name']) ?></div>
                                     <div class="cast-char"><?= htmlspecialchars($actor['character']) ?></div>
                                 </div>
-                            </div>
+                            </a>
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
@@ -3377,13 +3972,13 @@ if (isset($_SESSION['profile_id'])) {
                                 $img = $actor['profile'] ?? $actor['profile_path'] ?? 'avatar-cast.jpg';
                                 $character = $actor['character'] ?? '';
                             ?>
-                            <div class="cast-card tv-focusable" tabindex="0">
-                                <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.onerror=null; this.src='avatar-cast.jpg'">
+                            <a href="?p=actor&name=<?= urlencode($actor['name'] ?? 'Unknown Actor') ?>" class="cast-card tv-focusable" tabindex="0">
+                                <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.onerror=null; this.src='avatar-cast.jpg'" alt="<?= htmlspecialchars($actor['name'] ?? 'Actor') ?>">
                                 <div class="cast-details">
                                     <div class="cast-name"><?= htmlspecialchars($actor['name'] ?? 'Unknown Actor') ?></div>
                                     <div class="cast-char"><?= htmlspecialchars($character) ?></div>
                                 </div>
-                            </div>
+                            </a>
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
@@ -5003,6 +5598,15 @@ if (isset($_SESSION['profile_id'])) {
                 dropdowns[i].classList.remove('show');
             }
             
+            <?php if (isset($page) && $page === 'actor'): ?>
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '?p=home';
+            }
+            return;
+            <?php endif; ?>
+            
             return;
         }
 
@@ -5142,6 +5746,23 @@ if (isset($_SESSION['profile_id'])) {
             // Allows normal up/down math, but we don't return early unless needed
         } else if (current.closest('.modal-content') && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
             if (!current.classList.contains('modal-desc')) return;
+        }
+
+        if (current.classList.contains('actor-bio-content') || current.classList.contains('tv-scrollable')) {
+            let maxScroll = current.scrollHeight - current.clientHeight;
+            if (e.key === 'ArrowDown') {
+                if (maxScroll > 5 && current.scrollTop < maxScroll - 15) {
+                    current.scrollBy({ top: 75, behavior: 'smooth' });
+                    e.preventDefault();
+                    return;
+                }
+            } else if (e.key === 'ArrowUp') {
+                if (current.scrollTop > 15) {
+                    current.scrollBy({ top: -75, behavior: 'smooth' });
+                    e.preventDefault();
+                    return;
+                }
+            }
         }
 
         e.preventDefault(); 
