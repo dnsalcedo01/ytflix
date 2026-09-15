@@ -11,6 +11,9 @@ YTFlix is a self-hosted, premium streaming interface designed to organize and pl
 ![Content Page](ytflix-content-page.jpeg)
 **YTFlix Content Page**
 
+![Actor/Cast Biography Page](ytflix-actor-bio-info-page.jpeg)
+**YTFlix Actor/Cast Biography Page**
+
 ![Player Interface](ytflix-player.jpeg)
 **YTFlix Player Interface**
 
