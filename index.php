@@ -2200,7 +2200,7 @@ if (isset($_SESSION['profile_id'])) {
         .movie-actions {
             display: flex;
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
         }
         .movie-actions .btn-play {
             font-size: 1.2rem;
