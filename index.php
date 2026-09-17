@@ -2140,9 +2140,22 @@ if (isset($_SESSION['profile_id'])) {
             display: none; align-items: center; justify-content: center;
             padding: 20px; 
         }
-        /* ==================== DEDICATED MOVIE PAGE ==================== */
-        nav.movie-nav {
-            background: transparent !important;
+        /* ==================== DEDICATED MOVIE & SHOW PAGES ==================== */
+        .content-top-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 30px 4% 0 4%;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            pointer-events: auto;
+        }
+        @media (max-width: 768px) {
+            .content-top-nav {
+                padding: 20px 4% 0 4%;
+            }
         }
         .movie-page-container {
             min-height: 100vh;
@@ -2328,12 +2341,21 @@ if (isset($_SESSION['profile_id'])) {
             text-decoration: none;
             outline: none;
             backdrop-filter: blur(10px);
+            font-family: inherit;
+            line-height: 1.2;
         }
-        .actor-back-btn:hover, body.is-keyboard .actor-back-btn.tv-focusable:focus-visible {
+        .actor-back-btn:hover, 
+        .actor-back-btn:focus-visible,
+        body.is-keyboard .actor-back-btn.tv-focusable:focus-visible {
             background: #fff;
             color: #000;
             border-color: #fff;
             transform: scale(1.05);
+        }
+        .actor-back-btn:hover i,
+        .actor-back-btn:focus-visible i,
+        body.is-keyboard .actor-back-btn.tv-focusable:focus-visible i {
+            color: #000;
         }
         .actor-main-layout {
             display: flex;
@@ -3546,9 +3568,9 @@ if (isset($_SESSION['profile_id'])) {
     <div class="actor-page-container">
         <!-- Top Back Navigation -->
         <div class="actor-top-nav">
-            <a href="javascript:window.history.length > 1 ? window.history.back() : window.location.href='?p=home'" class="actor-back-btn tv-focusable" tabindex="0" title="Go Back">
+            <button type="button" class="actor-back-btn tv-focusable" onclick="navBack('?p=home')" tabindex="0" title="Go Back">
                 <i class="fas fa-arrow-left"></i> <span>Back</span>
-            </a>
+            </button>
         </div>
 
         <!-- Main Actor Layout: 2-Column Desktop/TV Structure -->
@@ -3699,15 +3721,14 @@ if (isset($_SESSION['profile_id'])) {
     }
     ?>
     
-    <nav id="navbar" class="movie-nav" style="background: transparent;">
-        <div class="nav-links nav-left">
-            <a href="javascript:window.history.length > 1 ? window.history.back() : window.location.href='?p=home'" class="actor-back-btn tv-focusable" tabindex="0" title="Go Back">
-                <i class="fas fa-arrow-left"></i> <span>Back</span>
-            </a>
-        </div>
-    </nav>
-
     <div class="movie-page-container">
+        <!-- Top Back Navigation (Non-floating, scrolls with page) -->
+        <div class="content-top-nav">
+            <button type="button" class="actor-back-btn tv-focusable" onclick="navBack('?p=home')" tabindex="0" title="Go Back">
+                <i class="fas fa-arrow-left"></i> <span>Back</span>
+            </button>
+        </div>
+
         <div class="movie-hero" style="background-image: url('<?= htmlspecialchars($heroBg) ?>');">
             <div class="movie-hero-gradient"></div>
         </div>
@@ -3912,15 +3933,14 @@ if (isset($_SESSION['profile_id'])) {
     </script>";
     ?>
     
-    <nav id="navbar" class="movie-nav" style="background: transparent;">
-        <div class="nav-links nav-left">
-            <a href="javascript:window.history.length > 1 ? window.history.back() : window.location.href='?p=shows'" class="actor-back-btn tv-focusable" tabindex="0" title="Go Back">
-                <i class="fas fa-arrow-left"></i> <span>Back</span>
-            </a>
-        </div>
-    </nav>
-
     <div class="movie-page-container">
+        <!-- Top Back Navigation (Non-floating, scrolls with page) -->
+        <div class="content-top-nav">
+            <button type="button" class="actor-back-btn tv-focusable" onclick="navBack('?p=shows')" tabindex="0" title="Go Back">
+                <i class="fas fa-arrow-left"></i> <span>Back</span>
+            </button>
+        </div>
+
         <div class="movie-hero" style="background-image: url('<?= htmlspecialchars($heroBg) ?>');">
             <div class="movie-hero-gradient"></div>
         </div>
@@ -4543,6 +4563,17 @@ if (isset($_SESSION['profile_id'])) {
 
 <!-- ==================== JAVASCRIPT LOGIC ==================== -->
 <script>
+    function navBack(fallbackUrl) {
+        fallbackUrl = fallbackUrl || '?p=home';
+        if (document.referrer && document.referrer.indexOf(window.location.host) !== -1 && document.referrer !== window.location.href) {
+            window.history.back();
+        } else if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = fallbackUrl;
+        }
+    }
+
     let lastFocusedElement = null; 
     
     // Global keyboard/mouse state for CSS DPAD isolation
@@ -5591,12 +5622,8 @@ if (isset($_SESSION['profile_id'])) {
                 dropdowns[i].classList.remove('show');
             }
             
-            <?php if (isset($page) && $page === 'actor'): ?>
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.location.href = '?p=home';
-            }
+            <?php if (isset($page) && in_array($page, ['actor', 'movie', 'show'])): ?>
+            navBack('<?= $page === 'show' ? '?p=shows' : '?p=home' ?>');
             return;
             <?php endif; ?>
             
