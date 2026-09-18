@@ -1766,18 +1766,40 @@ if (isset($_SESSION['profile_id'])) {
         
         /* Updated Nav Center specific for Pill Shapes on Focus */
         .nav-center {
-            display: flex; gap: 5px; align-items: center; font-weight: 500; font-size: 1.05rem;
+            display: flex; gap: 6px; align-items: center; font-weight: 500; font-size: 1.05rem;
             flex: 2; justify-content: center;
         }
         .nav-center a { 
             color: #ccc; text-decoration: none; font-weight: 500; font-size: 1rem; 
-            transition: color 0.2s, transform 0.2s; display: flex; align-items: center; gap: 8px;
-            padding: 6px 16px; border-radius: 30px; border: 2px solid transparent;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 7px 18px; border-radius: 9999px; border: 1px solid transparent;
         }
         .nav-center a i { display: inline-block; }
-        .nav-center a:hover, .nav-center a:focus { color: #fff; transform: scale(1.05); background: rgba(255,255,255,0.1); border-color: transparent; }
-        .nav-center a.active { outline: none !important; color: white; border-color: transparent; background: rgba(255,255,255,0.2); }
-        body.is-keyboard .nav-center a.tv-focusable:focus-visible { outline: none !important; color: white; border-color: white; background: rgba(255,255,255,0.1); transform: scale(1.05); }
+        .nav-center a:hover, .nav-center a:focus { 
+            color: #fff; transform: scale(1.05); 
+            background: rgba(255, 255, 255, 0.1); 
+            border-color: rgba(255, 255, 255, 0.18); 
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        }
+        .nav-center a.active { 
+            outline: none !important; 
+            color: #ffffff; 
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.18); 
+            border: 1px solid rgba(255, 255, 255, 0.25); 
+            border-radius: 9999px;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+        }
+        body.is-keyboard .nav-center a.tv-focusable:focus-visible { 
+            outline: none !important; 
+            color: #ffffff; 
+            border-color: #ffffff; 
+            background: rgba(255, 255, 255, 0.25); 
+            transform: scale(1.06); 
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
 
         /* Globally hide icons for links that have text labels (except Search) */
         .nav-center a span { display: inline-block; }
@@ -2057,30 +2079,79 @@ if (isset($_SESSION['profile_id'])) {
         }
 
         .search-input-box {
-            width: 100%; padding: 12px 16px; background: #333; border: 2px solid #555;
-            color: white; font-size: 1.1rem; border-radius: 6px; outline: none;
-            font-family: inherit; transition: border-color 0.2s;
+            width: 100%; padding: 14px 18px; 
+            background: rgba(30, 30, 30, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white; font-size: 1.1rem; border-radius: 10px; outline: none;
+            font-family: inherit; transition: all 0.25s ease;
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
-        .search-input-box:focus { border-color: white; }
+        .search-input-box:focus { 
+            border-color: rgba(255, 255, 255, 0.6); 
+            background: rgba(45, 45, 45, 0.75);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+        }
         .search-input-box::placeholder { color: #888; }
 
         .vk-grid {
-            display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
-            background: #2a2a2a; padding: 8px; border-radius: 8px;
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
+            background: rgba(25, 25, 25, 0.55); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 12px; border-radius: 12px;
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
         .vk-key {
-            background: #3a3a3a; color: #e0e0e0; border: 2px solid transparent;
-            border-radius: 4px; padding: 10px 0; font-size: 1rem; font-weight: 500;
-            text-align: center; cursor: pointer; transition: 0.15s;
+            background: rgba(255, 255, 255, 0.07); 
+            color: #e5e5e5; 
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 6px; padding: 11px 0; font-size: 1rem; font-weight: 600;
+            text-align: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             font-family: inherit; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
         }
-        .vk-key:hover { background: #555; color: white; }
+        .vk-key:hover { 
+            background: rgba(255, 255, 255, 0.2); 
+            border-color: rgba(255, 255, 255, 0.35); 
+            color: #fff; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        }
+        .vk-key:active {
+            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.3);
+        }
         body.is-keyboard .vk-key.tv-focusable:focus-visible {
-            outline: none !important; background: #666; color: white;
-            border-color: white; transform: scale(1.05); box-shadow: 0 0 10px rgba(255,255,255,0.3);
+            outline: none !important; 
+            background: #ffffff !important; 
+            color: #000000 !important;
+            border-color: #ffffff !important; 
+            transform: scale(1.08); 
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.6) !important;
+            z-index: 5;
+        }
+        body.is-keyboard .vk-key.tv-focusable:focus-visible i,
+        body.is-keyboard .vk-key.tv-focusable:focus-visible span {
+            color: #000000 !important;
         }
         .vk-key.vk-wide { grid-column: span 3; }
-        .vk-key.vk-action { background: #4a4a4a; }
+        .vk-key.vk-action { 
+            background: rgba(255, 255, 255, 0.12); 
+            border-color: rgba(255, 255, 255, 0.16); 
+            color: #ffffff;
+        }
+        .vk-key.vk-action[data-action="clear"] {
+            background: rgba(229, 9, 20, 0.22);
+            border-color: rgba(229, 9, 20, 0.35);
+            color: #ff7675;
+        }
+        .vk-key.vk-action[data-action="clear"]:hover {
+            background: rgba(229, 9, 20, 0.45);
+            border-color: rgba(229, 9, 20, 0.7);
+            color: #ffffff;
+        }
 
         .genre-list {
             display: flex; flex-direction: column; gap: 2px;
