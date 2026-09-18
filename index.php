@@ -217,6 +217,7 @@ function fetchTMDB($titleInfo, $tmdbKey) {
         if (!empty($credData['cast'])) {
             foreach (array_slice($credData['cast'], 0, 8) as $actor) {
                 $actors[] = [
+                    'id' => (int)($actor['id'] ?? 0),
                     'name' => $actor['name'],
                     'character' => $actor['character'],
                     'profile' => $actor['profile_path'] ? "https://image.tmdb.org/t/p/w185" . $actor['profile_path'] : null
@@ -274,7 +275,7 @@ function fetchTMDB($titleInfo, $tmdbKey) {
             'rating' => $rating,
             'poster_path' => $movie['poster_path'] ? "https://image.tmdb.org/t/p/w500" . $movie['poster_path'] : "",
             'backdrop_path' => $movie['backdrop_path'] ? "https://image.tmdb.org/t/p/original" . $movie['backdrop_path'] : "",
-            'actors' => json_encode($actors), 
+            'actors' => json_encode($actors, JSON_UNESCAPED_UNICODE), 
             'genre' => implode(", ", array_slice($genres, 0, 3)) 
         ];
     }
@@ -304,6 +305,7 @@ function fetchTMDBById($tmdbId, $tmdbKey) {
         if (!empty($credData['cast'])) {
             foreach (array_slice($credData['cast'], 0, 8) as $actor) {
                 $actors[] = [
+                    'id' => (int)($actor['id'] ?? 0),
                     'name' => $actor['name'],
                     'character' => $actor['character'],
                     'profile' => $actor['profile_path'] ? "https://image.tmdb.org/t/p/w185" . $actor['profile_path'] : null
@@ -359,7 +361,7 @@ function fetchTMDBById($tmdbId, $tmdbKey) {
             'rating' => $rating,
             'poster_path' => $movieData['poster_path'] ? "https://image.tmdb.org/t/p/w500" . $movieData['poster_path'] : "",
             'backdrop_path' => $movieData['backdrop_path'] ? "https://image.tmdb.org/t/p/original" . $movieData['backdrop_path'] : "",
-            'actors' => json_encode($actors), 
+            'actors' => json_encode($actors, JSON_UNESCAPED_UNICODE), 
             'genre' => implode(", ", array_slice($genres, 0, 3)) 
         ];
     }
@@ -371,8 +373,8 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
     $tmdbKey = trim($tmdbKey);
     if (empty($tmdbKey)) return false;
     
-    // Session-based caching to avoid duplicate TMDB requests
-    $cacheKey = !empty($personId) ? 'id_' . (int)$personId : 'name_' . md5(strtolower(trim($actorName)));
+    // Session-based caching to avoid duplicate TMDB requests (multibyte-safe)
+    $cacheKey = !empty($personId) ? 'id_' . (int)$personId : 'name_' . md5(mb_strtolower(trim($actorName), 'UTF-8'));
     if (isset($_SESSION['tmdb_actor_cache'][$cacheKey])) {
         return $_SESSION['tmdb_actor_cache'][$cacheKey];
     }
@@ -389,6 +391,23 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
         
         if (!empty($searchData["results"][0]["id"])) {
             $personId = (int)$searchData["results"][0]["id"];
+        } else {
+            // Transliteration fallback if exact multibyte name search yields 0 results
+            $translit = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $actorName);
+            if (!empty($translit)) {
+                $cleanTranslit = trim(preg_replace('/[^a-zA-Z0-9\s]/', '', $translit));
+                if (!empty($cleanTranslit) && $cleanTranslit !== trim($actorName)) {
+                    $fallbackUrl = "https://api.themoviedb.org/3/search/person?api_key={$tmdbKey}&query=" . urlencode($cleanTranslit) . "&include_adult=false";
+                    $chF = curl_init($fallbackUrl);
+                    curl_setopt($chF, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($chF, CURLOPT_SSL_VERIFYPEER, false);
+                    $fallbackData = json_decode(curl_exec($chF), true);
+                    curl_close($chF);
+                    if (!empty($fallbackData["results"][0]["id"])) {
+                        $personId = (int)$fallbackData["results"][0]["id"];
+                    }
+                }
+            }
         }
     }
     
@@ -428,10 +447,42 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
                 }
             }
             
+            $biography = !empty($personData["biography"]) ? trim($personData["biography"]) : "";
+            
+            // If English biography is empty, query translations endpoint for native language biography
+            if (empty($biography)) {
+                $transUrl = "https://api.themoviedb.org/3/person/{$personId}/translations?api_key={$tmdbKey}";
+                $chT = curl_init($transUrl);
+                curl_setopt($chT, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($chT, CURLOPT_SSL_VERIFYPEER, false);
+                $transData = json_decode(curl_exec($chT), true);
+                curl_close($chT);
+                
+                if (!empty($transData['translations'])) {
+                    $bestBio = '';
+                    foreach ($transData['translations'] as $tr) {
+                        if (!empty($tr['data']['biography'])) {
+                            $tBio = trim($tr['data']['biography']);
+                            // Prioritize Turkish or native translation if available
+                            if (($tr['iso_639_1'] ?? '') === 'tr') {
+                                $bestBio = $tBio;
+                                break;
+                            }
+                            if (empty($bestBio)) {
+                                $bestBio = $tBio;
+                            }
+                        }
+                    }
+                    if (!empty($bestBio)) {
+                        $biography = $bestBio;
+                    }
+                }
+            }
+            
             $result = [
                 "id" => $personData["id"],
                 "name" => $name,
-                "biography" => !empty($personData["biography"]) ? trim($personData["biography"]) : "No biography available.",
+                "biography" => !empty($biography) ? $biography : "No biography available.",
                 "birthday" => $formattedBirthday,
                 "deathday" => $formattedDeathday,
                 "age" => $age,
@@ -1557,6 +1608,7 @@ if (isset($_POST['add_show']) && $is_main_profile) {
             if (!empty($credData['cast'])) {
                 foreach (array_slice($credData['cast'], 0, 8) as $actor) {
                     $actArr[] = [
+                        'id' => (int)($actor['id'] ?? 0),
                         'name' => $actor['name'],
                         'character' => $actor['character'],
                         'profile' => $actor['profile_path'] ? "https://image.tmdb.org/t/p/w185" . $actor['profile_path'] : null
@@ -1574,7 +1626,7 @@ if (isset($_POST['add_show']) && $is_main_profile) {
             $year = substr($showData['first_air_date'] ?? '', 0, 4);
             $poster = $showData['poster_path'] ? "https://image.tmdb.org/t/p/w500" . $showData['poster_path'] : $poster;
             $backdrop = $showData['backdrop_path'] ? "https://image.tmdb.org/t/p/original" . $showData['backdrop_path'] : "";
-            $actors = json_encode($actArr);
+            $actors = json_encode($actArr, JSON_UNESCAPED_UNICODE);
             $genre = implode(", ", array_slice($genres, 0, 3));
         }
     }
@@ -3595,11 +3647,31 @@ if (isset($_SESSION['profile_id'])) {
     $displayName = $actorInfo ? $actorInfo['name'] : $actorName;
 
     // Search local YTFlix library for movies and shows featuring this actor
-    $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $displayName) . '%';
+    // Match by direct TMDB ID, raw UTF-8 name, and JSON-escaped unicode name (\uXXXX)
+    $searchTerms = [$displayName];
+    if (!empty($actorName) && $actorName !== $displayName) {
+        $searchTerms[] = $actorName;
+    }
+    $escapedJsonName = trim(json_encode($displayName), '"');
+    if (!empty($escapedJsonName) && $escapedJsonName !== $displayName) {
+        $searchTerms[] = $escapedJsonName;
+    }
+    if (!empty($personId)) {
+        $searchTerms[] = '"id":' . (int)$personId;
+        $searchTerms[] = '"id": "' . (int)$personId . '"';
+    }
+
+    $instrClauses = [];
+    $instrParams = [];
+    foreach ($searchTerms as $term) {
+        $instrClauses[] = "INSTR(actors, ?) > 0";
+        $instrParams[] = $term;
+    }
+    $whereSql = !empty($instrClauses) ? implode(" OR ", $instrClauses) : "1=0";
     
     // Query Movies
-    $stmtMovies = $pdo->prepare("SELECT id, clean_title as title, poster_path, genre, release_year as year, rating, actors, 'movie' as media_type FROM movies WHERE actors LIKE ? ORDER BY release_year DESC");
-    $stmtMovies->execute([$like]);
+    $stmtMovies = $pdo->prepare("SELECT id, clean_title as title, poster_path, genre, release_year as year, rating, actors, 'movie' as media_type FROM movies WHERE {$whereSql} ORDER BY release_year DESC");
+    $stmtMovies->execute($instrParams);
     $moviesRaw = $stmtMovies->fetchAll(PDO::FETCH_ASSOC);
     
     $knownMovies = [];
@@ -3607,7 +3679,16 @@ if (isset($_SESSION['profile_id'])) {
         $acts = json_decode($m['actors'], true);
         if (is_array($acts)) {
             foreach ($acts as $a) {
-                if (!empty($a['name']) && strcasecmp(trim($a['name']), trim($displayName)) === 0) {
+                $matched = false;
+                if (!empty($personId) && !empty($a['id']) && (int)$a['id'] === (int)$personId) {
+                    $matched = true;
+                } elseif (!empty($a['name'])) {
+                    if (mb_strtolower(trim($a['name']), 'UTF-8') === mb_strtolower(trim($displayName), 'UTF-8') ||
+                        mb_strtolower(trim($a['name']), 'UTF-8') === mb_strtolower(trim($actorName), 'UTF-8')) {
+                        $matched = true;
+                    }
+                }
+                if ($matched) {
                     $knownMovies[] = $m;
                     break;
                 }
@@ -3616,8 +3697,8 @@ if (isset($_SESSION['profile_id'])) {
     }
     
     // Query Shows
-    $stmtShows = $pdo->prepare("SELECT id, clean_title as title, poster_path, genre, release_year as year, rating, actors, 'show' as media_type FROM shows WHERE actors LIKE ? ORDER BY release_year DESC");
-    $stmtShows->execute([$like]);
+    $stmtShows = $pdo->prepare("SELECT id, clean_title as title, poster_path, genre, release_year as year, rating, actors, 'show' as media_type FROM shows WHERE {$whereSql} ORDER BY release_year DESC");
+    $stmtShows->execute($instrParams);
     $showsRaw = $stmtShows->fetchAll(PDO::FETCH_ASSOC);
     
     $knownShows = [];
@@ -3625,7 +3706,16 @@ if (isset($_SESSION['profile_id'])) {
         $acts = json_decode($s['actors'], true);
         if (is_array($acts)) {
             foreach ($acts as $a) {
-                if (!empty($a['name']) && strcasecmp(trim($a['name']), trim($displayName)) === 0) {
+                $matched = false;
+                if (!empty($personId) && !empty($a['id']) && (int)$a['id'] === (int)$personId) {
+                    $matched = true;
+                } elseif (!empty($a['name'])) {
+                    if (mb_strtolower(trim($a['name']), 'UTF-8') === mb_strtolower(trim($displayName), 'UTF-8') ||
+                        mb_strtolower(trim($a['name']), 'UTF-8') === mb_strtolower(trim($actorName), 'UTF-8')) {
+                        $matched = true;
+                    }
+                }
+                if ($matched) {
                     $knownShows[] = $s;
                     break;
                 }
@@ -3840,7 +3930,7 @@ if (isset($_SESSION['profile_id'])) {
                             <?php foreach($actors as $actor): 
                                 $img = $actor['profile'] ? $actor['profile'] : 'avatar-cast.jpg';
                             ?>
-                            <a href="?p=actor&name=<?= urlencode($actor['name']) ?>" class="cast-card tv-focusable" tabindex="0">
+                            <a href="?p=actor<?= !empty($actor['id']) ? '&id=' . (int)$actor['id'] : '' ?>&name=<?= urlencode($actor['name'] ?? 'Unknown Actor') ?>" class="cast-card tv-focusable" tabindex="0">
                                 <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.onerror=null; this.src='avatar-cast.jpg'" alt="<?= htmlspecialchars($actor['name']) ?>">
                                 <div class="cast-details">
                                     <div class="cast-name"><?= htmlspecialchars($actor['name']) ?></div>
@@ -4056,7 +4146,7 @@ if (isset($_SESSION['profile_id'])) {
                                 $img = $actor['profile'] ?? $actor['profile_path'] ?? 'avatar-cast.jpg';
                                 $character = $actor['character'] ?? '';
                             ?>
-                            <a href="?p=actor&name=<?= urlencode($actor['name'] ?? 'Unknown Actor') ?>" class="cast-card tv-focusable" tabindex="0">
+                            <a href="?p=actor<?= !empty($actor['id']) ? '&id=' . (int)$actor['id'] : '' ?>&name=<?= urlencode($actor['name'] ?? 'Unknown Actor') ?>" class="cast-card tv-focusable" tabindex="0">
                                 <img src="<?= htmlspecialchars($img) ?>" class="cast-img" onerror="this.onerror=null; this.src='avatar-cast.jpg'" alt="<?= htmlspecialchars($actor['name'] ?? 'Actor') ?>">
                                 <div class="cast-details">
                                     <div class="cast-name"><?= htmlspecialchars($actor['name'] ?? 'Unknown Actor') ?></div>
