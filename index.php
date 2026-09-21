@@ -1975,16 +1975,151 @@ if (isset($_SESSION['profile_id'])) {
             padding: 0;
         }
 
-        .pin-box-container { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
-        .pin-box {
-            width: 65px; height: 65px; background: transparent !important; 
-            border: 4px solid #444 !important; border-radius: 2px;
-            color: white !important; font-size: 2.5rem; font-weight: bold;
-            text-align: center; outline: none; padding: 0 !important; 
-            transition: border-color 0.2s, transform 0.2s;
-            -webkit-appearance: none; box-shadow: none;
+        /* ==================== PIN ENTRY MODAL ==================== */
+        #pinLockModal.modal-overlay {
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
         }
-        .pin-box:focus { border-color: white !important; transform: scale(1.05); }
+
+        .pin-modal-box {
+            background: rgba(22, 22, 22, 0.78) !important;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.14) !important;
+            border-radius: 16px !important;
+            padding: 44px 38px 34px !important;
+            width: 100%;
+            max-width: 440px !important;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            position: relative;
+            text-align: center;
+        }
+
+        .pin-modal-header {
+            margin-bottom: 22px;
+        }
+
+        .pin-lock-icon-badge {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .pin-modal-title {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.01em;
+        }
+
+        .pin-modal-subtitle {
+            color: #a0a0a0;
+            font-size: 0.92rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .pin-box-container { 
+            display: flex; 
+            justify-content: center; 
+            gap: 14px; 
+            margin: 24px 0 28px; 
+        }
+
+        .pin-box {
+            width: 62px; 
+            height: 66px; 
+            background: rgba(255, 255, 255, 0.07) !important; 
+            border: 1.5px solid rgba(255, 255, 255, 0.18) !important; 
+            border-radius: 12px !important;
+            color: #ffffff !important; 
+            font-size: 2.2rem; 
+            font-weight: bold;
+            text-align: center; 
+            outline: none; 
+            padding: 0 !important; 
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            -webkit-appearance: none; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .pin-box:hover {
+            background: rgba(255, 255, 255, 0.11) !important;
+            border-color: rgba(255, 255, 255, 0.32) !important;
+        }
+        .pin-box:focus,
+        body.is-keyboard .pin-box.tv-focusable:focus-visible { 
+            border-color: #ffffff !important; 
+            background: rgba(255, 255, 255, 0.16) !important;
+            transform: translateY(-2px) scale(1.06); 
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.4), 0 8px 22px rgba(0, 0, 0, 0.45);
+            outline: none !important;
+        }
+
+        .pin-cancel-btn {
+            width: 100%; 
+            justify-content: center; 
+            background: rgba(255, 255, 255, 0.08) !important; 
+            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+            border-radius: 10px !important;
+            padding: 13px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e5e5e5 !important;
+            cursor: pointer;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .pin-cancel-btn:hover {
+            background: rgba(255, 255, 255, 0.16) !important;
+            border-color: rgba(255, 255, 255, 0.35) !important;
+            color: #ffffff !important;
+            transform: translateY(-1px);
+        }
+        .pin-cancel-btn:focus,
+        body.is-keyboard .pin-cancel-btn.tv-focusable:focus-visible {
+            background: rgba(255, 255, 255, 0.24) !important;
+            border-color: #ffffff !important;
+            color: #ffffff !important;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
+            outline: none !important;
+        }
+
+        @media (max-width: 480px) {
+            .pin-modal-box {
+                padding: 35px 22px 28px !important;
+                max-width: 92% !important;
+            }
+            .pin-box-container {
+                gap: 10px;
+            }
+            .pin-box {
+                width: 52px;
+                height: 58px;
+                font-size: 1.8rem;
+            }
+        }
 
         /* ==================== HERO SECTION ==================== */
         .hero-wrapper { padding: 85px 4% 30px 4%; }
@@ -3029,8 +3164,14 @@ if (isset($_SESSION['profile_id'])) {
 
     <!-- PIN Entry Modal -->
     <div id="pinLockModal" class="modal-overlay" style="z-index: 3000;">
-        <div class="auth-box" style="margin:auto; text-align:center;">
-            <h2 style="margin-bottom: 20px;">Enter Profile PIN</h2>
+        <div class="auth-box pin-modal-box" style="margin:auto;">
+            <div class="pin-modal-header">
+                <div class="pin-lock-icon-badge">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h2 class="pin-modal-title">Enter Profile PIN</h2>
+                <p class="pin-modal-subtitle">Enter your 4-digit PIN to access this profile</p>
+            </div>
             <form method="POST" id="pinForm">
                 <input type="hidden" name="login_profile_id" id="loginProfileId">
                 <input type="hidden" name="login_pin" id="hiddenPinInput">
@@ -3042,7 +3183,7 @@ if (isset($_SESSION['profile_id'])) {
                     <input type="tel" class="pin-box tv-focusable" id="pinBox4" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
                 </div>
             </form>
-            <button type="button" onclick="closePinModal()" class="btn tv-focusable" style="width:100%; justify-content:center; background:#444; margin-top:10px; color:white;">Cancel</button>
+            <button type="button" onclick="closePinModal()" class="btn pin-cancel-btn tv-focusable"><i class="fas fa-times"></i> Cancel</button>
         </div>
     </div>
 
