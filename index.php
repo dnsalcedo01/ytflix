@@ -1863,9 +1863,9 @@ if (isset($_SESSION['profile_id'])) {
         .nav-right { flex: 1; justify-content: flex-end; }
         
         .profile-icon {
-            width: 40px; height: 40px; border-radius: 4px; display: inline-flex;
+            width: 40px; height: 40px; border-radius: 8px; display: inline-flex;
             align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; cursor: pointer;
-            background-size: cover; background-position: center;
+            background-size: cover; background-position: center; background-repeat: no-repeat; overflow: hidden;
         }
         .hamburger-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000;
@@ -1937,42 +1937,268 @@ if (isset($_SESSION['profile_id'])) {
         }
         .auth-box button:hover { background: #f40612; }
 
-        .profiles-wrapper { text-align: center; margin-top: 15vh; }
-        .profiles-wrapper h2 { font-size: clamp(28px, 3.5vw, 60px); margin-bottom: 1.5em; font-weight:normal; }
-        .profiles-list { display: flex; justify-content: center; gap: clamp(15px, 2vw, 40px); flex-wrap: wrap; padding: 0 5%; }
-        .profile-card { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; padding: 10px; border-radius: 8px; position: relative; }
-        .profile-avatar {
-            width: clamp(84px, 10vw, 200px); height: clamp(84px, 10vw, 200px);
-            border-radius: 4px; display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; font-weight: bold; border: 2px solid transparent;
-            transition: border 0.2s; background-size: cover; background-position: center;
+        /* ==================== SWITCH PROFILE (WHO'S WATCHING) ==================== */
+        .profiles-page-container {
+            min-height: 100vh;
+            min-height: 100svh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            padding: 60px 20px 40px;
+            box-sizing: border-box;
         }
-        .profile-card:hover .profile-avatar, .profile-card:focus .profile-avatar { border-color: white; }
-        .profile-card span { color: var(--gray); font-size: clamp(14px, 1.5vw, 20px); }
-        .profile-card:hover span, .profile-card:focus span { color: white; }
+        .profiles-bg-grid {
+            position: fixed; 
+            top: -50%; 
+            left: -50%; 
+            width: 200%; 
+            height: 200%; 
+            z-index: -2;
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); 
+            gap: 14px;
+            opacity: 0.18; 
+            pointer-events: none; 
+            overflow: hidden;
+            filter: blur(8px) saturate(1.2);
+            transform: perspective(1000px) rotateX(25deg) rotateZ(-6deg) scale(1.1);
+            transform-origin: center center;
+            align-content: center; 
+            justify-content: center;
+        }
+        .profiles-bg-grid img {
+            width: 100%; 
+            height: auto; 
+            border-radius: 8px; 
+            object-fit: cover; 
+            aspect-ratio: 2/3;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+        .profiles-bg-overlay {
+            position: fixed; 
+            inset: 0; 
+            z-index: -1; 
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 45%, rgba(20, 20, 20, 0.7) 0%, rgba(12, 12, 12, 0.94) 70%, #0a0a0a 100%);
+        }
+        .profiles-wrapper { 
+            text-align: center; 
+            max-width: 1050px; 
+            width: 100%; 
+            margin: 0 auto; 
+            position: relative; 
+            z-index: 2; 
+        }
+        .profiles-logo { 
+            height: clamp(42px, 4.5vw, 58px); 
+            margin-bottom: 20px; 
+            filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.7)); 
+        }
+        .profiles-title { 
+            font-size: clamp(32px, 4.2vw, 56px); 
+            margin: 0 0 1.8rem 0; 
+            font-weight: 700; 
+            color: #ffffff;
+            letter-spacing: -0.01em;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+        }
+        .profiles-list { 
+            display: flex; 
+            justify-content: center; 
+            gap: clamp(18px, 3vw, 46px); 
+            flex-wrap: wrap; 
+            padding: 0 2%; 
+            margin-bottom: 38px;
+        }
+        .profile-card { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 14px; 
+            cursor: pointer; 
+            padding: 10px; 
+            border-radius: 28px; 
+            border: none !important;
+            position: relative; 
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            outline: none !important;
+            background: transparent !important;
+        }
+        .profile-card:focus,
+        .profile-card:focus-visible,
+        body.is-keyboard .profile-card.tv-focusable:focus,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            transform: none !important;
+            background: transparent !important;
+        }
+        .profile-avatar {
+            width: clamp(96px, 11vw, 190px); 
+            height: clamp(96px, 11vw, 190px);
+            border-radius: 24px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: 3.2rem; 
+            font-weight: bold; 
+            border: 2.5px solid rgba(255, 255, 255, 0.16);
+            background-size: cover !important; 
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            overflow: hidden !important;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-sizing: border-box;
+            outline: none !important;
+        }
+        .profile-avatar-img {
+            position: absolute;
+            inset: -6px;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        .profile-card:hover .profile-avatar, 
+        .profile-card:focus .profile-avatar,
+        .profile-card:focus-visible .profile-avatar,
+        body.is-keyboard .profile-card.tv-focusable:focus .profile-avatar,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible .profile-avatar { 
+            border-color: #ffffff !important; 
+            transform: scale(1.08) translateY(-4px);
+            box-shadow: 0 0 28px rgba(255, 255, 255, 0.5), 0 16px 40px rgba(0, 0, 0, 0.7);
+        }
+        .profile-card span { 
+            color: #a3a3a3; 
+            font-size: clamp(14px, 1.3vw, 20px); 
+            font-weight: 500;
+            transition: color 0.25s, text-shadow 0.25s, font-weight 0.25s;
+            letter-spacing: 0.02em;
+        }
+        .profile-card:hover span, 
+        .profile-card:focus span,
+        .profile-card:focus-visible span,
+        body.is-keyboard .profile-card.tv-focusable:focus span,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible span { 
+            color: #ffffff; 
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+        }
         
+        .profile-avatar-add {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 2px dashed rgba(255, 255, 255, 0.24) !important;
+            color: rgba(255, 255, 255, 0.55) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+            font-size: 2.2rem !important;
+        }
+        .profile-card:hover .profile-avatar-add,
+        .profile-card:focus .profile-avatar-add,
+        .profile-card:focus-visible .profile-avatar-add,
+        body.is-keyboard .profile-card.tv-focusable:focus .profile-avatar-add,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible .profile-avatar-add {
+            border: 2px dashed #ffffff !important;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 0 26px rgba(255, 255, 255, 0.35), 0 14px 32px rgba(0, 0, 0, 0.55) !important;
+            transform: scale(1.08) translateY(-4px);
+        }
+
         .profile-lock {
             position: absolute; 
             top: 8px; 
             right: 8px; 
-            background: rgba(0, 0, 0, 0.75); 
+            background: rgba(20, 20, 20, 0.85); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border-radius: 50%; 
             width: 32px; 
             height: 32px; 
-            min-width: 32px;
-            min-height: 32px;
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
             box-sizing: border-box;
+            z-index: 3;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .profile-lock i {
             color: white; 
-            font-size: 14px;
+            font-size: 12px;
             margin: 0;
             padding: 0;
+        }
+        .profile-card:hover .profile-lock,
+        .profile-card:focus .profile-lock,
+        .profile-card:focus-visible .profile-lock,
+        body.is-keyboard .profile-card.tv-focusable:focus .profile-lock,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible .profile-lock {
+            border-color: #ffffff;
+            background: rgba(30, 30, 30, 0.95);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+            transform: scale(1.06);
+        }
+
+        .profiles-manage-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 30px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            color: #b3b3b3;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .profiles-manage-btn:hover,
+        .profiles-manage-btn:focus,
+        .profiles-manage-btn:focus-visible,
+        body.is-keyboard .profiles-manage-btn.tv-focusable:focus,
+        body.is-keyboard .profiles-manage-btn.tv-focusable:focus-visible {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ffffff;
+            color: #ffffff;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.35), 0 6px 20px rgba(0, 0, 0, 0.4);
+            outline: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .profiles-page-container {
+                padding: 40px 15px 30px;
+            }
+            .profile-avatar {
+                border-radius: 20px;
+            }
+            .profile-lock {
+                top: 6px;
+                right: 6px;
+                width: 26px;
+                height: 26px;
+            }
+            .profile-lock i {
+                font-size: 10px;
+            }
         }
 
         /* ==================== PIN ENTRY MODAL ==================== */
@@ -3112,52 +3338,90 @@ if (isset($_SESSION['profile_id'])) {
     </div>
 
 <?php elseif ($page == 'profiles'): ?>
+    <?php
+        $bgMoviesQ = $pdo->query("SELECT poster_path FROM movies WHERE poster_path IS NOT NULL AND poster_path != '' LIMIT 60");
+        $bgShowsQ = $pdo->query("SELECT poster_path FROM shows WHERE poster_path IS NOT NULL AND poster_path != '' LIMIT 40");
+        $profBgPosters = array_merge($bgMoviesQ->fetchAll(PDO::FETCH_COLUMN), $bgShowsQ->fetchAll(PDO::FETCH_COLUMN));
+        shuffle($profBgPosters);
+        if (!empty($profBgPosters)) {
+            while(count($profBgPosters) < 150) {
+                $profBgPosters = array_merge($profBgPosters, $profBgPosters);
+            }
+            $profBgPosters = array_slice($profBgPosters, 0, 150);
+        }
+    ?>
+    <?php if (!empty($profBgPosters)): ?>
+    <div class="profiles-bg-grid">
+        <?php foreach($profBgPosters as $poster): ?>
+            <img src="<?= htmlspecialchars($poster) ?>" alt="" loading="lazy">
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+    <div class="profiles-bg-overlay"></div>
+
     <!-- PROFILES VIEW -->
-    <div class="profiles-wrapper">
-        <img src="ytflix.png" alt="YTFlix" class="logo-img" style="height: 55px; margin-bottom: 20px;">
-        <h2>Who's watching?</h2>
-        <?php if(isset($pin_error)) echo "<p style='color:var(--primary); margin-bottom:20px; font-weight:bold; font-size: 1.2rem;'>$pin_error</p>"; ?>
-        
-        <div class="profiles-list">
-            <?php
-            $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
-            $stmt->execute([$_SESSION['user_id']]);
-            $profiles = $stmt->fetchAll();
-            foreach ($profiles as $p): 
-                $bgStyle = !empty($p['avatar_url']) ? "background-image: url('".htmlspecialchars($p['avatar_url'])."'); background-color: transparent;" : "background-color: ".$p['color'];
-                $avatarContent = !empty($p['avatar_url']) ? "" : substr($p['name'], 0, 1);
-                $hasPin = !empty($p['pin']) ? 'true' : 'false';
-            ?>
-                <div class="profile-card tv-focusable" tabindex="0" onclick="handleProfileClick(<?= $p['id'] ?>, <?= $hasPin ?>)">
-                    <div class="profile-avatar" style="<?= $bgStyle ?>">
-                        <?= htmlspecialchars($avatarContent) ?>
-                    </div>
-                    <?php if($hasPin === 'true'): ?>
-                        <div class="profile-lock">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                    <?php endif; ?>
-                    <span><?= htmlspecialchars($p['name']) ?></span>
-                </div>
-            <?php endforeach; ?>
+    <div class="profiles-page-container">
+        <div class="profiles-wrapper">
+            <img src="ytflix.png" alt="YTFlix" class="logo-img profiles-logo">
+            <h1 class="profiles-title">Who's watching?</h1>
+            <?php if(isset($pin_error)) echo "<p style='color:var(--primary); margin-bottom:20px; font-weight:bold; font-size: 1.2rem;'>$pin_error</p>"; ?>
             
-            <div class="profile-card tv-focusable" tabindex="0" onclick="document.getElementById('addProfileModal').style.display='flex'">
-                <div class="profile-avatar" style="background:transparent; border: 2px solid grey; color:grey;"><i class="fas fa-plus"></i></div>
-                <span>Add Profile</span>
+            <div class="profiles-list">
+                <?php
+                $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
+                $stmt->execute([$_SESSION['user_id']]);
+                $profiles = $stmt->fetchAll();
+                foreach ($profiles as $p): 
+                    $hasAvatar = !empty($p['avatar_url']);
+                    $avatarContent = !$hasAvatar ? substr($p['name'], 0, 1) : '';
+                    $hasPin = !empty($p['pin']) ? 'true' : 'false';
+                    $bgStyle = !$hasAvatar ? "background-color: ".$p['color'].";" : "";
+                ?>
+                    <div class="profile-card tv-focusable" tabindex="0" onclick="handleProfileClick(<?= $p['id'] ?>, <?= $hasPin ?>)">
+                        <div class="profile-avatar" style="<?= $bgStyle ?>">
+                            <?php if ($hasAvatar): ?>
+                                <div class="profile-avatar-img" style="background-image: url('<?= htmlspecialchars($p['avatar_url']) ?>');"></div>
+                            <?php else: ?>
+                                <?= htmlspecialchars($avatarContent) ?>
+                            <?php endif; ?>
+                            <?php if($hasPin === 'true'): ?>
+                                <div class="profile-lock" title="PIN Protected">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <span><?= htmlspecialchars($p['name']) ?></span>
+                    </div>
+                <?php endforeach; ?>
+                
+                <div class="profile-card tv-focusable" tabindex="0" onclick="document.getElementById('addProfileModal').style.display='flex'">
+                    <div class="profile-avatar profile-avatar-add"><i class="fas fa-plus"></i></div>
+                    <span>Add Profile</span>
+                </div>
             </div>
+
+            <a href="?p=admin&tab=account" class="profiles-manage-btn tv-focusable" tabindex="0">
+                <i class="fas fa-sliders-h"></i> Manage Profiles
+            </a>
         </div>
     </div>
     
     <!-- Add Profile Modal -->
-    <div id="addProfileModal" class="modal-overlay">
-        <div class="auth-box" style="margin:auto;">
-            <h1>Add Profile</h1>
+    <div id="addProfileModal" class="modal-overlay" style="z-index: 3000;">
+        <div class="auth-box pin-modal-box" style="margin:auto; text-align:left;">
+            <div class="pin-modal-header" style="text-align:center;">
+                <div class="pin-lock-icon-badge" style="background: rgba(229, 9, 20, 0.15); border-color: rgba(229, 9, 20, 0.35); color: #e50914;">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2 class="pin-modal-title">Add Profile</h2>
+                <p class="pin-modal-subtitle">Add a profile for another person watching YTFlix</p>
+            </div>
             <form method="POST" enctype="multipart/form-data">
-                <input type="text" name="profile_name" placeholder="Name" required class="tv-focusable">
-                <label style="color:var(--gray); display:block; margin-bottom:5px; margin-top:10px;">Upload Avatar Image (Optional)</label>
-                <input type="file" name="avatar_file" accept="image/*" class="tv-focusable" style="background:#333; padding:12px; width:100%; border-radius:4px;">
-                <button type="submit" name="create_profile" class="tv-focusable">Create</button>
-                <button type="button" onclick="document.getElementById('addProfileModal').style.display='none'" class="btn tv-focusable" style="width:100%; justify-content:center; background:#333; margin-top:10px; color:white;">Cancel</button>
+                <input type="text" name="profile_name" placeholder="Profile Name" required class="tv-focusable search-input-box" style="margin-bottom: 14px; border-radius: 10px;">
+                <label style="color:#a3a3a3; font-size:0.9rem; display:block; margin-bottom:6px;">Upload Avatar Image (Optional)</label>
+                <input type="file" name="avatar_file" accept="image/*" class="tv-focusable" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); padding:10px 14px; width:100%; border-radius:10px; color:#ddd; margin-bottom: 16px;">
+                <button type="submit" name="create_profile" class="tv-focusable" style="width:100%; padding:14px; background:var(--primary); color:white; font-size:1rem; font-weight:bold; border-radius:10px; border:none; cursor:pointer; box-shadow: 0 4px 15px rgba(229,9,20,0.4); transition: 0.2s;">Create Profile</button>
+                <button type="button" onclick="document.getElementById('addProfileModal').style.display='none'" class="btn pin-cancel-btn tv-focusable" style="margin-top:10px;"><i class="fas fa-times"></i> Cancel</button>
             </form>
         </div>
     </div>
