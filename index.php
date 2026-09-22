@@ -1804,6 +1804,11 @@ if (isset($_SESSION['profile_id'])) {
             transition: all 0.2s ease;
             box-shadow: 0 0 20px rgba(255,255,255,0.4);
         }
+        body.is-keyboard input.tv-focusable:focus-visible,
+        body.is-keyboard textarea.tv-focusable:focus-visible,
+        body.is-keyboard select.tv-focusable:focus-visible {
+            transform: scale(1.01) !important;
+        }
 
         /* ==================== NAVBAR ==================== */
         nav {
@@ -3161,29 +3166,464 @@ if (isset($_SESSION['profile_id'])) {
         .player-btn:hover, .player-btn:focus { background: rgba(255,255,255,0.2); }
         .cc-active { color: #E50914 !important; border-bottom: 2px solid #E50914; border-radius: 0 !important; }
 
-        /* ==================== ADMIN PANEL ==================== */
-        .admin-panel { padding: 90px 4% 40px 4%; max-width: 1200px; margin: auto; }
-        .admin-nav-tabs { display: flex; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .admin-tab { color: var(--gray); font-size: 1.2rem; padding: 10px 15px; cursor: pointer; font-weight: bold; transition: color 0.3s; }
-        .admin-tab.active { color: white; border-bottom: 3px solid var(--primary); }
-        .admin-card { background: #222; padding: 30px; border-radius: 8px; margin-bottom: 30px; }
-        .admin-form label { display: block; margin-bottom: 8px; color: var(--gray); font-weight:bold; margin-top:15px; }
-        .admin-form input, .admin-form textarea, .admin-form select { width: 100%; padding: 12px; margin-bottom: 5px; background: #333; border: none; color: white; border-radius: 4px; }
-        .btn-primary { background: var(--primary); color: white; padding: 12px 24px; border-radius: 4px; font-weight: bold; }
-        .btn-success { background: #28a745; color: white; padding: 12px 24px; border-radius: 4px; font-weight: bold; }
-        #adminSearch { width: 100%; padding: 12px; margin-bottom: 20px; background: #333; border: 1px solid #555; color: white; border-radius: 4px; font-size:1.1rem; }
+        /* ==================== ADMIN / SETTINGS PANEL ==================== */
+        .admin-panel { 
+            padding: 105px 4% 60px 4%; 
+            max-width: 1200px; 
+            margin: auto; 
+            position: relative;
+            z-index: 5;
+        }
+        .admin-nav-tabs-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 35px;
+        }
+        .admin-nav-tabs { 
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            gap: 8px; 
+            margin: 0 auto; 
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            max-width: 100%;
+        }
+        .admin-tab { 
+            color: #a3a3a3; 
+            font-size: 1.05rem; 
+            padding: 10px 24px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            border-radius: 9999px;
+            box-sizing: border-box;
+            border: 1.5px solid transparent;
+            transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+            gap: 10px;
+            outline: none !important;
+            text-decoration: none;
+            user-select: none;
+            white-space: nowrap;
+            transform: none !important;
+        }
+        .admin-tab:hover,
+        .admin-tab:focus { 
+            color: #ffffff; 
+            background: rgba(255, 255, 255, 0.1); 
+            border-color: rgba(255, 255, 255, 0.2); 
+            transform: none !important;
+        }
+        .admin-tab.active { 
+            color: #ffffff; 
+            background: rgba(255, 255, 255, 0.18); 
+            border: 1.5px solid rgba(255, 255, 255, 0.38); 
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transform: none !important;
+        }
+        body.is-keyboard .admin-tab.tv-focusable:focus,
+        body.is-keyboard .admin-tab.tv-focusable:focus-visible {
+            outline: none !important;
+            border: 1.5px solid #ffffff !important;
+            background: rgba(255, 255, 255, 0.25) !important;
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.5) !important;
+            transform: none !important;
+        }
 
-        .movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; margin-top: 20px; }
-        .movie-grid-item { background: #333; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
-        .movie-grid-item img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
-        .movie-grid-info { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; }
-        .movie-grid-title { font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .movie-grid-year { color: #aaa; font-size: 0.8rem; margin-bottom: 15px; }
-        .movie-grid-actions { margin-top: auto; display: flex; gap: 10px; }
-        .action-btn { flex: 1; display: flex; justify-content: center; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; color: white; transition: 0.2s; border: none; }
-        .edit-btn { background: #0071eb; }
-        .del-btn { background: #E50914; }
-        .action-btn:hover, .action-btn:focus { filter: brightness(1.2); }
+        .admin-card { 
+            background: rgba(22, 22, 26, 0.65); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px; 
+            padding: 32px; 
+            margin-bottom: 28px; 
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: border-color 0.25s ease;
+        }
+        .admin-card h2 { 
+            font-size: 1.35rem; 
+            font-weight: 700; 
+            color: #ffffff; 
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.01em;
+        }
+        .admin-card-subtitle {
+            color: #a3a3a3;
+            font-size: 0.95rem;
+            margin-bottom: 22px;
+            line-height: 1.5;
+        }
+        
+        .admin-form label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: #cccccc; 
+            font-weight: 600; 
+            font-size: 0.95rem;
+            margin-top: 18px; 
+            letter-spacing: 0.01em;
+        }
+        .admin-form label:first-of-type {
+            margin-top: 0;
+        }
+        .admin-form input[type="text"], 
+        .admin-form input[type="password"], 
+        .admin-form input[type="number"], 
+        .admin-form textarea, 
+        .admin-form select { 
+            width: 100%; 
+            padding: 13px 16px; 
+            margin-bottom: 6px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.14); 
+            color: #ffffff; 
+            border-radius: 10px; 
+            font-size: 1rem;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            outline: none !important;
+        }
+        .admin-form select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 18px;
+            padding-right: 42px;
+            cursor: pointer;
+        }
+        .admin-form select option {
+            background: #1a1a1d;
+            color: #ffffff;
+        }
+        .admin-form input[type="file"] {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #cccccc;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none !important;
+        }
+        .admin-form input:focus,
+        .admin-form textarea:focus,
+        .admin-form select:focus,
+        body.is-keyboard .admin-form input.tv-focusable:focus-visible,
+        body.is-keyboard .admin-form textarea.tv-focusable:focus-visible,
+        body.is-keyboard .admin-form select.tv-focusable:focus-visible,
+        body.is-keyboard .admin-form input[type="file"].tv-focusable:focus-visible {
+            outline: none !important;
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.25);
+            transform: scale(1.01) !important;
+        }
+
+        .btn-primary { 
+            background: linear-gradient(135deg, #E50914 0%, #b20710 100%); 
+            color: white; 
+            padding: 13px 26px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 0.98rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(229, 9, 20, 0.4);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            outline: none !important;
+            text-decoration: none;
+        }
+        .btn-primary:hover,
+        .btn-primary:focus,
+        body.is-keyboard .btn-primary.tv-focusable:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(229, 9, 20, 0.65), 0 0 16px rgba(255, 255, 255, 0.3);
+            outline: none !important;
+            filter: brightness(1.1);
+        }
+        .btn-success { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            color: white; 
+            padding: 13px 26px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 0.98rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            outline: none !important;
+            text-decoration: none;
+        }
+        .btn-success:hover,
+        .btn-success:focus,
+        body.is-keyboard .btn-success.tv-focusable:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.55), 0 0 16px rgba(255, 255, 255, 0.3);
+            outline: none !important;
+            filter: brightness(1.1);
+        }
+        .btn-danger {
+            background: rgba(229, 9, 20, 0.18);
+            border: 1px solid rgba(229, 9, 20, 0.45);
+            color: #ff5252;
+            padding: 13px 26px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.98rem;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            outline: none !important;
+            text-decoration: none;
+        }
+        .btn-danger:hover,
+        .btn-danger:focus,
+        body.is-keyboard .btn-danger.tv-focusable:focus-visible {
+            background: #E50914;
+            color: #ffffff;
+            border-color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(229, 9, 20, 0.65), 0 0 16px rgba(255, 255, 255, 0.3);
+            outline: none !important;
+        }
+
+        .admin-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.98rem;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .admin-alert-success {
+            background: rgba(16, 185, 129, 0.16);
+            border: 1px solid rgba(16, 185, 129, 0.38);
+            color: #34d399;
+        }
+        .admin-alert-danger {
+            background: rgba(239, 68, 68, 0.16);
+            border: 1px solid rgba(239, 68, 68, 0.38);
+            color: #f87171;
+        }
+
+        #adminSearch, #adminShowSearch { 
+            width: 100%; 
+            padding: 14px 20px; 
+            margin-bottom: 24px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.14); 
+            color: white; 
+            border-radius: 12px; 
+            font-size: 1.05rem; 
+            box-sizing: border-box;
+            transition: all 0.25s ease;
+            outline: none !important;
+        }
+        #adminSearch:focus, #adminShowSearch:focus,
+        body.is-keyboard #adminSearch.tv-focusable:focus-visible,
+        body.is-keyboard #adminShowSearch.tv-focusable:focus-visible {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+            outline: none !important;
+            transform: scale(1.01) !important;
+        }
+
+        .movies-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); 
+            gap: 22px; 
+            margin-top: 20px; 
+        }
+        .movie-grid-item { 
+            background: rgba(255, 255, 255, 0.04); 
+            border: 1px solid rgba(255, 255, 255, 0.09); 
+            border-radius: 14px; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+        .movie-grid-item:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.24);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+        }
+        .movie-grid-item img { 
+            width: 100%; 
+            aspect-ratio: 2/3; 
+            object-fit: cover; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .movie-grid-info { 
+            padding: 14px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-grow: 1; 
+        }
+        .movie-grid-title { 
+            font-size: 0.95rem; 
+            font-weight: 700; 
+            color: #ffffff;
+            margin-bottom: 4px; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+            line-height: 1.3;
+        }
+        .movie-grid-year { 
+            color: #a3a3a3; 
+            font-size: 0.82rem; 
+            font-weight: 500;
+            margin-bottom: 14px; 
+        }
+        .movie-grid-actions { 
+            margin-top: auto; 
+            display: flex; 
+            gap: 8px; 
+        }
+        .action-btn { 
+            flex: 1; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 10px 8px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            color: white; 
+            transition: all 0.2s ease; 
+            border: 1px solid transparent; 
+            font-size: 0.9rem;
+            outline: none !important;
+        }
+        .edit-btn { 
+            background: rgba(0, 113, 235, 0.25); 
+            border-color: rgba(0, 113, 235, 0.5);
+            color: #60a5fa;
+        }
+        .edit-btn:hover,
+        .edit-btn:focus,
+        body.is-keyboard .edit-btn.tv-focusable:focus-visible {
+            background: #0071eb;
+            color: #ffffff;
+            border-color: #ffffff;
+            transform: scale(1.05);
+            box-shadow: 0 0 14px rgba(0, 113, 235, 0.6);
+        }
+        .del-btn { 
+            background: rgba(229, 9, 20, 0.22); 
+            border-color: rgba(229, 9, 20, 0.45);
+            color: #f87171;
+        }
+        .del-btn:hover,
+        .del-btn:focus,
+        body.is-keyboard .del-btn.tv-focusable:focus-visible {
+            background: #E50914;
+            color: #ffffff;
+            border-color: #ffffff;
+            transform: scale(1.05);
+            box-shadow: 0 0 14px rgba(229, 9, 20, 0.6);
+        }
+
+        .admin-modal-box {
+            max-width: 640px !important;
+            padding: 36px !important;
+            margin: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: rgba(20, 20, 26, 0.88) !important;
+            border: 1px solid rgba(255, 255, 255, 0.14) !important;
+            backdrop-filter: blur(28px) !important;
+            -webkit-backdrop-filter: blur(28px) !important;
+            border-radius: 22px !important;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+        }
+        .admin-modal-box h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .admin-force-sync-box {
+            background: rgba(229, 9, 20, 0.12);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(229, 9, 20, 0.35);
+            margin-bottom: 20px;
+        }
+        .admin-force-sync-box label {
+            color: #ffffff !important;
+            margin-top: 0 !important;
+            font-size: 0.95rem;
+        }
+        .admin-force-sync-box p {
+            font-size: 0.85rem;
+            color: #cccccc;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .admin-ep-item {
+            display: flex;
+            gap: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 16px 20px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            align-items: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+        .admin-ep-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
 
         /* Media Queries */
         @media (max-width: 1024px) {
@@ -3227,6 +3667,44 @@ if (isset($_SESSION['profile_id'])) {
             .nav-links { gap: 15px; }
             .movies-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
             .player-controls { padding: 15px; }
+
+            /* Admin Panel Mobile Adjustments */
+            .admin-panel { padding: 85px 3% 40px 3% !important; }
+            .admin-nav-tabs-wrapper { 
+                margin-bottom: 24px; 
+                width: 100%;
+                overflow-x: auto; 
+                -webkit-overflow-scrolling: touch; 
+                scrollbar-width: none; 
+                padding: 4px 2px;
+            }
+            .admin-nav-tabs-wrapper::-webkit-scrollbar { display: none; }
+            .admin-nav-tabs { 
+                padding: 4px; 
+                gap: 5px; 
+                flex-wrap: nowrap; 
+                border-radius: 9999px;
+            }
+            .admin-tab { 
+                font-size: 0.82rem; 
+                padding: 8px 14px; 
+                gap: 6px; 
+                white-space: nowrap; 
+                flex-shrink: 0;
+            }
+            .admin-card { padding: 22px 18px !important; border-radius: 14px; }
+            .admin-card h2 { font-size: 1.2rem; }
+        }
+
+        @media (max-width: 480px) {
+            .admin-nav-tabs-wrapper { margin-bottom: 20px; }
+            .admin-nav-tabs { padding: 3px; gap: 3px; }
+            .admin-tab { 
+                font-size: 0.76rem; 
+                padding: 7px 11px; 
+                gap: 5px; 
+            }
+            .admin-card { padding: 18px 14px !important; }
         }
 
         /* Portrait Orientation Player Fixes */
@@ -4724,25 +5202,37 @@ if (isset($_SESSION['profile_id'])) {
     </nav>
 
     <div class="admin-panel">
-        <div class="admin-nav-tabs">
-            <div class="admin-tab tv-focusable <?= $activeTab == 'account' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=account'" tabindex="0">Account Settings</div>
-            <?php if ($is_main_profile): ?>
-            <div class="admin-tab tv-focusable <?= $activeTab == 'library' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=library'" tabindex="0">Manage Movies</div>
-            <div class="admin-tab tv-focusable <?= $activeTab == 'shows' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=shows'" tabindex="0">Manage Shows</div>
-            <?php endif; ?>
+        <div class="admin-nav-tabs-wrapper">
+            <div class="admin-nav-tabs">
+                <div class="admin-tab tv-focusable <?= $activeTab == 'account' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=account'" tabindex="0"><i class="fas fa-user-cog"></i> Account Settings</div>
+                <?php if ($is_main_profile): ?>
+                <div class="admin-tab tv-focusable <?= $activeTab == 'library' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=library'" tabindex="0"><i class="fas fa-film"></i> Manage Movies</div>
+                <div class="admin-tab tv-focusable <?= $activeTab == 'shows' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=shows'" tabindex="0"><i class="fas fa-tv"></i> Manage Shows</div>
+                <?php endif; ?>
+            </div>
         </div>
 
         <?php if($activeTab == 'account'): ?>
-            <?php if(isset($_GET['saved'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>System Configuration Saved.</div>"; ?>
-            <?php if(isset($_GET['pw_saved'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Password Updated Successfully.</div>"; ?>
-            <?php if(isset($_GET['profile_added'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Profile Database Updated.</div>"; ?>
-            <?php if(isset($_GET['profile_updated'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Profile Successfully Updated.</div>"; ?>
-            <?php if(isset($_GET['profile_deleted'])) echo "<div style='background:#E50914; padding:10px; margin-bottom:20px; border-radius:4px;'>Profile Successfully Deleted.</div>"; ?>
+            <?php if(isset($_GET['saved'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> System Configuration Saved.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['pw_saved'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> Password Updated Successfully.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['profile_added'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> Profile Database Updated.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['profile_updated'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> Profile Successfully Updated.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['profile_deleted'])): ?>
+                <div class="admin-alert admin-alert-danger"><i class="fas fa-trash-alt"></i> Profile Successfully Deleted.</div>
+            <?php endif; ?>
 
             <?php if ($is_main_profile): ?>
             <div class="admin-card">
-                <h2>System Configuration</h2>
-                <p style="color:var(--gray); margin-bottom:20px;">Enter your API keys to enable automatic metadata fetching.</p>
+                <h2><i class="fas fa-sliders-h" style="color:#e50914;"></i> System Configuration</h2>
+                <p class="admin-card-subtitle">Enter your API keys to enable automatic metadata fetching.</p>
                 <form method="POST" class="admin-form">
                     <label>YouTube Data API v3 Key</label>
                     <input type="password" name="yt_api" value="" placeholder="<?= !empty($currentUser['yt_api_key']) ? '******** (Saved)' : 'Enter API Key' ?>" class="tv-focusable">
@@ -4753,13 +5243,13 @@ if (isset($_SESSION['profile_id'])) {
                     <label>YouTube Playlist URL or ID (Contains Free Movies)</label>
                     <input type="text" name="yt_playlist" value="<?= htmlspecialchars($currentUser['yt_playlist_id']) ?>" placeholder="e.g., PLxyz..." class="tv-focusable">
                     
-                    <button type="submit" name="update_settings" class="btn-primary tv-focusable" style="margin-top:10px;">Save Settings</button>
+                    <button type="submit" name="update_settings" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-save"></i> Save Settings</button>
                 </form>
             </div>
             <?php endif; ?>
 
             <div class="admin-card">
-                <h2>Change Profile Name</h2>
+                <h2><i class="fas fa-id-card" style="color:#0071eb;"></i> Change Profile Name</h2>
                 <form method="POST" class="admin-form">
                     <?php if ($is_main_profile): ?>
                         <label>Select Profile</label>
@@ -4773,17 +5263,17 @@ if (isset($_SESSION['profile_id'])) {
                             ?>
                         </select>
                     <?php else: ?>
-                        <p style="color:var(--gray); margin-bottom:15px;">Update your profile name below.</p>
+                        <p class="admin-card-subtitle">Update your profile name below.</p>
                         <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
                     <?php endif; ?>
                     <label>New Name</label>
-                    <input type="text" name="new_profile_name" required class="tv-focusable">
-                    <button type="submit" name="rename_profile" class="btn-primary tv-focusable" style="margin-top:10px;">Update Name</button>
+                    <input type="text" name="new_profile_name" required class="tv-focusable" placeholder="Enter new profile name">
+                    <button type="submit" name="rename_profile" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-check"></i> Update Name</button>
                 </form>
             </div>
 
             <div class="admin-card">
-                <h2>Change Profile Picture</h2>
+                <h2><i class="fas fa-camera" style="color:#10b981;"></i> Change Profile Picture</h2>
                 <form method="POST" enctype="multipart/form-data" class="admin-form">
                     <?php if ($is_main_profile): ?>
                         <label>Select Profile</label>
@@ -4797,24 +5287,24 @@ if (isset($_SESSION['profile_id'])) {
                             ?>
                         </select>
                     <?php else: ?>
-                        <p style="color:var(--gray); margin-bottom:15px;">Update your personal avatar picture below.</p>
+                        <p class="admin-card-subtitle">Update your personal avatar picture below.</p>
                         <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
                     <?php endif; ?>
                     
                     <label>Upload Avatar Image</label>
                     <input type="file" name="avatar_file" accept="image/*" class="tv-focusable">
-                    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
-                        <button type="submit" name="update_profile_pic" class="btn-primary tv-focusable">Update Picture</button>
-                        <button type="submit" name="delete_profile_pic" class="btn-primary tv-focusable" style="background: #E50914;" onclick="return confirm('Are you sure you want to remove the avatar picture?');">Remove Picture</button>
+                    <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
+                        <button type="submit" name="update_profile_pic" class="btn-primary tv-focusable"><i class="fas fa-upload"></i> Update Picture</button>
+                        <button type="submit" name="delete_profile_pic" class="btn-danger tv-focusable" onclick="return confirm('Are you sure you want to remove the avatar picture?');"><i class="fas fa-trash-alt"></i> Remove Picture</button>
                     </div>
                 </form>
             </div>
             
             <div class="admin-card">
-                <h2>Profile PIN Lock</h2>
+                <h2><i class="fas fa-lock" style="color:#f59e0b;"></i> Profile PIN Lock</h2>
                 <form method="POST" class="admin-form">
                     <?php if ($is_main_profile): ?>
-                        <p style="color:var(--gray); margin-bottom:15px;">Set or update a 4-digit PIN for any household account.</p>
+                        <p class="admin-card-subtitle">Set or update a 4-digit PIN for any household account.</p>
                         <label>Select Profile</label>
                         <select name="target_profile_id" class="tv-focusable">
                             <?php
@@ -4826,45 +5316,45 @@ if (isset($_SESSION['profile_id'])) {
                             ?>
                         </select>
                     <?php else: ?>
-                        <p style="color:var(--gray); margin-bottom:15px;">Set or update a 4-digit PIN for your personal profile.</p>
+                        <p class="admin-card-subtitle">Set or update a 4-digit PIN for your personal profile.</p>
                         <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
                     <?php endif; ?>
                     
                     <label>4-Digit PIN (Leave blank to remove PIN Lock)</label>
                     <input type="password" name="new_pin" maxlength="4" pattern="\d{4}" title="Please enter exactly 4 digits" class="tv-focusable" placeholder="e.g. 1234" inputmode="numeric">
-                    <button type="submit" name="update_pin" class="btn-primary tv-focusable" style="margin-top:10px;">Save PIN</button>
+                    <button type="submit" name="update_pin" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-key"></i> Save PIN</button>
                 </form>
             </div>
 
             <?php if ($is_main_profile): ?>
             <div class="admin-card">
-                <h2>Create Household Account</h2>
-                <p style="color:var(--gray); margin-bottom:20px;">Add a new profile under your main account.</p>
+                <h2><i class="fas fa-user-plus" style="color:#8b5cf6;"></i> Create Household Account</h2>
+                <p class="admin-card-subtitle">Add a new profile under your main account.</p>
                 <form method="POST" enctype="multipart/form-data" class="admin-form">
                     <input type="hidden" name="admin_redirect" value="1">
                     <label>Profile Name</label>
                     <input type="text" name="profile_name" placeholder="Name" required class="tv-focusable">
                     <label>Upload Avatar Image (Optional)</label>
                     <input type="file" name="avatar_file" accept="image/*" class="tv-focusable">
-                    <button type="submit" name="create_profile" class="btn-success tv-focusable" style="margin-top:10px;">Create Profile</button>
+                    <button type="submit" name="create_profile" class="btn-success tv-focusable" style="margin-top:14px;"><i class="fas fa-plus"></i> Create Profile</button>
                 </form>
             </div>
 
             <div class="admin-card">
-                <h2>Change Admin Password</h2>
+                <h2><i class="fas fa-shield-alt" style="color:#ec4899;"></i> Change Admin Password</h2>
                 <form method="POST" class="admin-form">
                     <label>New Password</label>
-                    <input type="password" name="new_password" required class="tv-focusable">
-                    <button type="submit" name="update_password" class="btn-primary tv-focusable" style="margin-top:10px;">Update Password</button>
+                    <input type="password" name="new_password" required class="tv-focusable" placeholder="Enter new master password">
+                    <button type="submit" name="update_password" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-lock"></i> Update Password</button>
                 </form>
             </div>
             <?php endif; ?>
 
             <div class="admin-card">
-                <h2>Delete Profile</h2>
+                <h2><i class="fas fa-user-slash" style="color:#ef4444;"></i> Delete Profile</h2>
                 <form method="POST" class="admin-form">
                     <?php if ($is_main_profile): ?>
-                        <p style="color:var(--gray); margin-bottom:15px;">Permanently delete a household account. (The main admin profile cannot be deleted).</p>
+                        <p class="admin-card-subtitle">Permanently delete a household account. (The main admin profile cannot be deleted).</p>
                         <label>Select Profile</label>
                         <select name="target_profile_id" class="tv-focusable">
                             <?php
@@ -4881,31 +5371,37 @@ if (isset($_SESSION['profile_id'])) {
                             }
                             ?>
                         </select>
-                        <button type="submit" name="delete_profile" class="btn-primary tv-focusable" style="background: #E50914; margin-top:10px;" onclick="return confirm('Are you sure you want to permanently delete this profile?');" <?= count($household_profiles) == 0 ? 'disabled' : '' ?>>Delete Profile</button>
+                        <button type="submit" name="delete_profile" class="btn-danger tv-focusable" style="margin-top:14px;" onclick="return confirm('Are you sure you want to permanently delete this profile?');" <?= count($household_profiles) == 0 ? 'disabled' : '' ?>><i class="fas fa-trash-alt"></i> Delete Profile</button>
                     <?php else: ?>
-                        <p style="color:var(--gray); margin-bottom:15px;">Permanently delete your profile and all associated data.</p>
+                        <p class="admin-card-subtitle">Permanently delete your profile and all associated data.</p>
                         <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
-                        <button type="submit" name="delete_profile" class="btn-primary tv-focusable" style="background: #E50914; margin-top:10px;" onclick="return confirm('Are you sure you want to permanently delete your profile? This cannot be undone.');">Delete My Profile</button>
+                        <button type="submit" name="delete_profile" class="btn-danger tv-focusable" style="margin-top:14px;" onclick="return confirm('Are you sure you want to permanently delete your profile? This cannot be undone.');"><i class="fas fa-trash-alt"></i> Delete My Profile</button>
                     <?php endif; ?>
                 </form>
             </div>
 
         <?php elseif($activeTab == 'library' && $is_main_profile): ?>
-            <?php if(isset($_GET['synced'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Playlist Synced Successfully.</div>"; ?>
-            <?php if(isset($_GET['edited'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Movie Updated Successfully.</div>"; ?>
-            <?php if(isset($_GET['deleted'])) echo "<div style='background:#E50914; padding:10px; margin-bottom:20px; border-radius:4px;'>Movie Deleted.</div>"; ?>
+            <?php if(isset($_GET['synced'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-sync-alt"></i> Playlist Synced Successfully.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['edited'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> Movie Updated Successfully.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['deleted'])): ?>
+                <div class="admin-alert admin-alert-danger"><i class="fas fa-trash-alt"></i> Movie Deleted.</div>
+            <?php endif; ?>
 
             <div class="admin-card">
-                <h2>Sync Database</h2>
-                <p style="color:var(--gray); margin-bottom:20px;">Fetch videos from the playlist and auto-match with TMDB. (This may take a minute for large playlists)</p>
+                <h2><i class="fas fa-sync-alt" style="color:#10b981;"></i> Sync Database</h2>
+                <p class="admin-card-subtitle">Fetch videos from the playlist and auto-match with TMDB. (This may take a minute for large playlists)</p>
                 <form method="POST">
-                    <button type="submit" name="sync_playlist" class="btn-success tv-focusable" onclick="this.innerHTML='Syncing... Please wait.';">↺ Start Sync</button>
+                    <button type="submit" name="sync_playlist" class="btn-success tv-focusable" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Syncing... Please wait.';"><i class="fas fa-redo-alt"></i> Start Sync</button>
                 </form>
             </div>
 
             <div class="admin-card">
-                <h2>Manage Movies Library</h2>
-                <p style="color:var(--gray); margin-bottom:10px;">Use the search bar below to seamlessly find specific movies.</p>
+                <h2><i class="fas fa-film" style="color:#e50914;"></i> Manage Movies Library</h2>
+                <p class="admin-card-subtitle">Use the search bar below to seamlessly find specific movies.</p>
                 
                 <input type="text" id="adminSearch" onkeyup="filterAdminTable()" placeholder="🔍 Search movies by title or year..." class="tv-focusable">
 
@@ -4919,7 +5415,7 @@ if (isset($_SESSION['profile_id'])) {
                         <div class="movie-grid-info">
                             <div class="movie-grid-title m-title" title="<?= htmlspecialchars($m['clean_title']) ?>"><?= htmlspecialchars($m['clean_title']) ?></div>
                             <div class="movie-grid-year m-year"><?= htmlspecialchars($m['release_year']) ?></div>
-                            <div style="font-size:0.7em; color:grey; margin-bottom:10px;" class="m-raw"><?= htmlspecialchars($m['raw_title']) ?></div>
+                            <div style="font-size:0.75em; color:#888; margin-bottom:12px;" class="m-raw"><?= htmlspecialchars($m['raw_title']) ?></div>
                             <div class="movie-grid-actions">
                                 <button type="button" class="action-btn edit-btn tv-focusable" title="Edit Metadata" onclick='openEditModal(<?= htmlspecialchars(json_encode($m), ENT_QUOTES, 'UTF-8') ?>)'>
                                     <i class="fas fa-edit"></i>
@@ -4927,7 +5423,7 @@ if (isset($_SESSION['profile_id'])) {
                                 <form method="POST" style="flex:1; display:flex;" onsubmit="return confirm('Delete this movie?');">
                                     <input type="hidden" name="movie_id" value="<?= $m['id'] ?>">
                                     <button type="submit" name="delete_movie" class="action-btn del-btn tv-focusable" title="Delete Movie">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
                             </div>
@@ -4937,13 +5433,24 @@ if (isset($_SESSION['profile_id'])) {
                 </div>
             </div>
         <?php elseif($activeTab == 'shows' && $is_main_profile): ?>
-            <?php if(isset($_GET['show_added'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Show Added Successfully.</div>"; ?>
-            <?php if(isset($_GET['episodes_synced'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Episodes Synced Successfully.</div>"; ?>
-            <?php if(isset($_GET['show_edited'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Show Updated Successfully.</div>"; ?>
-            <?php if(isset($_GET['show_deleted'])) echo "<div style='background:#E50914; padding:10px; margin-bottom:20px; border-radius:4px;'>Show Deleted.</div>"; ?>
+            <?php if(isset($_GET['show_added'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> Show Added Successfully.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['episodes_synced'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> Successfully fetched <?= intval($_GET['episodes_synced']) ?> new episodes!</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['show_edited'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> Show Updated Successfully.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['show_deleted'])): ?>
+                <div class="admin-alert admin-alert-danger"><i class="fas fa-trash-alt"></i> Show Deleted.</div>
+            <?php endif; ?>
+            <?php if(isset($_GET['sync_error'])): ?>
+                <div class="admin-alert admin-alert-danger"><i class="fas fa-exclamation-circle"></i> Error: <?= htmlspecialchars($_GET['sync_error']) ?></div>
+            <?php endif; ?>
 
             <div class="admin-card">
-                <h2>Add Show / Web Series</h2>
+                <h2><i class="fas fa-plus-circle" style="color:#10b981;"></i> Add Show / Web Series</h2>
                 <form method="POST" class="admin-form">
                     <label>YouTube Playlist URL or ID</label>
                     <input type="text" name="yt_playlist" required placeholder="e.g., PLxyz..." class="tv-focusable">
@@ -4951,29 +5458,14 @@ if (isset($_SESSION['profile_id'])) {
                     <label>TMDB TV Show ID or Link (Optional but highly recommended)</label>
                     <input type="text" name="tmdb_id" placeholder="e.g., https://www.themoviedb.org/tv/12345" class="tv-focusable">
                     
-                    <button type="submit" name="add_show" class="btn-success tv-focusable" style="margin-top:10px;">Add Show</button>
+                    <button type="submit" name="add_show" class="btn-success tv-focusable" style="margin-top:14px;"><i class="fas fa-plus"></i> Add Show</button>
                 </form>
             </div>
 
             <div class="admin-card">
-                <?php if(isset($_GET['episodes_synced'])): ?>
-                <div style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #16a34a; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold;">
-                    <i class="fas fa-check-circle"></i> Successfully fetched <?= intval($_GET['episodes_synced']) ?> new episodes!
-                </div>
-                <?php endif; ?>
-                <?php if(isset($_GET['show_added'])): ?>
-                <div style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #16a34a; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold;">
-                    <i class="fas fa-check-circle"></i> Successfully added show metadata! Click 'Fetch Episodes' to sync.
-                </div>
-                <?php endif; ?>
-                <?php if(isset($_GET['sync_error'])): ?>
-                <div style="background: rgba(220, 38, 38, 0.2); color: #f87171; border: 1px solid #dc2626; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold;">
-                    <i class="fas fa-exclamation-circle"></i> Error: <?= htmlspecialchars($_GET['sync_error']) ?>
-                </div>
-                <?php endif; ?>
-                <h2>Manage Shows Library</h2>
-                <p style="color:var(--gray); margin-bottom:10px;">Use the search bar below to seamlessly find specific shows.</p>
-                <input type="text" id="adminShowSearch" onkeyup="filterAdminShowsTable()" placeholder="🔍 Search shows by title or year..." class="tv-focusable" style="margin-bottom:20px; width:100%; padding:15px; background:#222; border:1px solid #444; color:white; border-radius:8px; font-size:1.1rem;">
+                <h2><i class="fas fa-tv" style="color:#0071eb;"></i> Manage Shows Library</h2>
+                <p class="admin-card-subtitle">Use the search bar below to seamlessly find specific shows.</p>
+                <input type="text" id="adminShowSearch" onkeyup="filterAdminShowsTable()" placeholder="🔍 Search shows by title or year..." class="tv-focusable">
 
                 <div class="movies-grid" id="showsGrid">
                     <?php
@@ -4985,12 +5477,12 @@ if (isset($_SESSION['profile_id'])) {
                         <div class="movie-grid-info" style="display:flex; flex-direction:column; flex:1;">
                             <div class="movie-grid-title s-title" title="<?= htmlspecialchars($s['clean_title']) ?>"><?= htmlspecialchars($s['clean_title']) ?></div>
                             <div class="movie-grid-year s-year"><?= htmlspecialchars($s['release_year']) ?></div>
-                            <div style="font-size:0.7em; color:grey; margin-bottom:10px;" class="s-raw"><?= htmlspecialchars($s['raw_title']) ?></div>
+                            <div style="font-size:0.75em; color:#888; margin-bottom:12px;" class="s-raw"><?= htmlspecialchars($s['raw_title']) ?></div>
                             
                             <div style="display:flex; flex-direction:column; gap:8px; margin-top:auto;">
-                                <form method="POST" onsubmit="this.querySelector('button').innerHTML='Syncing...';">
+                                <form method="POST" onsubmit="this.querySelector('button').innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Syncing...';">
                                     <input type="hidden" name="show_id" value="<?= $s['id'] ?>">
-                                    <button type="submit" name="sync_show_episodes" class="btn-primary tv-focusable" style="width:100%; padding:8px; font-size:0.95rem; margin-top:0;" title="Fetch Episodes">
+                                    <button type="submit" name="sync_show_episodes" class="btn-primary tv-focusable" style="width:100%; padding:10px; font-size:0.95rem; margin-top:0;" title="Fetch Episodes">
                                         <i class="fas fa-sync-alt"></i> Fetch Episodes
                                     </button>
                                 </form>
@@ -4998,13 +5490,13 @@ if (isset($_SESSION['profile_id'])) {
                                     <button type="button" class="action-btn edit-btn tv-focusable" style="flex:1;" title="Edit Show" onclick='openShowEditModal(<?= htmlspecialchars(json_encode($s), ENT_QUOTES, 'UTF-8') ?>)'>
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button type="button" class="action-btn tv-focusable" style="flex:1; background:#444;" title="Manage Episodes" onclick="window.location.href='?p=admin&tab=episodes&show_id=<?= $s['id'] ?>'">
+                                    <button type="button" class="action-btn tv-focusable" style="flex:1; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25);" title="Manage Episodes" onclick="window.location.href='?p=admin&tab=episodes&show_id=<?= $s['id'] ?>'">
                                         <i class="fas fa-list"></i>
                                     </button>
                                     <form method="POST" style="flex:1; display:flex;" onsubmit="return confirm('Delete this show and ALL its episodes?');">
                                         <input type="hidden" name="show_id" value="<?= $s['id'] ?>">
                                         <button type="submit" name="delete_show" class="action-btn del-btn tv-focusable" title="Delete Show">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -5021,25 +5513,27 @@ if (isset($_SESSION['profile_id'])) {
             $shStmt->execute([$showId]);
             $showName = $shStmt->fetchColumn();
         ?>
-            <?php if(isset($_GET['ep_edited'])) echo "<div style='background:green; padding:10px; margin-bottom:20px; border-radius:4px;'>Episode Updated Successfully.</div>"; ?>
+            <?php if(isset($_GET['ep_edited'])): ?>
+                <div class="admin-alert admin-alert-success"><i class="fas fa-check-circle"></i> Episode Updated Successfully.</div>
+            <?php endif; ?>
             <div class="admin-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid #E50914; padding-bottom:5px;">
-                    <h2 style="margin-bottom:0;">Manage Episodes: <?= htmlspecialchars($showName) ?></h2>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:14px; flex-wrap:wrap; gap:12px;">
+                    <h2 style="margin-bottom:0;"><i class="fas fa-list-ol" style="color:#e50914;"></i> Manage Episodes: <?= htmlspecialchars($showName) ?></h2>
                     <button class="btn-primary tv-focusable" style="margin-top:0;" onclick="window.location.href='?p=admin&tab=shows'"><i class="fas fa-arrow-left"></i> Back to Shows</button>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:15px;">
+                <div style="display:flex; flex-direction:column; gap:14px;">
                     <?php
                     $eStmt = $pdo->prepare("SELECT * FROM episodes WHERE show_id = ? ORDER BY episode_number ASC");
                     $eStmt->execute([$showId]);
                     while($ep = $eStmt->fetch()):
                     ?>
-                    <div style="display:flex; gap:15px; background:#222; padding:15px; border-radius:8px; border:1px solid #444; align-items:center;">
-                        <img src="<?= htmlspecialchars($ep['thumbnail_path']) ?>" style="width:120px; aspect-ratio:16/9; object-fit:cover; border-radius:4px;" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x68/222/fff?text=No+Thumb'">
+                    <div class="admin-ep-item">
+                        <img src="<?= htmlspecialchars($ep['thumbnail_path']) ?>" style="width:130px; aspect-ratio:16/9; object-fit:cover; border-radius:8px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.onerror=null; this.src='https://via.placeholder.com/130x73/222/fff?text=No+Thumb'">
                         <div style="flex:1;">
-                            <div style="font-weight:bold; font-size:1.1rem;">E<?= $ep['episode_number'] ?>: <?= htmlspecialchars($ep['title']) ?></div>
-                            <div style="color:#aaa; font-size:0.85rem; margin-top:5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;"><?= htmlspecialchars($ep['description']) ?></div>
+                            <div style="font-weight:700; font-size:1.05rem; color:#ffffff;">E<?= $ep['episode_number'] ?>: <?= htmlspecialchars($ep['title']) ?></div>
+                            <div style="color:#aaa; font-size:0.85rem; margin-top:5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;"><?= htmlspecialchars($ep['description']) ?></div>
                         </div>
-                        <button type="button" class="action-btn tv-focusable" style="padding:10px; background:#333; border-radius:4px;" onclick='openEpisodeEditModal(<?= htmlspecialchars(json_encode($ep), ENT_QUOTES, 'UTF-8') ?>)'><i class="fas fa-edit"></i> Edit</button>
+                        <button type="button" class="action-btn edit-btn tv-focusable" style="padding:10px 18px; flex:none;" title="Edit Episode" onclick='openEpisodeEditModal(<?= htmlspecialchars(json_encode($ep), ENT_QUOTES, 'UTF-8') ?>)'><i class="fas fa-edit"></i></button>
                     </div>
                     <?php endwhile; ?>
                 </div>
@@ -5048,15 +5542,15 @@ if (isset($_SESSION['profile_id'])) {
     </div>
 
     <!-- Admin Edit Modal -->
-    <div id="adminEditModal" class="modal-overlay">
-        <div class="auth-box" style="max-width: 600px; padding: 40px; margin: auto; max-height: 90vh; overflow-y: auto;">
-            <h2>Edit Metadata</h2>
+    <div id="adminEditModal" class="modal-overlay" style="z-index: 3000;">
+        <div class="auth-box admin-modal-box">
+            <h2><i class="fas fa-edit" style="color:#e50914;"></i> Edit Movie Metadata</h2>
             <form method="POST" class="admin-form" style="margin-top:10px;">
                 <input type="hidden" name="movie_id" id="edit_id">
                 
-                <div style="background: rgba(229, 9, 20, 0.1); padding: 10px; border-radius: 4px; border: 1px solid #E50914; margin-bottom: 20px;">
-                    <label style="color: white; margin-top: 0;">TMDB ID or Link (Force Sync & Overwrite)</label>
-                    <p style="font-size: 0.8rem; color: #ccc; margin-bottom: 5px;">Paste a TMDB link (e.g., https://www.themoviedb.org/movie/12345) to instantly fetch the correct poster, description, and cast.</p>
+                <div class="admin-force-sync-box">
+                    <label>TMDB ID or Link (Force Sync & Overwrite)</label>
+                    <p>Paste a TMDB link (e.g., https://www.themoviedb.org/movie/12345) to instantly fetch the correct poster, description, and cast.</p>
                     <input type="text" name="tmdb_force_link" id="edit_tmdb_link" placeholder="Leave blank to use manual inputs below..." class="tv-focusable">
                 </div>
 
@@ -5069,18 +5563,18 @@ if (isset($_SESSION['profile_id'])) {
                 <label>Description</label>
                 <textarea name="m_desc" id="edit_desc" rows="4" class="tv-focusable"></textarea>
                 
-                <div style="display:flex; gap:10px; margin-top: 20px;">
-                    <button type="submit" name="edit_movie" class="btn-success tv-focusable" style="margin-top:0;">Save Changes</button>
-                    <button type="button" onclick="document.getElementById('adminEditModal').style.display='none'" class="btn-primary tv-focusable" style="margin-top:0; background:#444;">Cancel</button>
+                <div style="display:flex; gap:12px; margin-top: 24px;">
+                    <button type="submit" name="edit_movie" class="btn-success tv-focusable" style="margin-top:0;"><i class="fas fa-save"></i> Save Changes</button>
+                    <button type="button" onclick="document.getElementById('adminEditModal').style.display='none'" class="btn-danger tv-focusable" style="margin-top:0;"><i class="fas fa-times"></i> Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Admin Show Edit Modal -->
-    <div id="adminShowEditModal" class="modal-overlay">
-        <div class="auth-box" style="max-width: 600px; padding: 40px; margin: auto; max-height: 90vh; overflow-y: auto;">
-            <h2>Edit Show Metadata</h2>
+    <div id="adminShowEditModal" class="modal-overlay" style="z-index: 3000;">
+        <div class="auth-box admin-modal-box">
+            <h2><i class="fas fa-edit" style="color:#0071eb;"></i> Edit Show Metadata</h2>
             <form method="POST" class="admin-form" style="margin-top:10px;">
                 <input type="hidden" name="show_id" id="edit_s_id">
                 <label>Title</label>
@@ -5094,23 +5588,23 @@ if (isset($_SESSION['profile_id'])) {
                 <label>Description</label>
                 <textarea name="s_desc" id="edit_s_desc" rows="4" class="tv-focusable"></textarea>
                 
-                <div style="display:flex; gap:10px; margin-top: 20px;">
-                    <button type="submit" name="edit_show" class="btn-success tv-focusable" style="margin-top:0;">Save Changes</button>
-                    <button type="button" onclick="document.getElementById('adminShowEditModal').style.display='none'" class="btn-primary tv-focusable" style="margin-top:0; background:#444;">Cancel</button>
+                <div style="display:flex; gap:12px; margin-top: 24px;">
+                    <button type="submit" name="edit_show" class="btn-success tv-focusable" style="margin-top:0;"><i class="fas fa-save"></i> Save Changes</button>
+                    <button type="button" onclick="document.getElementById('adminShowEditModal').style.display='none'" class="btn-danger tv-focusable" style="margin-top:0;"><i class="fas fa-times"></i> Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Admin Episode Edit Modal -->
-    <div id="adminEpisodeEditModal" class="modal-overlay">
-        <div class="auth-box" style="max-width: 600px; padding: 40px; margin: auto; max-height: 90vh; overflow-y: auto;">
-            <h2>Edit Episode Metadata</h2>
+    <div id="adminEpisodeEditModal" class="modal-overlay" style="z-index: 3000;">
+        <div class="auth-box admin-modal-box">
+            <h2><i class="fas fa-edit" style="color:#10b981;"></i> Edit Episode Metadata</h2>
             <form method="POST" class="admin-form" style="margin-top:10px;">
                 <input type="hidden" name="episode_id" id="edit_e_id">
                 <input type="hidden" name="show_id" id="edit_e_show_id">
                 <label>Episode Number</label>
-                <input type="number" name="e_number" id="edit_e_number" class="tv-focusable" style="width: 100px;">
+                <input type="number" name="e_number" id="edit_e_number" class="tv-focusable" style="width: 120px;">
                 <label>Title</label>
                 <input type="text" name="e_title" id="edit_e_title" class="tv-focusable">
                 <label>Thumbnail URL</label>
@@ -5118,9 +5612,9 @@ if (isset($_SESSION['profile_id'])) {
                 <label>Description</label>
                 <textarea name="e_desc" id="edit_e_desc" rows="4" class="tv-focusable"></textarea>
                 
-                <div style="display:flex; gap:10px; margin-top: 20px;">
-                    <button type="submit" name="edit_episode" class="btn-success tv-focusable" style="margin-top:0;">Save Changes</button>
-                    <button type="button" onclick="document.getElementById('adminEpisodeEditModal').style.display='none'" class="btn-primary tv-focusable" style="margin-top:0; background:#444;">Cancel</button>
+                <div style="display:flex; gap:12px; margin-top: 24px;">
+                    <button type="submit" name="edit_episode" class="btn-success tv-focusable" style="margin-top:0;"><i class="fas fa-save"></i> Save Changes</button>
+                    <button type="button" onclick="document.getElementById('adminEpisodeEditModal').style.display='none'" class="btn-danger tv-focusable" style="margin-top:0;"><i class="fas fa-times"></i> Cancel</button>
                 </div>
             </form>
         </div>
@@ -6158,6 +6652,8 @@ if (isset($_SESSION['profile_id'])) {
         let movieModal = document.getElementById('movieModal');
         let addProfileModal = document.getElementById('addProfileModal');
         let adminEditModal = document.getElementById('adminEditModal');
+        let adminShowEditModal = document.getElementById('adminShowEditModal');
+        let adminEpisodeEditModal = document.getElementById('adminEpisodeEditModal');
 
         if (playerContainer && playerContainer.style.display === 'block') {
             wakeUpPlayerControls();
@@ -6178,6 +6674,12 @@ if (isset($_SESSION['profile_id'])) {
             }
             else if (adminEditModal && adminEditModal.style.display === 'flex') {
                 adminEditModal.style.display = 'none';
+            }
+            else if (adminShowEditModal && adminShowEditModal.style.display === 'flex') {
+                adminShowEditModal.style.display = 'none';
+            }
+            else if (adminEpisodeEditModal && adminEpisodeEditModal.style.display === 'flex') {
+                adminEpisodeEditModal.style.display = 'none';
             }
             else if (pinModal && pinModal.style.display === 'flex') {
                 closePinModal();
@@ -6208,6 +6710,10 @@ if (isset($_SESSION['profile_id'])) {
             activeScope = addProfileModal;
         } else if (adminEditModal && adminEditModal.style.display === 'flex') {
             activeScope = adminEditModal;
+        } else if (adminShowEditModal && adminShowEditModal.style.display === 'flex') {
+            activeScope = adminShowEditModal;
+        } else if (adminEpisodeEditModal && adminEpisodeEditModal.style.display === 'flex') {
+            activeScope = adminEpisodeEditModal;
         } else if (pinModal && pinModal.style.display === 'flex') {
             activeScope = pinModal;
         }
@@ -6414,6 +6920,22 @@ if (isset($_SESSION['profile_id'])) {
                 }
             }
         });
+
+        // Handle admin panel navigation boundaries to prevent skipping Admin/Settings Tabs:
+        if (current.closest('.admin-panel') && !current.closest('.admin-nav-tabs')) {
+            if (e.key === 'ArrowUp' && (!closest || closest.closest('nav'))) {
+                let activeTab = document.querySelector('.admin-nav-tabs .admin-tab.active') || document.querySelector('.admin-nav-tabs .admin-tab');
+                if (activeTab) closest = activeTab;
+            }
+        } else if (current.closest('nav') && e.key === 'ArrowDown' && document.querySelector('.admin-nav-tabs')) {
+            let activeTab = document.querySelector('.admin-nav-tabs .admin-tab.active') || document.querySelector('.admin-nav-tabs .admin-tab');
+            if (activeTab) closest = activeTab;
+        } else if (current.closest('.admin-nav-tabs') && e.key === 'ArrowDown') {
+            let firstCardFocusable = document.querySelector('.admin-panel .admin-card .tv-focusable:not([disabled])');
+            if (firstCardFocusable && (!closest || !closest.closest('.admin-panel') || closest.closest('.admin-nav-tabs'))) {
+                closest = firstCardFocusable;
+            }
+        }
 
         if (closest) {
             closest.focus();
