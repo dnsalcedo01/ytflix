@@ -635,7 +635,8 @@ if (isset($_POST['login_profile_id'])) {
     if ($profPin !== false && (empty($profPin) || $profPin === $pin)) {
         $_SESSION['profile_id'] = $pid;
         setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/"); // 30 Day Session Lock
-        header("Location: ?p=home");
+        $redirectTo = !empty($_POST['redirect_to']) ? $_POST['redirect_to'] : '?p=home';
+        header("Location: " . $redirectTo);
         exit;
     } else {
         $pin_error = "Incorrect Profile PIN.";
@@ -650,7 +651,8 @@ if (isset($_GET['select_profile'])) {
     if (empty($profPin)) {
         $_SESSION['profile_id'] = $pid;
         setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/");
-        header("Location: ?p=home");
+        $redirectTo = !empty($_GET['redirect_to']) ? $_GET['redirect_to'] : '?p=home';
+        header("Location: " . $redirectTo);
         exit;
     } else {
         header("Location: ?p=profiles");
@@ -1314,7 +1316,8 @@ if (isset($_POST['login_profile_id'])) {
     if ($profPin !== false && (empty($profPin) || $profPin === $pin)) {
         $_SESSION['profile_id'] = $pid;
         setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/"); // 30 Day Session Lock
-        header("Location: ?p=home");
+        $redirectTo = !empty($_POST['redirect_to']) ? $_POST['redirect_to'] : '?p=home';
+        header("Location: " . $redirectTo);
         exit;
     } else {
         $pin_error = "Incorrect Profile PIN.";
@@ -1329,7 +1332,8 @@ if (isset($_GET['select_profile'])) {
     if (empty($profPin)) {
         $_SESSION['profile_id'] = $pid;
         setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/");
-        header("Location: ?p=home");
+        $redirectTo = !empty($_GET['redirect_to']) ? $_GET['redirect_to'] : '?p=home';
+        header("Location: " . $redirectTo);
         exit;
     } else {
         header("Location: ?p=profiles");
@@ -2165,11 +2169,13 @@ if (isset($_SESSION['profile_id'])) {
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 9999px;
             color: #b3b3b3;
+            font-family: inherit;
             font-size: 0.95rem;
             font-weight: 600;
             letter-spacing: 0.04em;
             text-decoration: none;
             cursor: pointer;
+            outline: none;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -3846,9 +3852,12 @@ if (isset($_SESSION['profile_id'])) {
             
             <div class="profiles-list">
                 <?php
-                $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
+                $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ? ORDER BY id ASC");
                 $stmt->execute([$_SESSION['user_id']]);
                 $profiles = $stmt->fetchAll();
+                $mainProfile = !empty($profiles) ? $profiles[0] : null;
+                $mainProfileId = $mainProfile ? (int)$mainProfile['id'] : 0;
+                $mainHasPin = ($mainProfile && !empty($mainProfile['pin'])) ? 'true' : 'false';
                 foreach ($profiles as $p): 
                     $hasAvatar = !empty($p['avatar_url']);
                     $avatarContent = !$hasAvatar ? substr($p['name'], 0, 1) : '';
@@ -3878,9 +3887,9 @@ if (isset($_SESSION['profile_id'])) {
                 </div>
             </div>
 
-            <a href="?p=admin&tab=account" class="profiles-manage-btn tv-focusable" tabindex="0">
+            <button type="button" class="profiles-manage-btn tv-focusable" tabindex="0" onclick="handleManageProfilesClick(<?= $mainProfileId ?>, <?= $mainHasPin ?>)">
                 <i class="fas fa-sliders-h"></i> Manage Profiles
-            </a>
+            </button>
         </div>
     </div>
     
@@ -3917,6 +3926,7 @@ if (isset($_SESSION['profile_id'])) {
             <form method="POST" id="pinForm">
                 <input type="hidden" name="login_profile_id" id="loginProfileId">
                 <input type="hidden" name="login_pin" id="hiddenPinInput">
+                <input type="hidden" name="redirect_to" id="loginRedirectTo" value="">
                 
                 <div class="pin-box-container">
                     <input type="tel" class="pin-box tv-focusable" id="pinBox1" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
@@ -5972,21 +5982,49 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
     
-    function handleProfileClick(id, hasPin) {
+    function handleProfileClick(id, hasPin, redirectTo = '') {
         if (hasPin) {
             document.getElementById('loginProfileId').value = id;
+            var redirectInput = document.getElementById('loginRedirectTo');
+            if (redirectInput) redirectInput.value = redirectTo;
+            var modalSubtitle = document.querySelector('#pinLockModal .pin-modal-subtitle');
+            if (modalSubtitle) {
+                if (redirectTo && redirectTo.includes('admin')) {
+                    modalSubtitle.textContent = 'Enter Admin PIN to manage household profiles';
+                } else {
+                    modalSubtitle.textContent = 'Enter your 4-digit PIN to access this profile';
+                }
+            }
             clearPinBoxes();
             document.getElementById('pinLockModal').style.display = 'flex';
             setTimeout(() => {
                 if(pinBoxes[0]) pinBoxes[0].focus();
             }, 100);
         } else {
-            window.location.href = '?select_profile=' + id;
+            var url = '?select_profile=' + id;
+            if (redirectTo) {
+                url += '&redirect_to=' + encodeURIComponent(redirectTo);
+            }
+            window.location.href = url;
         }
+    }
+
+    function handleManageProfilesClick(mainProfileId, mainHasPin) {
+        if (!mainProfileId) {
+            window.location.href = '?p=admin&tab=account';
+            return;
+        }
+        handleProfileClick(mainProfileId, mainHasPin, '?p=admin&tab=account');
     }
     
     function closePinModal() {
         document.getElementById('pinLockModal').style.display = 'none';
+        var redirectInput = document.getElementById('loginRedirectTo');
+        if (redirectInput) redirectInput.value = '';
+        var modalSubtitle = document.querySelector('#pinLockModal .pin-modal-subtitle');
+        if (modalSubtitle) {
+            modalSubtitle.textContent = 'Enter your 4-digit PIN to access this profile';
+        }
         clearPinBoxes();
     }
 
