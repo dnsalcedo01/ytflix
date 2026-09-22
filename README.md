@@ -5,6 +5,9 @@ YTFlix is a self-hosted, premium streaming interface designed to organize and pl
 ![Login Page](ytflix-login-page.jpeg)
 **YTFlix Login Page**
 
+![Switch Profile Page](ytflix-switch-profile.jpeg)
+**YTFlix Switch Profile Page**
+
 ![Home Page](ytflix-homepage.jpeg)
 **YTFlix Homepage**
 
@@ -28,7 +31,7 @@ This project was built to give those who are short on a budget a premium viewing
 
 ## ✨ Features
 
-- **Cinematic Interface**: A modern, sleek UI with hero carousels, backdrop banners, and responsive grids.
+- **Cinematic Interface**: A modern, sleek UI featuring premium glassmorphic aesthetics, hero carousels, backdrop banners, and responsive grids.
 - **TV & Controller Friendly**: Full DPAD navigation support, making it perfect for living room setups or Smart TVs.
 - **Progress Tracking**: Automatically saves your watch history and resume points for all movies and episodes.
 - **Watchlist**: Add your favorite movies and shows to your personal watchlist.
