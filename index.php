@@ -1946,6 +1946,125 @@ if (isset($_SESSION['profile_id'])) {
         }
         .auth-box button:hover { background: #f40612; }
 
+        /* ==================== YTFLIX LOGIN ==================== */
+        .auth-box.login-box {
+            background: rgba(18, 18, 24, 0.78);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 50px 54px 44px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .login-box h1.login-title {
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .login-box h1.login-title i {
+            color: #e50914;
+            font-size: 1.8rem;
+        }
+        .login-error-alert {
+            background: rgba(229, 9, 20, 0.16);
+            border: 1px solid rgba(229, 9, 20, 0.4);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fca5a5;
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 14px rgba(229, 9, 20, 0.15);
+        }
+        .login-input-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .login-box input[type="text"],
+        .login-box input[type="password"] {
+            width: 100%;
+            padding: 16px 20px;
+            margin-bottom: 0;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+            box-sizing: border-box;
+        }
+        .login-box input[type="text"]::placeholder,
+        .login-box input[type="password"]::placeholder {
+            color: rgba(255, 255, 255, 0.45);
+        }
+        .login-box input[type="text"]:focus,
+        .login-box input[type="password"]:focus,
+        body.is-keyboard .login-box input[type="text"].tv-focusable:focus,
+        body.is-keyboard .login-box input[type="text"].tv-focusable:focus-visible,
+        body.is-keyboard .login-box input[type="password"].tv-focusable:focus,
+        body.is-keyboard .login-box input[type="password"].tv-focusable:focus-visible {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #ffffff !important;
+            outline: 3px solid #ffffff !important;
+            outline-offset: 2px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+            transform: scale(1.01) !important;
+        }
+        .login-box button.login-submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 12px;
+            margin-top: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 20px rgba(229, 9, 20, 0.4);
+            transition: all 0.25s ease;
+        }
+        .login-box button.login-submit-btn:hover {
+            background: linear-gradient(135deg, #f40612 0%, #c40812 100%);
+            box-shadow: 0 8px 28px rgba(229, 9, 20, 0.55);
+            transform: translateY(-1px);
+        }
+        body.is-keyboard .login-box button.login-submit-btn.tv-focusable:focus,
+        body.is-keyboard .login-box button.login-submit-btn.tv-focusable:focus-visible {
+            outline: 3px solid #ffffff !important;
+            outline-offset: 2px;
+            border-color: #ffffff !important;
+            box-shadow: 0 0 24px rgba(255, 255, 255, 0.6), 0 8px 28px rgba(0, 0, 0, 0.6) !important;
+            transform: scale(1.02) !important;
+        }
+        @media (max-width: 480px) {
+            .auth-box.login-box {
+                padding: 38px 24px 30px;
+                max-width: 92%;
+                border-radius: 16px;
+            }
+            .login-box h1.login-title {
+                font-size: 1.75rem;
+                margin-bottom: 20px;
+            }
+        }
+
         /* ==================== SWITCH PROFILE (WHO'S WATCHING) ==================== */
         .profiles-page-container {
             min-height: 100vh;
@@ -3810,13 +3929,22 @@ if (isset($_SESSION['profile_id'])) {
     <!-- LOGIN VIEW -->
     <div class="auth-container">
         <img src="ytflix.png" alt="YTFlix" class="logo-img" style="position:absolute; top: 20px; left: 4%; height: 45px;">
-        <div class="auth-box">
-            <h1>Sign In</h1>
-            <?php if(isset($login_error)) echo "<p style='color:var(--primary);margin-bottom:15px;'>$login_error</p>"; ?>
+        <div class="auth-box login-box">
+            <h1 class="login-title"><i class="fas fa-play-circle"></i> Sign In</h1>
+            <?php if(isset($login_error)): ?>
+                <div class="login-error-alert"><i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($login_error) ?></div>
+            <?php endif; ?>
             <form method="POST">
-                <input type="text" name="username" placeholder="Username" required class="tv-focusable">
-                <input type="password" name="password" placeholder="Password" required class="tv-focusable">
-                <button type="submit" name="login" class="tv-focusable">Sign In</button>
+                <div class="login-input-group">
+                    <input type="text" name="username" placeholder="Username" required class="tv-focusable" autocomplete="username">
+                </div>
+                <div class="login-input-group">
+                    <input type="password" name="password" placeholder="Password" required class="tv-focusable" autocomplete="current-password">
+                </div>
+                <button type="submit" name="login" class="tv-focusable login-submit-btn">
+                    <span>Sign In</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
             </form>
         </div>
     </div>
@@ -6909,6 +7037,127 @@ if (isset($_SESSION['profile_id'])) {
             return; 
         }
 
+        // Dedicated row-by-row navigation for Manage Movies & Shows grids
+        let currentGridItem = current.closest('.movie-grid-item');
+        let currentGrid = currentGridItem ? currentGridItem.closest('.movies-grid') : null;
+        if (currentGrid && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+            let cardRect = currentGridItem.getBoundingClientRect();
+            let currentCardCenterX = cardRect.left + cardRect.width / 2;
+            let allItems = Array.from(currentGrid.querySelectorAll('.movie-grid-item')).filter(item => {
+                return item.offsetParent !== null && window.getComputedStyle(item).display !== 'none';
+            });
+
+            if (e.key === 'ArrowUp') {
+                let itemsAbove = allItems.filter(item => {
+                    let r = item.getBoundingClientRect();
+                    return r.bottom <= cardRect.top + 25;
+                });
+
+                if (itemsAbove.length > 0) {
+                    let maxTop = -Infinity;
+                    itemsAbove.forEach(item => {
+                        let top = item.getBoundingClientRect().top;
+                        if (top > maxTop) maxTop = top;
+                    });
+
+                    let rowItems = itemsAbove.filter(item => {
+                        return Math.abs(item.getBoundingClientRect().top - maxTop) <= 35;
+                    });
+
+                    let closestItem = null;
+                    let minXDist = Infinity;
+                    rowItems.forEach(item => {
+                        let r = item.getBoundingClientRect();
+                        let itemCenterX = r.left + r.width / 2;
+                        let xDist = Math.abs(itemCenterX - currentCardCenterX);
+                        if (xDist < minXDist) {
+                            minXDist = xDist;
+                            closestItem = item;
+                        }
+                    });
+
+                    if (closestItem) {
+                        let targetFocusable = null;
+                        if (current.classList.contains('del-btn')) {
+                            targetFocusable = closestItem.querySelector('.del-btn');
+                        } else if (current.classList.contains('edit-btn')) {
+                            targetFocusable = closestItem.querySelector('.edit-btn');
+                        } else if (current.getAttribute && current.getAttribute('name') === 'sync_show_episodes') {
+                            targetFocusable = closestItem.querySelector('button[name="sync_show_episodes"]');
+                        } else if (current.getAttribute && current.getAttribute('title') === 'Manage Episodes') {
+                            targetFocusable = closestItem.querySelector('button[title="Manage Episodes"]');
+                        }
+                        if (!targetFocusable) {
+                            targetFocusable = closestItem.querySelector('.tv-focusable:not([disabled])');
+                        }
+                        if (targetFocusable) {
+                            targetFocusable.focus({ preventScroll: true });
+                            closestItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            return;
+                        }
+                    }
+                } else {
+                    let adminCard = currentGrid.closest('.admin-card');
+                    let searchInput = adminCard ? adminCard.querySelector('input.tv-focusable:not([disabled])') : null;
+                    if (searchInput) {
+                        searchInput.focus({ preventScroll: true });
+                        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        return;
+                    }
+                }
+            } else if (e.key === 'ArrowDown') {
+                let itemsBelow = allItems.filter(item => {
+                    let r = item.getBoundingClientRect();
+                    return r.top >= cardRect.bottom - 25;
+                });
+
+                if (itemsBelow.length > 0) {
+                    let minTop = Infinity;
+                    itemsBelow.forEach(item => {
+                        let top = item.getBoundingClientRect().top;
+                        if (top < minTop) minTop = top;
+                    });
+
+                    let rowItems = itemsBelow.filter(item => {
+                        return Math.abs(item.getBoundingClientRect().top - minTop) <= 35;
+                    });
+
+                    let closestItem = null;
+                    let minXDist = Infinity;
+                    rowItems.forEach(item => {
+                        let r = item.getBoundingClientRect();
+                        let itemCenterX = r.left + r.width / 2;
+                        let xDist = Math.abs(itemCenterX - currentCardCenterX);
+                        if (xDist < minXDist) {
+                            minXDist = xDist;
+                            closestItem = item;
+                        }
+                    });
+
+                    if (closestItem) {
+                        let targetFocusable = null;
+                        if (current.classList.contains('del-btn')) {
+                            targetFocusable = closestItem.querySelector('.del-btn');
+                        } else if (current.classList.contains('edit-btn')) {
+                            targetFocusable = closestItem.querySelector('.edit-btn');
+                        } else if (current.getAttribute && current.getAttribute('name') === 'sync_show_episodes') {
+                            targetFocusable = closestItem.querySelector('button[name="sync_show_episodes"]');
+                        } else if (current.getAttribute && current.getAttribute('title') === 'Manage Episodes') {
+                            targetFocusable = closestItem.querySelector('button[title="Manage Episodes"]');
+                        }
+                        if (!targetFocusable) {
+                            targetFocusable = closestItem.querySelector('.tv-focusable:not([disabled])');
+                        }
+                        if (targetFocusable) {
+                            targetFocusable.focus({ preventScroll: true });
+                            closestItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
         let rect = current.getBoundingClientRect();
         let closest = null;
         let minDistance = Infinity;
@@ -6976,7 +7225,7 @@ if (isset($_SESSION['profile_id'])) {
         }
 
         if (closest) {
-            closest.focus();
+            closest.focus({ preventScroll: true });
             if (!isPlayerScope && !closest.classList.contains('dropdown-content') && !closest.classList.contains('player-settings-menu') && !closest.closest('#universalPlayerMenu')) {
                 if (closest.closest('.hero-carousel')) {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
