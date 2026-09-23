@@ -2055,9 +2055,12 @@ if (isset($_SESSION['profile_id'])) {
         }
         @media (max-width: 480px) {
             .auth-box.login-box {
-                padding: 38px 24px 30px;
-                max-width: 92%;
-                border-radius: 16px;
+                padding: 38px 22px 30px;
+                width: calc(100% - 48px);
+                max-width: 380px;
+                margin: 0 24px;
+                border-radius: 18px;
+                box-sizing: border-box;
             }
             .login-box h1.login-title {
                 font-size: 1.75rem;
@@ -3310,9 +3313,9 @@ if (isset($_SESSION['profile_id'])) {
             display: inline-flex; 
             align-items: center;
             justify-content: center;
-            gap: 8px; 
+            gap: 6px; 
             margin: 0 auto; 
-            padding: 6px;
+            padding: 5px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 9999px;
@@ -3320,28 +3323,40 @@ if (isset($_SESSION['profile_id'])) {
             -webkit-backdrop-filter: blur(16px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
             max-width: 100%;
+            box-sizing: border-box;
         }
         .admin-tab { 
             color: #a3a3a3; 
-            font-size: 1.05rem; 
-            padding: 10px 24px; 
+            font-size: 0.95rem; 
+            height: 40px;
+            padding: 0 22px; 
             cursor: pointer; 
             font-weight: 600; 
             border-radius: 9999px;
             box-sizing: border-box;
-            border: 1.5px solid transparent;
+            border: 1px solid transparent;
             transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            line-height: 1.2;
-            gap: 10px;
+            line-height: 1;
+            gap: 8px;
             outline: none !important;
             text-decoration: none;
             user-select: none;
             white-space: nowrap;
             transform: none !important;
         }
+        .admin-tab i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            margin: 0;
+            vertical-align: 0;
+        }
+        .tab-label-short { display: none !important; }
+        .tab-label-full { display: inline-flex !important; align-items: center; line-height: 1; }
         .admin-tab:hover,
         .admin-tab:focus { 
             color: #ffffff; 
@@ -3352,8 +3367,8 @@ if (isset($_SESSION['profile_id'])) {
         .admin-tab.active { 
             color: #ffffff; 
             background: rgba(255, 255, 255, 0.18); 
-            border: 1.5px solid rgba(255, 255, 255, 0.38); 
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); 
+            border: 1px solid rgba(255, 255, 255, 0.45); 
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15); 
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             transform: none !important;
@@ -3361,7 +3376,7 @@ if (isset($_SESSION['profile_id'])) {
         body.is-keyboard .admin-tab.tv-focusable:focus,
         body.is-keyboard .admin-tab.tv-focusable:focus-visible {
             outline: none !important;
-            border: 1.5px solid #ffffff !important;
+            border: 1px solid #ffffff !important;
             background: rgba(255, 255, 255, 0.25) !important;
             box-shadow: 0 0 16px rgba(255, 255, 255, 0.5) !important;
             transform: none !important;
@@ -3373,10 +3388,25 @@ if (isset($_SESSION['profile_id'])) {
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 18px; 
-            padding: 32px; 
+            padding: 34px 30px; 
             margin-bottom: 28px; 
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
             transition: border-color 0.25s ease;
+        }
+        .admin-btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+            align-items: center;
+        }
+        .admin-btn-row > * {
+            flex: 1;
+            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
         }
         .admin-card h2 { 
             font-size: 1.35rem; 
@@ -3794,42 +3824,146 @@ if (isset($_SESSION['profile_id'])) {
             .player-controls { padding: 15px; }
 
             /* Admin Panel Mobile Adjustments */
-            .admin-panel { padding: 85px 3% 40px 3% !important; }
-            .admin-nav-tabs-wrapper { 
-                margin-bottom: 24px; 
-                width: 100%;
-                overflow-x: auto; 
-                -webkit-overflow-scrolling: touch; 
-                scrollbar-width: none; 
-                padding: 4px 2px;
+            .admin-panel { 
+                padding: 85px 18px 40px 18px !important; 
+                box-sizing: border-box;
             }
-            .admin-nav-tabs-wrapper::-webkit-scrollbar { display: none; }
+            .admin-nav-tabs-wrapper { 
+                margin-bottom: 26px; 
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 0;
+            }
             .admin-nav-tabs { 
-                padding: 4px; 
-                gap: 5px; 
-                flex-wrap: nowrap; 
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: auto;
+                max-width: 100%;
+                padding: 5px; 
+                gap: 6px; 
                 border-radius: 9999px;
+                box-sizing: border-box;
             }
             .admin-tab { 
-                font-size: 0.82rem; 
-                padding: 8px 14px; 
-                gap: 6px; 
+                font-size: 0.88rem; 
+                height: 38px;
+                padding: 0 16px; 
+                gap: 7px; 
                 white-space: nowrap; 
-                flex-shrink: 0;
+                border-radius: 9999px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                line-height: 1;
+                box-sizing: border-box;
             }
-            .admin-card { padding: 22px 18px !important; border-radius: 14px; }
-            .admin-card h2 { font-size: 1.2rem; }
+            .admin-tab i { font-size: 0.88rem; }
+            .admin-card { 
+                padding: 28px 22px !important; 
+                border-radius: 16px; 
+                margin-bottom: 22px; 
+            }
+            .admin-card h2 { font-size: 1.25rem; }
+        }
+
+        @media (max-width: 600px) {
+            .tab-label-full { display: none !important; }
+            .tab-label-short { display: inline-flex !important; align-items: center; line-height: 1; }
+            .admin-nav-tabs-wrapper { 
+                width: 100%;
+                margin-bottom: 22px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 0;
+            }
+            .admin-nav-tabs { 
+                width: 100% !important;
+                max-width: 100% !important;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 4px; 
+                gap: 4px; 
+                border-radius: 9999px;
+                box-sizing: border-box;
+            }
+            .admin-tab { 
+                flex: 1 1 0;
+                min-width: 0;
+                height: 36px;
+                font-size: 0.82rem; 
+                padding: 0 4px; 
+                gap: 6px; 
+                line-height: 1;
+                border-radius: 9999px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                white-space: nowrap;
+                box-sizing: border-box;
+            }
+            .admin-tab i { font-size: 0.84rem; }
+            .admin-btn-row {
+                gap: 8px;
+                flex-wrap: nowrap;
+            }
+            .admin-btn-row button,
+            .admin-btn-row .btn-primary,
+            .admin-btn-row .btn-danger {
+                padding: 10px 8px !important;
+                font-size: 0.86rem !important;
+                flex: 1;
+                min-width: 0;
+                white-space: nowrap;
+                justify-content: center;
+                text-align: center;
+            }
+            .admin-btn-row button i,
+            .admin-btn-row .btn-primary i,
+            .admin-btn-row .btn-danger i {
+                font-size: 0.82rem !important;
+            }
         }
 
         @media (max-width: 480px) {
-            .admin-nav-tabs-wrapper { margin-bottom: 20px; }
-            .admin-nav-tabs { padding: 3px; gap: 3px; }
-            .admin-tab { 
-                font-size: 0.76rem; 
-                padding: 7px 11px; 
-                gap: 5px; 
+            .admin-panel { 
+                padding: 80px 16px 40px 16px !important; 
             }
-            .admin-card { padding: 18px 14px !important; }
+            .admin-nav-tabs-wrapper { 
+                margin-bottom: 20px; 
+                width: 100%;
+            }
+            .admin-nav-tabs { 
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 4px; 
+                gap: 4px; 
+            }
+            .admin-tab { 
+                height: 34px;
+                font-size: 0.78rem; 
+                padding: 0 3px; 
+                gap: 5px; 
+                line-height: 1;
+            }
+            .admin-tab i { font-size: 0.8rem; }
+            .admin-card { 
+                padding: 24px 20px !important; 
+                border-radius: 16px; 
+                margin-bottom: 18px; 
+            }
+            .admin-btn-row button,
+            .admin-btn-row .btn-primary,
+            .admin-btn-row .btn-danger {
+                padding: 10px 6px !important;
+                font-size: 0.84rem !important;
+            }
         }
 
         /* Portrait Orientation Player Fixes */
@@ -5342,10 +5476,10 @@ if (isset($_SESSION['profile_id'])) {
     <div class="admin-panel">
         <div class="admin-nav-tabs-wrapper">
             <div class="admin-nav-tabs">
-                <div class="admin-tab tv-focusable <?= $activeTab == 'account' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=account'" tabindex="0"><i class="fas fa-user-cog"></i> Account Settings</div>
+                <div class="admin-tab tv-focusable <?= $activeTab == 'account' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=account'" tabindex="0"><i class="fas fa-user-cog"></i> <span class="tab-label-full">Account Settings</span><span class="tab-label-short">Account</span></div>
                 <?php if ($is_main_profile): ?>
-                <div class="admin-tab tv-focusable <?= $activeTab == 'library' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=library'" tabindex="0"><i class="fas fa-film"></i> Manage Movies</div>
-                <div class="admin-tab tv-focusable <?= $activeTab == 'shows' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=shows'" tabindex="0"><i class="fas fa-tv"></i> Manage Shows</div>
+                <div class="admin-tab tv-focusable <?= $activeTab == 'library' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=library'" tabindex="0"><i class="fas fa-film"></i> <span class="tab-label-full">Manage Movies</span><span class="tab-label-short">Movies</span></div>
+                <div class="admin-tab tv-focusable <?= $activeTab == 'shows' ? 'active' : '' ?>" onclick="window.location.href='?p=admin&tab=shows'" tabindex="0"><i class="fas fa-tv"></i> <span class="tab-label-full">Manage Shows</span><span class="tab-label-short">Shows</span></div>
                 <?php endif; ?>
             </div>
         </div>
@@ -5431,9 +5565,9 @@ if (isset($_SESSION['profile_id'])) {
                     
                     <label>Upload Avatar Image</label>
                     <input type="file" name="avatar_file" accept="image/*" class="tv-focusable">
-                    <div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">
-                        <button type="submit" name="update_profile_pic" class="btn-primary tv-focusable"><i class="fas fa-upload"></i> Update Picture</button>
-                        <button type="submit" name="delete_profile_pic" class="btn-danger tv-focusable" onclick="return confirm('Are you sure you want to remove the avatar picture?');"><i class="fas fa-trash-alt"></i> Remove Picture</button>
+                    <div class="admin-btn-row">
+                        <button type="submit" name="update_profile_pic" class="btn-primary tv-focusable"><i class="fas fa-upload"></i> <span class="tab-label-full">Update Picture</span><span class="tab-label-short">Update</span></button>
+                        <button type="submit" name="delete_profile_pic" class="btn-danger tv-focusable" onclick="return confirm('Are you sure you want to remove the avatar picture?');"><i class="fas fa-trash-alt"></i> <span class="tab-label-full">Remove Picture</span><span class="tab-label-short">Remove</span></button>
                     </div>
                 </form>
             </div>
