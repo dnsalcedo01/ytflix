@@ -2519,8 +2519,57 @@ if (isset($_SESSION['profile_id'])) {
         .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5em; padding: 0 4%; }
         .slider-title { font-size: clamp(18px, 2vw, 24px); font-weight: bold; margin-bottom: 0; }
         .slider-controls { display: flex; gap: 10px; padding-right: 4%; }
-        .slider-btn { background: rgba(0, 0, 0, 0.5); color: white; border: 2px solid #333; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
-        .slider-btn:hover, .slider-btn:focus { background: rgba(255, 255, 255, 0.2); border-color: white; }
+        .slider-btn { 
+            background: rgba(255, 255, 255, 0.08); 
+            color: rgba(255, 255, 255, 0.85); 
+            border: 1px solid rgba(255, 255, 255, 0.16); 
+            border-radius: 50%; 
+            width: 36px; 
+            height: 36px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 0.95rem; 
+            cursor: pointer; 
+            backdrop-filter: blur(14px); 
+            -webkit-backdrop-filter: blur(14px); 
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12); 
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
+            outline: none;
+        }
+        .slider-btn i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .slider-btn i.fa-chevron-left {
+            margin-left: -1px;
+        }
+        .slider-btn i.fa-chevron-right {
+            margin-right: -1px;
+        }
+        .slider-btn:hover, .slider-btn:focus { 
+            background: rgba(255, 255, 255, 0.2); 
+            border-color: rgba(255, 255, 255, 0.38); 
+            color: #ffffff;
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 12px rgba(255, 255, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+        .slider-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.45);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        body.is-keyboard .slider-btn.tv-focusable:focus-visible {
+            outline: none !important;
+            border-color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.3) !important;
+            color: #ffffff !important;
+            transform: scale(1.12);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+        }
         /* ==================== SLIDER & MOVIE CARDS ==================== */
         .slider { 
             --slider-h: max(23vw - 15px, 195px);
