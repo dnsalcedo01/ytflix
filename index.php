@@ -3870,6 +3870,7 @@ if (isset($_SESSION['profile_id'])) {
             .slider { --slider-h: max(46vw - 15px, 150px); }
             .nav-links { gap: 15px; }
             .movies-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+            .m-raw, .s-raw { display: none !important; }
             .player-controls { padding: 15px; }
 
             /* Admin Panel Mobile Adjustments */
@@ -6411,7 +6412,7 @@ if (isset($_SESSION['profile_id'])) {
             let raw = items[i].getElementsByClassName("m-raw")[0];
             let year = items[i].getElementsByClassName("m-year")[0];
             if (title || raw || year) {
-                let txtValue = title.textContent + " " + raw.textContent + " " + year.textContent;
+                let txtValue = (title ? title.textContent : "") + " " + (raw ? raw.textContent : "") + " " + (year ? year.textContent : "");
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
                     items[i].style.display = "flex";
                 } else {
@@ -6453,7 +6454,7 @@ if (isset($_SESSION['profile_id'])) {
             let raw = items[i].getElementsByClassName("s-raw")[0];
             let year = items[i].getElementsByClassName("s-year")[0];
             if (title || raw || year) {
-                let txtValue = title.textContent + " " + raw.textContent + " " + year.textContent;
+                let txtValue = (title ? title.textContent : "") + " " + (raw ? raw.textContent : "") + " " + (year ? year.textContent : "");
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
                     items[i].style.display = "flex";
                 } else {
