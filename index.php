@@ -3442,6 +3442,26 @@ if (isset($_SESSION['profile_id'])) {
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
             transition: border-color 0.25s ease;
         }
+        .admin-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 28px;
+            align-items: start;
+            margin-bottom: 28px;
+        }
+        .admin-cards-grid > .admin-card {
+            margin-bottom: 0 !important;
+            height: auto !important;
+            box-sizing: border-box;
+        }
+        .admin-cards-grid > .admin-card .admin-form > button,
+        .admin-cards-grid > .admin-card .admin-form > .btn-primary,
+        .admin-cards-grid > .admin-card .admin-form > .btn-success,
+        .admin-cards-grid > .admin-card .admin-form > .btn-danger {
+            width: 100%;
+            box-sizing: border-box;
+            justify-content: center;
+        }
         .admin-btn-row {
             display: flex;
             gap: 12px;
@@ -3554,7 +3574,7 @@ if (isset($_SESSION['profile_id'])) {
             font-size: 0.98rem;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 18px rgba(229, 9, 20, 0.4);
+            box-shadow: none;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             display: inline-flex;
             align-items: center;
@@ -3580,7 +3600,7 @@ if (isset($_SESSION['profile_id'])) {
             font-size: 0.98rem;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+            box-shadow: none;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             display: inline-flex;
             align-items: center;
@@ -3920,6 +3940,14 @@ if (isset($_SESSION['profile_id'])) {
             .admin-card h2 { font-size: 1.25rem; }
         }
 
+        @media (max-width: 767px) {
+            .admin-cards-grid {
+                grid-template-columns: 1fr !important;
+                gap: 22px !important;
+                margin-bottom: 22px !important;
+            }
+        }
+
         @media (max-width: 600px) {
             .tab-label-full { display: none !important; }
             .tab-label-short { display: inline-flex !important; align-items: center; line-height: 1; }
@@ -3979,6 +4007,10 @@ if (isset($_SESSION['profile_id'])) {
             .admin-btn-row .btn-danger i {
                 font-size: 0.82rem !important;
             }
+            .admin-form > button {
+                width: 100% !important;
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -4007,6 +4039,10 @@ if (isset($_SESSION['profile_id'])) {
                 padding: 24px 20px !important; 
                 border-radius: 16px; 
                 margin-bottom: 18px; 
+            }
+            .admin-cards-grid {
+                gap: 18px !important;
+                margin-bottom: 18px !important;
             }
             .admin-btn-row button,
             .admin-btn-row .btn-primary,
@@ -5570,6 +5606,7 @@ if (isset($_SESSION['profile_id'])) {
             </div>
             <?php endif; ?>
 
+            <div class="admin-cards-grid">
             <div class="admin-card">
                 <h2><i class="fas fa-id-card" style="color:#0071eb;"></i> Change Profile Name</h2>
                 <form method="POST" class="admin-form">
@@ -5701,6 +5738,7 @@ if (isset($_SESSION['profile_id'])) {
                     <?php endif; ?>
                 </form>
             </div>
+            </div><!-- /.admin-cards-grid -->
 
         <?php elseif($activeTab == 'library' && $is_main_profile): ?>
             <?php if(isset($_GET['synced'])): ?>
@@ -7368,6 +7406,27 @@ if (isset($_SESSION['profile_id'])) {
             if (e.key === 'ArrowUp' && elCY < cY) isDirectionMatch = true;
 
             if (isDirectionMatch) {
+                // Inside admin cards grid on multi-column screens:
+                if (current.closest('.admin-cards-grid') && el.closest('.admin-cards-grid')) {
+                    let colOverlap = (rect.right > elRect.left) && (rect.left < elRect.right);
+                    // 1. Vertical navigation (Up/Down) must stay strictly within the same column
+                    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !colOverlap) {
+                        return;
+                    }
+                    // 2. Horizontal navigation (Left/Right) between cards must stay within the same visual card row
+                    let curCard = current.closest('.admin-card');
+                    let targetCard = el.closest('.admin-card');
+                    if (curCard && targetCard && curCard !== targetCard) {
+                        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                            let curCardTop = curCard.getBoundingClientRect().top;
+                            let targetCardTop = targetCard.getBoundingClientRect().top;
+                            if (Math.abs(curCardTop - targetCardTop) > 60) {
+                                return;
+                            }
+                        }
+                    }
+                }
+
                 let xDist = Math.max(0, Math.max(rect.left - elRect.right, elRect.left - rect.right));
                 let yDist = Math.max(0, Math.max(rect.top - elRect.bottom, elRect.top - rect.bottom));
 
@@ -7377,7 +7436,7 @@ if (isset($_SESSION['profile_id'])) {
                 let distance;
 
                 if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                    let overlapPenalty = yOverlap ? 0 : 10000;
+                    let overlapPenalty = yOverlap ? 0 : ((current.closest('.admin-cards-grid') && el.closest('.admin-cards-grid')) ? (yDist * 5) : 10000);
                     distance = xDist + (yDist * 10) + overlapPenalty + Math.abs(elCY - cY);
                 } else {
                     let overlapPenalty = xOverlap ? 0 : 10000;
