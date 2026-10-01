@@ -1872,9 +1872,74 @@ if (isset($_SESSION['profile_id'])) {
         .nav-right { flex: 1; justify-content: flex-end; }
         
         .profile-icon {
-            width: 40px; height: 40px; border-radius: 8px; display: inline-flex;
+            width: 40px; height: 40px; border-radius: 10px; display: inline-flex;
             align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; cursor: pointer;
             background-size: cover; background-position: center; background-repeat: no-repeat; overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.is-keyboard .profile-icon.tv-focusable:focus,
+        body.is-keyboard .profile-icon.tv-focusable:focus-visible {
+            outline: none !important;
+            border-radius: 10px !important;
+            transform: scale(1.1) !important;
+            box-shadow: 0 0 0 3px #ffffff, 0 0 22px rgba(255, 255, 255, 0.6) !important;
+        }
+
+        .nav-logout-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            opacity: 0.85;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .nav-logout-btn i {
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+        .nav-logout-btn:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.28);
+            transform: scale(1.06);
+        }
+        body.is-keyboard .nav-logout-btn.tv-focusable:focus,
+        body.is-keyboard .nav-logout-btn.tv-focusable:focus-visible {
+            outline: none !important;
+            border-radius: 50% !important;
+            border-color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.28) !important;
+            transform: scale(1.15) !important;
+            box-shadow: 0 0 0 3px #ffffff, 0 0 20px rgba(255, 255, 255, 0.6) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            opacity: 1 !important;
+        }
+
+        .nav-brand-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            user-select: none;
+            pointer-events: none;
+        }
+        .nav-brand-logo .logo-img {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+            display: block;
         }
         .hamburger-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000;
@@ -2037,7 +2102,7 @@ if (isset($_SESSION['profile_id'])) {
             align-items: center;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 6px 20px rgba(229, 9, 20, 0.4);
+            box-shadow: none;
             transition: all 0.25s ease;
         }
         .login-box button.login-submit-btn:hover {
@@ -3443,17 +3508,29 @@ if (isset($_SESSION['profile_id'])) {
             transition: border-color 0.25s ease;
         }
         .admin-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            display: flex;
             gap: 28px;
-            align-items: start;
+            align-items: flex-start;
             margin-bottom: 28px;
         }
+        .admin-cards-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            min-width: 0;
+        }
+        .admin-cards-col > .admin-card,
         .admin-cards-grid > .admin-card {
             margin-bottom: 0 !important;
             height: auto !important;
             box-sizing: border-box;
+            width: 100%;
         }
+        .admin-cards-col > .admin-card .admin-form > button,
+        .admin-cards-col > .admin-card .admin-form > .btn-primary,
+        .admin-cards-col > .admin-card .admin-form > .btn-success,
+        .admin-cards-col > .admin-card .admin-form > .btn-danger,
         .admin-cards-grid > .admin-card .admin-form > button,
         .admin-cards-grid > .admin-card .admin-form > .btn-primary,
         .admin-cards-grid > .admin-card .admin-form > .btn-success,
@@ -3476,6 +3553,41 @@ if (isset($_SESSION['profile_id'])) {
             justify-content: center;
             gap: 8px;
             white-space: nowrap;
+        }
+        .admin-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 16px;
+        }
+        .admin-card-header h2 {
+            margin-bottom: 0;
+            flex: 1;
+        }
+        .current-avatar-badge {
+            width: 76px;
+            height: 76px;
+            min-width: 76px;
+            border-radius: 18px;
+            border: 2.5px solid rgba(255, 255, 255, 0.28);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.85rem;
+            color: #ffffff;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .current-avatar-badge:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.45);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
         }
         .admin-card h2 { 
             font-size: 1.35rem; 
@@ -3942,9 +4054,20 @@ if (isset($_SESSION['profile_id'])) {
 
         @media (max-width: 767px) {
             .admin-cards-grid {
-                grid-template-columns: 1fr !important;
+                flex-direction: column !important;
                 gap: 22px !important;
                 margin-bottom: 22px !important;
+            }
+            .admin-cards-col {
+                gap: 22px !important;
+                width: 100% !important;
+            }
+            .current-avatar-badge {
+                width: 64px !important;
+                height: 64px !important;
+                min-width: 64px !important;
+                border-radius: 15px !important;
+                font-size: 1.55rem !important;
             }
         }
 
@@ -4043,6 +4166,9 @@ if (isset($_SESSION['profile_id'])) {
             .admin-cards-grid {
                 gap: 18px !important;
                 margin-bottom: 18px !important;
+            }
+            .admin-cards-col {
+                gap: 18px !important;
             }
             .admin-btn-row button,
             .admin-btn-row .btn-primary,
@@ -4296,17 +4422,17 @@ if (isset($_SESSION['profile_id'])) {
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
                 $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
             ?>
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
-            <a href="?logout=1" class="tv-focusable" title="Logout" style="color:white; opacity:0.8; transition:0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
-                <i class="fas fa-sign-out-alt" style="font-size: 20px;"></i>
+            <a href="?logout=1" class="tv-focusable nav-logout-btn" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
             </a>
         </div>
 
         <!-- Mobile Nav Left (Dropdown) -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 12px;">
@@ -4340,9 +4466,9 @@ if (isset($_SESSION['profile_id'])) {
                 <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
                 <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
             </div>
-            <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
+            <div class="nav-brand-logo" style="display:flex; align-items:center;">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
-            </a>
+            </div>
         </div>
     </nav>
 
@@ -4751,17 +4877,17 @@ if (isset($_SESSION['profile_id'])) {
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
                 $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
             ?>
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
-            <a href="?logout=1" class="tv-focusable" title="Logout" style="color:white; opacity:0.8; transition:0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
-                <i class="fas fa-sign-out-alt" style="font-size: 20px;"></i>
+            <a href="?logout=1" class="tv-focusable nav-logout-btn" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
             </a>
         </div>
 
         <!-- Mobile Nav Left (Dropdown) -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 12px;">
@@ -4793,9 +4919,9 @@ if (isset($_SESSION['profile_id'])) {
                 <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
                 <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
             </div>
-            <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
+            <div class="nav-brand-logo" style="display:flex; align-items:center;">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
-            </a>
+            </div>
         </div>
     </nav>
 
@@ -5509,17 +5635,17 @@ if (isset($_SESSION['profile_id'])) {
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
                 $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
             ?>
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
-            <a href="?logout=1" class="tv-focusable" title="Logout" style="color:white; opacity:0.8; transition:0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
-                <i class="fas fa-sign-out-alt" style="font-size: 20px;"></i>
+            <a href="?logout=1" class="tv-focusable nav-logout-btn" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
             </a>
         </div>
 
         <!-- Mobile Nav Left (Dropdown) -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 4px;" onclick="toggleMobileDropdown()" title="Menu">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 5px;">
@@ -5553,9 +5679,9 @@ if (isset($_SESSION['profile_id'])) {
                 <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold; text-decoration:none; align-items:center; gap:12px; padding:5px;"><i class="fas fa-download"></i> Install App</a>
                 <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-cog"></i> Settings</a>
             </div>
-            <a href="?p=home" class="tv-focusable" style="display:flex; align-items:center;" title="Home">
+            <div class="nav-brand-logo" style="display:flex; align-items:center;">
                 <img src="y.png" alt="YTFlix" class="logo-img" style="height: 50px;">
-            </a>
+            </div>
         </div>
     </nav>
 
@@ -5607,137 +5733,184 @@ if (isset($_SESSION['profile_id'])) {
             <?php endif; ?>
 
             <div class="admin-cards-grid">
-            <div class="admin-card">
-                <h2><i class="fas fa-id-card" style="color:#0071eb;"></i> Change Profile Name</h2>
-                <form method="POST" class="admin-form">
-                    <?php if ($is_main_profile): ?>
-                        <label>Select Profile</label>
-                        <select name="target_profile_id" class="tv-focusable">
-                            <?php
-                            $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
-                            $stmt->execute([$_SESSION['user_id']]);
-                            foreach ($stmt->fetchAll() as $p) {
-                                echo "<option value='{$p['id']}'>{$p['name']}</option>";
-                            }
-                            ?>
-                        </select>
-                    <?php else: ?>
-                        <p class="admin-card-subtitle">Update your profile name below.</p>
-                        <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
-                    <?php endif; ?>
-                    <label>New Name</label>
-                    <input type="text" name="new_profile_name" required class="tv-focusable" placeholder="Enter new profile name">
-                    <button type="submit" name="rename_profile" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-check"></i> Update Name</button>
-                </form>
-            </div>
-
-            <div class="admin-card">
-                <h2><i class="fas fa-camera" style="color:#10b981;"></i> Change Profile Picture</h2>
-                <form method="POST" enctype="multipart/form-data" class="admin-form">
-                    <?php if ($is_main_profile): ?>
-                        <label>Select Profile</label>
-                        <select name="target_profile_id" class="tv-focusable">
-                            <?php
-                            $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
-                            $stmt->execute([$_SESSION['user_id']]);
-                            foreach ($stmt->fetchAll() as $p) {
-                                echo "<option value='{$p['id']}'>{$p['name']}</option>";
-                            }
-                            ?>
-                        </select>
-                    <?php else: ?>
-                        <p class="admin-card-subtitle">Update your personal avatar picture below.</p>
-                        <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
-                    <?php endif; ?>
-                    
-                    <label>Upload Avatar Image</label>
-                    <input type="file" name="avatar_file" accept="image/*" class="tv-focusable">
-                    <div class="admin-btn-row">
-                        <button type="submit" name="update_profile_pic" class="btn-primary tv-focusable"><i class="fas fa-upload"></i> <span class="tab-label-full">Update Picture</span><span class="tab-label-short">Update</span></button>
-                        <button type="submit" name="delete_profile_pic" class="btn-danger tv-focusable" onclick="return confirm('Are you sure you want to remove the avatar picture?');"><i class="fas fa-trash-alt"></i> <span class="tab-label-full">Remove Picture</span><span class="tab-label-short">Remove</span></button>
+                <div class="admin-cards-col">
+                    <!-- Column 1, Card 1: Change Profile Name -->
+                    <div class="admin-card">
+                        <h2><i class="fas fa-id-card" style="color:#0071eb;"></i> Change Profile Name</h2>
+                        <form method="POST" class="admin-form">
+                            <?php if ($is_main_profile): ?>
+                                <label>Select Profile</label>
+                                <select name="target_profile_id" class="tv-focusable">
+                                    <?php
+                                    $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
+                                    $stmt->execute([$_SESSION['user_id']]);
+                                    foreach ($stmt->fetchAll() as $p) {
+                                        echo "<option value='{$p['id']}'>{$p['name']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                            <?php else: ?>
+                                <p class="admin-card-subtitle">Update your profile name below.</p>
+                                <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
+                            <?php endif; ?>
+                            <label>New Name</label>
+                            <input type="text" name="new_profile_name" required class="tv-focusable" placeholder="Enter new profile name">
+                            <button type="submit" name="rename_profile" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-check"></i> Update Name</button>
+                        </form>
                     </div>
-                </form>
-            </div>
-            
-            <div class="admin-card">
-                <h2><i class="fas fa-lock" style="color:#f59e0b;"></i> Profile PIN Lock</h2>
-                <form method="POST" class="admin-form">
+
+                    <!-- Column 1, Card 2: Profile PIN Lock -->
+                    <div class="admin-card">
+                        <h2><i class="fas fa-lock" style="color:#f59e0b;"></i> Profile PIN Lock</h2>
+                        <form method="POST" class="admin-form">
+                            <?php if ($is_main_profile): ?>
+                                <p class="admin-card-subtitle">Set or update a 4-digit PIN for any household account.</p>
+                                <label>Select Profile</label>
+                                <select name="target_profile_id" class="tv-focusable">
+                                    <?php
+                                    $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
+                                    $stmt->execute([$_SESSION['user_id']]);
+                                    foreach ($stmt->fetchAll() as $p) {
+                                        echo "<option value='{$p['id']}'>{$p['name']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                            <?php else: ?>
+                                <p class="admin-card-subtitle">Set or update a 4-digit PIN for your personal profile.</p>
+                                <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
+                            <?php endif; ?>
+                            
+                            <label>4-Digit PIN (Leave blank to remove PIN Lock)</label>
+                            <input type="password" name="new_pin" maxlength="4" pattern="\d{4}" title="Please enter exactly 4 digits" class="tv-focusable" placeholder="e.g. 1234" inputmode="numeric">
+                            <button type="submit" name="update_pin" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-key"></i> Save PIN</button>
+                        </form>
+                    </div>
+
                     <?php if ($is_main_profile): ?>
-                        <p class="admin-card-subtitle">Set or update a 4-digit PIN for any household account.</p>
-                        <label>Select Profile</label>
-                        <select name="target_profile_id" class="tv-focusable">
-                            <?php
-                            $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
-                            $stmt->execute([$_SESSION['user_id']]);
-                            foreach ($stmt->fetchAll() as $p) {
-                                echo "<option value='{$p['id']}'>{$p['name']}</option>";
-                            }
-                            ?>
-                        </select>
-                    <?php else: ?>
-                        <p class="admin-card-subtitle">Set or update a 4-digit PIN for your personal profile.</p>
-                        <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
+                    <!-- Column 1, Card 3: Change Admin Password -->
+                    <div class="admin-card">
+                        <h2><i class="fas fa-shield-alt" style="color:#ec4899;"></i> Change Admin Password</h2>
+                        <form method="POST" class="admin-form">
+                            <label>New Password</label>
+                            <input type="password" name="new_password" required class="tv-focusable" placeholder="Enter new master password">
+                            <button type="submit" name="update_password" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-lock"></i> Update Password</button>
+                        </form>
+                    </div>
                     <?php endif; ?>
-                    
-                    <label>4-Digit PIN (Leave blank to remove PIN Lock)</label>
-                    <input type="password" name="new_pin" maxlength="4" pattern="\d{4}" title="Please enter exactly 4 digits" class="tv-focusable" placeholder="e.g. 1234" inputmode="numeric">
-                    <button type="submit" name="update_pin" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-key"></i> Save PIN</button>
-                </form>
-            </div>
+                </div>
 
-            <?php if ($is_main_profile): ?>
-            <div class="admin-card">
-                <h2><i class="fas fa-user-plus" style="color:#8b5cf6;"></i> Create Household Account</h2>
-                <p class="admin-card-subtitle">Add a new profile under your main account.</p>
-                <form method="POST" enctype="multipart/form-data" class="admin-form">
-                    <input type="hidden" name="admin_redirect" value="1">
-                    <label>Profile Name</label>
-                    <input type="text" name="profile_name" placeholder="Name" required class="tv-focusable">
-                    <label>Upload Avatar Image (Optional)</label>
-                    <input type="file" name="avatar_file" accept="image/*" class="tv-focusable">
-                    <button type="submit" name="create_profile" class="btn-success tv-focusable" style="margin-top:14px;"><i class="fas fa-plus"></i> Create Profile</button>
-                </form>
-            </div>
+                <div class="admin-cards-col">
+                    <!-- Column 2, Card 1: Change Profile Picture -->
+                    <?php
+                    $stmtAvatarProfiles = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
+                    $stmtAvatarProfiles->execute([$_SESSION['user_id']]);
+                    $accountProfiles = $stmtAvatarProfiles->fetchAll(PDO::FETCH_ASSOC);
 
-            <div class="admin-card">
-                <h2><i class="fas fa-shield-alt" style="color:#ec4899;"></i> Change Admin Password</h2>
-                <form method="POST" class="admin-form">
-                    <label>New Password</label>
-                    <input type="password" name="new_password" required class="tv-focusable" placeholder="Enter new master password">
-                    <button type="submit" name="update_password" class="btn-primary tv-focusable" style="margin-top:14px;"><i class="fas fa-lock"></i> Update Password</button>
-                </form>
-            </div>
-            <?php endif; ?>
+                    $selectedAvatarProfile = $currentProfile;
+                    foreach ($accountProfiles as $p) {
+                        if ($p['id'] == $_SESSION['profile_id']) {
+                            $selectedAvatarProfile = $p;
+                            break;
+                        }
+                    }
+                    if (!$selectedAvatarProfile && !empty($accountProfiles)) {
+                        $selectedAvatarProfile = $accountProfiles[0];
+                    }
 
-            <div class="admin-card">
-                <h2><i class="fas fa-user-slash" style="color:#ef4444;"></i> Delete Profile</h2>
-                <form method="POST" class="admin-form">
+                    $curAvatarPic = !empty($selectedAvatarProfile['avatar_url']) ? $selectedAvatarProfile['avatar_url'] : '';
+                    $curAvatarColor = !empty($selectedAvatarProfile['color']) ? $selectedAvatarProfile['color'] : '#e50914';
+                    $curAvatarName = !empty($selectedAvatarProfile['name']) ? $selectedAvatarProfile['name'] : 'U';
+
+                    $curAvatarStyle = !empty($curAvatarPic) 
+                        ? "background-image: url('".htmlspecialchars($curAvatarPic, ENT_QUOTES)."'); background-color: transparent;" 
+                        : "background-color: ".htmlspecialchars($curAvatarColor, ENT_QUOTES).";";
+                    $curAvatarInitial = !empty($curAvatarPic) ? "" : htmlspecialchars(strtoupper(substr($curAvatarName, 0, 1)));
+                    ?>
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <div>
+                                <h2><i class="fas fa-camera" style="color:#10b981;"></i> Change Profile Picture</h2>
+                                <p class="admin-card-subtitle" style="margin-bottom:0; margin-top:6px;">Upload a custom avatar for this profile.</p>
+                            </div>
+                            <div id="adminCurrentAvatar" class="current-avatar-badge" title="Current Profile Picture" aria-label="Current Profile Picture" style="<?= $curAvatarStyle ?>">
+                                <?= $curAvatarInitial ?>
+                            </div>
+                        </div>
+                        <form method="POST" enctype="multipart/form-data" class="admin-form">
+                            <?php if ($is_main_profile): ?>
+                                <label>Select Profile</label>
+                                <select name="target_profile_id" class="tv-focusable" onchange="updateProfilePicPreview(this)">
+                                    <?php
+                                    foreach ($accountProfiles as $p) {
+                                        $isSel = ($p['id'] == $selectedAvatarProfile['id']) ? "selected" : "";
+                                        $dataAvatar = htmlspecialchars($p['avatar_url'] ?? '', ENT_QUOTES);
+                                        $dataColor = htmlspecialchars($p['color'] ?? '#e50914', ENT_QUOTES);
+                                        $dataName = htmlspecialchars($p['name'] ?? '', ENT_QUOTES);
+                                        echo "<option value='{$p['id']}' data-avatar='{$dataAvatar}' data-color='{$dataColor}' data-name='{$dataName}' {$isSel}>".htmlspecialchars($p['name'])."</option>";
+                                    }
+                                    ?>
+                                </select>
+                            <?php else: ?>
+                                <p class="admin-card-subtitle">Update your personal avatar picture below.</p>
+                                <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
+                            <?php endif; ?>
+                            
+                            <label>Upload Avatar Image</label>
+                            <input type="file" name="avatar_file" accept="image/*" class="tv-focusable" onchange="previewSelectedAvatar(this)">
+                            <div class="admin-btn-row">
+                                <button type="submit" name="update_profile_pic" class="btn-primary tv-focusable"><i class="fas fa-upload"></i> <span class="tab-label-full">Update Picture</span><span class="tab-label-short">Update</span></button>
+                                <button type="submit" name="delete_profile_pic" class="btn-danger tv-focusable" onclick="return confirm('Are you sure you want to remove the avatar picture?');"><i class="fas fa-trash-alt"></i> <span class="tab-label-full">Remove Picture</span><span class="tab-label-short">Remove</span></button>
+                            </div>
+                        </form>
+                    </div>
+
                     <?php if ($is_main_profile): ?>
-                        <p class="admin-card-subtitle">Permanently delete a household account. (The main admin profile cannot be deleted).</p>
-                        <label>Select Profile</label>
-                        <select name="target_profile_id" class="tv-focusable">
-                            <?php
-                            // Exclude the main profile from the dropdown for safety
-                            $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ? AND id != ?");
-                            $stmt->execute([$_SESSION['user_id'], $main_profile_id]);
-                            $household_profiles = $stmt->fetchAll();
-                            if (count($household_profiles) > 0) {
-                                foreach ($household_profiles as $p) {
-                                    echo "<option value='{$p['id']}'>{$p['name']}</option>";
-                                }
-                            } else {
-                                echo "<option value='' disabled selected>No household accounts found</option>";
-                            }
-                            ?>
-                        </select>
-                        <button type="submit" name="delete_profile" class="btn-danger tv-focusable" style="margin-top:14px;" onclick="return confirm('Are you sure you want to permanently delete this profile?');" <?= count($household_profiles) == 0 ? 'disabled' : '' ?>><i class="fas fa-trash-alt"></i> Delete Profile</button>
-                    <?php else: ?>
-                        <p class="admin-card-subtitle">Permanently delete your profile and all associated data.</p>
-                        <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
-                        <button type="submit" name="delete_profile" class="btn-danger tv-focusable" style="margin-top:14px;" onclick="return confirm('Are you sure you want to permanently delete your profile? This cannot be undone.');"><i class="fas fa-trash-alt"></i> Delete My Profile</button>
+                    <!-- Column 2, Card 2: Create Household Account -->
+                    <div class="admin-card">
+                        <h2><i class="fas fa-user-plus" style="color:#8b5cf6;"></i> Create Household Account</h2>
+                        <p class="admin-card-subtitle">Add a new profile under your main account.</p>
+                        <form method="POST" enctype="multipart/form-data" class="admin-form">
+                            <input type="hidden" name="admin_redirect" value="1">
+                            <label>Profile Name</label>
+                            <input type="text" name="profile_name" placeholder="Name" required class="tv-focusable">
+                            <label>Upload Avatar Image (Optional)</label>
+                            <input type="file" name="avatar_file" accept="image/*" class="tv-focusable">
+                            <button type="submit" name="create_profile" class="btn-success tv-focusable" style="margin-top:14px;"><i class="fas fa-plus"></i> Create Profile</button>
+                        </form>
+                    </div>
                     <?php endif; ?>
-                </form>
-            </div>
+
+                    <!-- Column 2, Card 3: Delete Profile -->
+                    <div class="admin-card">
+                        <h2><i class="fas fa-user-slash" style="color:#ef4444;"></i> Delete Profile</h2>
+                        <form method="POST" class="admin-form">
+                            <?php if ($is_main_profile): ?>
+                                <p class="admin-card-subtitle">Permanently delete a household account. (The main admin profile cannot be deleted).</p>
+                                <label>Select Profile</label>
+                                <select name="target_profile_id" class="tv-focusable">
+                                    <?php
+                                    // Exclude the main profile from the dropdown for safety
+                                    $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ? AND id != ?");
+                                    $stmt->execute([$_SESSION['user_id'], $main_profile_id]);
+                                    $household_profiles = $stmt->fetchAll();
+                                    if (count($household_profiles) > 0) {
+                                        foreach ($household_profiles as $p) {
+                                            echo "<option value='{$p['id']}'>{$p['name']}</option>";
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled selected>No household accounts found</option>";
+                                    }
+                                    ?>
+                                </select>
+                                <button type="submit" name="delete_profile" class="btn-danger tv-focusable" style="margin-top:14px;" onclick="return confirm('Are you sure you want to permanently delete this profile?');" <?= count($household_profiles) == 0 ? 'disabled' : '' ?>><i class="fas fa-trash-alt"></i> Delete Profile</button>
+                            <?php else: ?>
+                                <p class="admin-card-subtitle">Permanently delete your profile and all associated data.</p>
+                                <input type="hidden" name="target_profile_id" value="<?= htmlspecialchars($_SESSION['profile_id']) ?>">
+                                <button type="submit" name="delete_profile" class="btn-danger tv-focusable" style="margin-top:14px;" onclick="return confirm('Are you sure you want to permanently delete your profile? This cannot be undone.');"><i class="fas fa-trash-alt"></i> Delete My Profile</button>
+                            <?php endif; ?>
+                        </form>
+                    </div>
+                </div>
             </div><!-- /.admin-cards-grid -->
 
         <?php elseif($activeTab == 'library' && $is_main_profile): ?>
@@ -7413,18 +7586,6 @@ if (isset($_SESSION['profile_id'])) {
                     if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !colOverlap) {
                         return;
                     }
-                    // 2. Horizontal navigation (Left/Right) between cards must stay within the same visual card row
-                    let curCard = current.closest('.admin-card');
-                    let targetCard = el.closest('.admin-card');
-                    if (curCard && targetCard && curCard !== targetCard) {
-                        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                            let curCardTop = curCard.getBoundingClientRect().top;
-                            let targetCardTop = targetCard.getBoundingClientRect().top;
-                            if (Math.abs(curCardTop - targetCardTop) > 60) {
-                                return;
-                            }
-                        }
-                    }
                 }
 
                 let xDist = Math.max(0, Math.max(rect.left - elRect.right, elRect.left - rect.right));
@@ -7545,6 +7706,50 @@ if (isset($_SESSION['profile_id'])) {
             document.body.classList.add('no-scroll');
         } else {
             document.body.classList.remove('no-scroll');
+        }
+    }
+
+    function updateProfilePicPreview(selectElem) {
+        if (!selectElem) return;
+        var selectedOption = selectElem.options[selectElem.selectedIndex];
+        if (!selectedOption) return;
+        var avatarUrl = selectedOption.getAttribute('data-avatar');
+        var color = selectedOption.getAttribute('data-color') || '#e50914';
+        var name = selectedOption.getAttribute('data-name') || '';
+        var previewEl = document.getElementById('adminCurrentAvatar');
+        if (!previewEl) return;
+        
+        var fileInput = document.querySelector('input[name="avatar_file"]');
+        if (fileInput) fileInput.value = '';
+        
+        if (avatarUrl && avatarUrl.trim() !== '') {
+            previewEl.style.backgroundImage = 'url("' + avatarUrl + '")';
+            previewEl.style.backgroundColor = 'transparent';
+            previewEl.textContent = '';
+        } else {
+            previewEl.style.backgroundImage = 'none';
+            previewEl.style.backgroundColor = color;
+            previewEl.textContent = name ? name.charAt(0).toUpperCase() : '';
+        }
+    }
+
+    function previewSelectedAvatar(input) {
+        var previewEl = document.getElementById('adminCurrentAvatar');
+        if (!previewEl) return;
+        if (input && input.files && input.files[0]) {
+            var file = input.files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                previewEl.style.backgroundImage = 'url("' + e.target.result + '")';
+                previewEl.style.backgroundColor = 'transparent';
+                previewEl.textContent = '';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            var selectElem = document.querySelector('select[name="target_profile_id"]');
+            if (selectElem) {
+                updateProfilePicPreview(selectElem);
+            }
         }
     }
 
