@@ -3570,7 +3570,6 @@ if (isset($_SESSION['profile_id'])) {
             height: 76px;
             min-width: 76px;
             border-radius: 18px;
-            border: 2.5px solid rgba(255, 255, 255, 0.28);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
             background-size: cover;
             background-position: center;
@@ -5235,11 +5234,20 @@ if (isset($_SESSION['profile_id'])) {
     $wStmt->execute([$_SESSION['profile_id'], $movieId]);
     if ($wStmt->fetch()) $inWatchlist = true;
 
-    $progressStmt = $pdo->prepare("SELECT progress_time, duration FROM playback_progress WHERE profile_id = ? AND movie_id = ?");
+    $progressStmt = $pdo->prepare("SELECT progress_time, duration FROM playback_progress WHERE profile_id = ? AND movie_id = ? ORDER BY last_watched DESC LIMIT 1");
     $progressStmt->execute([$_SESSION['profile_id'], $movieId]);
     $prog = $progressStmt->fetch(PDO::FETCH_ASSOC);
     $time = $prog ? (int)$prog['progress_time'] : 0;
+    $duration = $prog ? (int)$prog['duration'] : 0;
     $playText = $time > 0 ? "Resume" : "Play";
+
+    if (!isset($progressMap)) {
+        $progressMap = [];
+    }
+    $progressMap[$movieId] = [
+        'time' => $time,
+        'duration' => $duration
+    ];
 
     $heroBg = $movie['backdrop_path'] ? $movie['backdrop_path'] : $movie['poster_path'];
     $actors = [];
@@ -5273,7 +5281,7 @@ if (isset($_SESSION['profile_id'])) {
                 </div>
                 
                 <div class="movie-actions">
-                    <button class="btn btn-play tv-focusable" onclick="openPlayer('<?= $movie['yt_video_id'] ?>', '<?= addslashes(htmlspecialchars($movie['clean_title'])) ?>', <?= $time ?>, <?= $movieId ?>)">
+                    <button class="btn btn-play tv-focusable" id="moviePagePlayBtn" data-movie-id="<?= $movieId ?>" data-video-id="<?= htmlspecialchars($movie['yt_video_id']) ?>" data-title="<?= addslashes(htmlspecialchars($movie['clean_title'])) ?>" onclick="openPlayer('<?= $movie['yt_video_id'] ?>', '<?= addslashes(htmlspecialchars($movie['clean_title'])) ?>', <?= $time ?>, <?= $movieId ?>)">
                         <i class="fas fa-play" style="margin-right: 5px;"></i> <?= $playText ?>
                     </button>
                     
@@ -5487,7 +5495,7 @@ if (isset($_SESSION['profile_id'])) {
                 
                 <div class="movie-actions">
                     <?php if($mainPlayEpId): ?>
-                    <button class="btn btn-play tv-focusable" onclick="openPlayer('<?= $mainPlayYtId ?>', '<?= addslashes(htmlspecialchars($show['clean_title'] . ' - ' . $mainPlayTitle)) ?>', <?= $mainPlayTime ?>, <?= $mainPlayEpId ?>, 'episode')">
+                    <button class="btn btn-play tv-focusable" id="showPagePlayBtn" data-episode-id="<?= $mainPlayEpId ?>" data-video-id="<?= htmlspecialchars($mainPlayYtId) ?>" data-title="<?= addslashes(htmlspecialchars($show['clean_title'] . ' - ' . $mainPlayTitle)) ?>" onclick="openPlayer('<?= $mainPlayYtId ?>', '<?= addslashes(htmlspecialchars($show['clean_title'] . ' - ' . $mainPlayTitle)) ?>', <?= $mainPlayTime ?>, <?= $mainPlayEpId ?>, 'episode')">
                         <i class="fas fa-play" style="margin-right: 5px;"></i> <?= $mainPlayText ?>
                     </button>
                     <?php endif; ?>
@@ -6848,6 +6856,26 @@ if (isset($_SESSION['profile_id'])) {
                     playBtn.onclick = () => openPlayer(currentMovie.yt_video_id, currentMovie.clean_title, time, currentDbMovieId);
                 }
             }
+
+            // Dynamically update Dedicated Movie Page Play/Resume button if open
+            let moviePageBtn = document.getElementById('moviePagePlayBtn');
+            if (moviePageBtn && currentDbType === 'movie' && parseInt(moviePageBtn.dataset.movieId) === currentDbMovieId) {
+                let playText = time > 0 ? 'Resume' : 'Play';
+                moviePageBtn.innerHTML = `<i class="fas fa-play" style="margin-right:5px;"></i> ${playText}`;
+                let vidId = moviePageBtn.dataset.videoId;
+                let title = moviePageBtn.dataset.title;
+                moviePageBtn.onclick = () => openPlayer(vidId, title, time, currentDbMovieId, 'movie');
+            }
+
+            // Dynamically update Dedicated Show Page Play/Resume button if open
+            let showPageBtn = document.getElementById('showPagePlayBtn');
+            if (showPageBtn && currentDbType === 'episode' && parseInt(showPageBtn.dataset.episodeId) === currentDbMovieId) {
+                let vidId = showPageBtn.dataset.videoId;
+                let title = showPageBtn.dataset.title;
+                let playText = time > 0 ? 'Resume' : 'Play';
+                showPageBtn.innerHTML = `<i class="fas fa-play" style="margin-right:5px;"></i> ${playText}`;
+                showPageBtn.onclick = () => openPlayer(vidId, title, time, currentDbMovieId, 'episode');
+            }
             
             const formData = new FormData();
             formData.append(currentDbType === 'episode' ? 'episode_id' : 'movie_id', currentDbMovieId);
@@ -6855,7 +6883,7 @@ if (isset($_SESSION['profile_id'])) {
             formData.append('duration', Math.floor(duration));
             
             let endpoint = currentDbType === 'episode' ? '?ajax=save_episode_progress' : '?ajax=save_progress';
-            return fetch(endpoint, { method: 'POST', body: formData }).catch(e => console.warn(e));
+            return fetch(endpoint, { method: 'POST', body: formData, keepalive: true }).catch(e => console.warn(e));
         }
         return Promise.resolve();
     }
@@ -6912,6 +6940,18 @@ if (isset($_SESSION['profile_id'])) {
         if(progressInterval) clearInterval(progressInterval);
         progressInterval = setInterval(() => { saveProgress(); }, 5000); 
     }
+
+    // Persist progress when navigating away, switching tabs, or backgrounding
+    window.addEventListener('pagehide', function() {
+        if (player && currentDbMovieId) {
+            saveProgress();
+        }
+    });
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden' && player && currentDbMovieId) {
+            saveProgress();
+        }
+    });
 
     let pauseOverlayTimeout = null;
 
@@ -7228,22 +7268,33 @@ if (isset($_SESSION['profile_id'])) {
                 return;
             }
             
-            if (playerContainer && playerContainer.style.display === 'block') closePlayer();
-            else if (movieModal && movieModal.style.display === 'flex') closeModal();
+            if (playerContainer && playerContainer.style.display === 'block') {
+                closePlayer();
+                return;
+            }
+            else if (movieModal && movieModal.style.display === 'flex') {
+                closeModal();
+                return;
+            }
             else if (addProfileModal && addProfileModal.style.display === 'flex') {
                 addProfileModal.style.display = 'none';
+                return;
             }
             else if (adminEditModal && adminEditModal.style.display === 'flex') {
                 adminEditModal.style.display = 'none';
+                return;
             }
             else if (adminShowEditModal && adminShowEditModal.style.display === 'flex') {
                 adminShowEditModal.style.display = 'none';
+                return;
             }
             else if (adminEpisodeEditModal && adminEpisodeEditModal.style.display === 'flex') {
                 adminEpisodeEditModal.style.display = 'none';
+                return;
             }
             else if (pinModal && pinModal.style.display === 'flex') {
                 closePinModal();
+                return;
             }
             
             var dropdowns = document.getElementsByClassName("dropdown-content");
