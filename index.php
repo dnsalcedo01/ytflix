@@ -1872,7 +1872,7 @@ if (isset($_SESSION['profile_id'])) {
         .nav-right { flex: 1; justify-content: flex-end; }
         
         .profile-icon {
-            width: 40px; height: 40px; border-radius: 10px; display: inline-flex;
+            width: 40px; height: 40px; border-radius: 7px; display: inline-flex;
             align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; cursor: pointer;
             background-size: cover; background-position: center; background-repeat: no-repeat; overflow: hidden;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1880,9 +1880,75 @@ if (isset($_SESSION['profile_id'])) {
         body.is-keyboard .profile-icon.tv-focusable:focus,
         body.is-keyboard .profile-icon.tv-focusable:focus-visible {
             outline: none !important;
-            border-radius: 10px !important;
+            border-radius: 7px !important;
             transform: scale(1.1) !important;
             box-shadow: 0 0 0 3px #ffffff, 0 0 22px rgba(255, 255, 255, 0.6) !important;
+        }
+
+        /* Glassmorphism Mobile Dropdown Menu */
+        .mobile-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 45px;
+            left: 0;
+            background: rgba(20, 20, 20, 0.78);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            padding: 8px;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 100;
+            min-width: 170px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            animation: mobileDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes mobileDropdownFadeIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .mobile-dropdown-menu a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .mobile-dropdown-menu a i {
+            font-size: 1rem;
+            width: 18px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.75);
+            transition: color 0.2s ease;
+        }
+        .mobile-dropdown-menu a:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateX(2px);
+        }
+        .mobile-dropdown-menu a:hover i {
+            color: #ffffff;
+        }
+        body.is-keyboard .mobile-dropdown-menu a.tv-focusable:focus,
+        body.is-keyboard .mobile-dropdown-menu a.tv-focusable:focus-visible {
+            outline: none !important;
+            border: 1px solid #ffffff !important;
+            background: rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+            transform: scale(1.02) !important;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.4) !important;
+        }
+        body.is-keyboard .mobile-dropdown-menu a.tv-focusable:focus i,
+        body.is-keyboard .mobile-dropdown-menu a.tv-focusable:focus-visible i {
+            color: #ffffff !important;
         }
 
         .nav-logout-btn {
@@ -4421,7 +4487,7 @@ if (isset($_SESSION['profile_id'])) {
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
                 $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
             ?>
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?logout=1" class="tv-focusable nav-logout-btn" title="Logout">
@@ -4431,15 +4497,15 @@ if (isset($_SESSION['profile_id'])) {
 
         <!-- Mobile Nav Left (Dropdown) -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="toggleMobileDropdown()" title="Menu">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 12px;">
                 <i class="fas fa-search"></i>
             </a>
-            <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-                <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
-                <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div class="mobile-dropdown-menu" style="display:none;">
+                <a href="?p=profiles" class="tv-focusable"><i class="fas fa-user-friends"></i> Switch Profile</a>
+                <a href="?logout=1" class="tv-focusable"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
 
@@ -4876,7 +4942,7 @@ if (isset($_SESSION['profile_id'])) {
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
                 $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
             ?>
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?logout=1" class="tv-focusable nav-logout-btn" title="Logout">
@@ -4886,15 +4952,15 @@ if (isset($_SESSION['profile_id'])) {
 
         <!-- Mobile Nav Left (Dropdown) -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="toggleMobileDropdown()" title="Menu">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 12px;">
                 <i class="fas fa-search"></i>
             </a>
-            <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-                <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
-                <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div class="mobile-dropdown-menu" style="display:none;">
+                <a href="?p=profiles" class="tv-focusable"><i class="fas fa-user-friends"></i> Switch Profile</a>
+                <a href="?logout=1" class="tv-focusable"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
         <div class="nav-center">
@@ -5643,7 +5709,7 @@ if (isset($_SESSION['profile_id'])) {
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
                 $pAvatarContent = !empty($currentProfile['avatar_url']) ? "" : substr($currentProfile['name'], 0, 1);
             ?>
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="window.location.href='?p=profiles'" title="Switch Profile">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?logout=1" class="tv-focusable nav-logout-btn" title="Logout">
@@ -5653,15 +5719,15 @@ if (isset($_SESSION['profile_id'])) {
 
         <!-- Mobile Nav Left (Dropdown) -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
-            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>; border-radius: 10px;" onclick="toggleMobileDropdown()" title="Menu">
+            <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
             </div>
             <a href="?p=search" class="tv-focusable <?= $page == 'search' ? 'active' : '' ?>" title="Search" style="color:white; font-size:1.15rem; margin-left: 5px;">
                 <i class="fas fa-search"></i>
             </a>
-            <div class="mobile-dropdown-menu" style="display:none; position:absolute; top:45px; left:0; background:rgba(20,20,20,0.95); border:1px solid #333; border-radius:8px; padding:10px; flex-direction:column; gap:10px; z-index:100; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-                <a href="?p=profiles" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-user-friends"></i> Switch Profile</a>
-                <a href="?logout=1" class="tv-focusable" style="color:white; text-decoration:none; display:flex; align-items:center; gap:12px; padding:5px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div class="mobile-dropdown-menu" style="display:none;">
+                <a href="?p=profiles" class="tv-focusable"><i class="fas fa-user-friends"></i> Switch Profile</a>
+                <a href="?logout=1" class="tv-focusable"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
 
