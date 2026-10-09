@@ -2026,30 +2026,41 @@ if (isset($_SESSION['profile_id'])) {
         .hamburger-sidebar a {
             color: #d1d5db; text-decoration: none; display: flex; align-items: center; gap: 16px; 
             padding: 14px 18px; font-size: 1.1rem; border-radius: 12px; font-weight: 500;
-            transition: all 0.3s ease; position: relative; overflow: hidden;
+            position: relative; overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
         }
         .hamburger-sidebar a i {
-            font-size: 1.3rem; width: 24px; text-align: center; color: #9ca3af; transition: color 0.3s ease;
+            font-size: 1.3rem; width: 24px; text-align: center; color: #9ca3af;
         }
-        @media (hover: hover) {
+        @media (hover: hover) and (pointer: fine) {
+            .hamburger-sidebar a {
+                transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+            }
+            .hamburger-sidebar a i {
+                transition: color 0.2s ease;
+            }
             .hamburger-sidebar a:hover {
-                background: rgba(255,255,255,0.1); color: white; transform: translateX(6px);
+                background: rgba(255,255,255,0.1); color: white; transform: translateX(6px); -webkit-transform: translateX(6px);
             }
             .hamburger-sidebar a:hover i {
                 color: #E50914;
             }
         }
         body.is-keyboard .hamburger-sidebar a:focus-visible {
-            background: rgba(255,255,255,0.1); color: white; transform: translateX(6px); outline: none;
+            background: rgba(255,255,255,0.1); color: white; transform: translateX(6px); -webkit-transform: translateX(6px); outline: none;
         }
         body.is-keyboard .hamburger-sidebar a:focus-visible i {
             color: #E50914;
         }
         .hamburger-sidebar a.active {
-            background: rgba(255,255,255,0.1); color: white; transform: translateX(6px);
+            background: rgba(255,255,255,0.1) !important; color: white !important; 
+            transform: translateX(6px) !important; -webkit-transform: translateX(6px) !important;
+            transition: none !important;
         }
         .hamburger-sidebar a.active i {
-            color: #E50914;
+            color: #E50914 !important;
+            transition: none !important;
         }
         body.no-scroll { overflow: hidden !important; }
 
@@ -6216,15 +6227,15 @@ if (isset($_SESSION['profile_id'])) {
 <?php endif; ?>
 
 <?php if ($page !== 'login' && $page !== 'profiles'): ?>
-    <!-- UNIFIED HAMBURGER SIDEBAR -->
+    <!-- HAMBURGER SIDEBAR -->
     <div class="hamburger-overlay" onclick="toggleHamburgerMenu()" style="display:none;"></div>
     <div class="hamburger-sidebar" id="hamburgerMenu">
         <img src="ytflix.png" alt="YTFlix" style="height: 35px; margin-bottom: 20px; align-self: flex-start;">
-        <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>"><i class="fas fa-home"></i> Home</a>
-        <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>"><i class="fas fa-film"></i> Movies</a>
-        <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>"><i class="fas fa-tv"></i> Shows</a>
+        <a href="?p=home" class="tv-focusable <?= $page == 'home' ? 'active' : '' ?>" onclick="handleSidebarClick(event, this)"><i class="fas fa-home"></i> Home</a>
+        <a href="?p=movies" class="tv-focusable <?= $page == 'movies' ? 'active' : '' ?>" onclick="handleSidebarClick(event, this)"><i class="fas fa-film"></i> Movies</a>
+        <a href="?p=shows" class="tv-focusable <?= $page == 'shows' ? 'active' : '' ?>" onclick="handleSidebarClick(event, this)"><i class="fas fa-tv"></i> Shows</a>
         <a href="javascript:void(0)" class="tv-focusable installAppBtnClass" style="display:none; color:#FFD700; font-weight:bold;"><i class="fas fa-download"></i> Install App</a>
-        <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>"><i class="fas fa-cog"></i> Settings</a>
+        <a href="?p=admin&tab=account" class="tv-focusable <?= $page == 'admin' ? 'active' : '' ?>" onclick="handleSidebarClick(event, this)"><i class="fas fa-cog"></i> Settings</a>
     </div>
 <?php endif; ?>
 
@@ -7821,21 +7832,49 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
 
-    // Immediately shift active highlight to clicked hamburger link
-    function initHamburgerActiveListeners() {
-        var sidebarLinks = document.querySelectorAll('.hamburger-sidebar a');
-        sidebarLinks.forEach(function(link) {
-            link.addEventListener('click', function() {
-                sidebarLinks.forEach(function(el) { el.classList.remove('active'); });
-                this.classList.add('active');
-            });
+    // Immediately shift active highlight on link click and ensure paint cycle completes on iOS before navigation
+    function handleSidebarClick(e, link) {
+        if (!link) return;
+        var links = document.querySelectorAll('.hamburger-sidebar a');
+        links.forEach(function(el) { el.classList.remove('active'); });
+        link.classList.add('active');
+
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
+
+        // Allow new tab open with Cmd/Ctrl or middle click
+        if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) {
+            return;
+        }
+
+        var targetUrl = link.getAttribute('href');
+        if (targetUrl && targetUrl !== '#' && !targetUrl.startsWith('javascript:')) {
+            if (e && e.preventDefault) {
+                e.preventDefault();
+            }
+            setTimeout(function() {
+                window.location.href = targetUrl;
+            }, 80);
+        }
+    }
+
+    // Re-synchronize active link if page is restored from bfcache (iOS Safari swipe back)
+    window.addEventListener('pageshow', function() {
+        var sidebar = document.getElementById('hamburgerMenu');
+        if (!sidebar) return;
+        var currentParams = new URLSearchParams(window.location.search);
+        var currentPage = currentParams.get('p') || 'home';
+        var links = sidebar.querySelectorAll('a');
+        links.forEach(function(link) {
+            var href = link.getAttribute('href') || '';
+            if (href.indexOf('p=' + currentPage) !== -1 || (currentPage === 'home' && href.indexOf('p=home') !== -1)) {
+                link.classList.add('active');
+            } else if (href.indexOf('p=') !== -1) {
+                link.classList.remove('active');
+            }
         });
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initHamburgerActiveListeners);
-    } else {
-        initHamburgerActiveListeners();
-    }
+    });
 
     function updateProfilePicPreview(selectElem) {
         if (!selectElem) return;
