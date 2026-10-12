@@ -7832,7 +7832,7 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
 
-    // Immediately shift active highlight on link click and ensure paint cycle completes on iOS before navigation
+    // Shift active highlight and allow paint cycle before navigating
     function handleSidebarClick(e, link) {
         if (!link) return;
         var links = document.querySelectorAll('.hamburger-sidebar a');
@@ -7843,7 +7843,7 @@ if (isset($_SESSION['profile_id'])) {
             document.activeElement.blur();
         }
 
-        // Allow new tab open with Cmd/Ctrl or middle click
+        // Allow opening in new tab
         if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) {
             return;
         }
@@ -7859,7 +7859,7 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
 
-    // Re-synchronize active link if page is restored from bfcache (iOS Safari swipe back)
+    // Sync active link on bfcache restore
     window.addEventListener('pageshow', function() {
         var sidebar = document.getElementById('hamburgerMenu');
         if (!sidebar) return;
