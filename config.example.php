@@ -1,9 +1,5 @@
 <?php
-// ===================================================================================
-// YTFLIX - DATABASE CONFIGURATION
-// ===================================================================================
-// Copy this file and rename it to 'config.php', then fill in your actual database details.
-// Make sure NEVER to commit 'config.php' to GitHub.
+// Database configuration - copy to 'config.php' (do not commit config.php)
 
 $db_host = 'localhost:3306';
 $db_user = 'root'; 

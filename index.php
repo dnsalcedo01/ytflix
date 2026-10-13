@@ -1,7 +1,7 @@
 <?php
-ob_start(); // Start outer output buffer to strictly control AJAX JSON responses
+ob_start(); // Buffer output for AJAX
 
-// 1. Session Persistence Fix (Lasts 30 Days)
+// 30-day session persistence
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 86400 * 30,
@@ -11,23 +11,21 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-/* ===================================================================================
-   YTFLIX - CORE CONFIGURATION & DATABASE SETUP
-   =================================================================================== */
+/* --- Database Setup --- */
 if (file_exists(__DIR__ . '/config.php')) {
     require_once __DIR__ . '/config.php';
 } else {
     die("Configuration file missing. Please copy config.example.php to config.php and add your database credentials.");
 }
 
-// Initialize Database
+// Init database
 try {
     $pdo = new PDO("mysql:host=$db_host;charset=utf8mb4", $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name`");
     $pdo->exec("USE `$db_name`");
 
-    // Create Tables
+    // Create tables
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) UNIQUE,
@@ -70,7 +68,7 @@ try {
         UNIQUE(profile_id, movie_id)
     )");
 
-    // Playback Progress Table
+    // Progress table
     $pdo->exec("CREATE TABLE IF NOT EXISTS playback_progress (
         id INT AUTO_INCREMENT PRIMARY KEY,
         profile_id INT,
@@ -83,7 +81,7 @@ try {
         UNIQUE(profile_id, movie_id)
     )");
 
-    // Shows Table
+    // Shows table
     $pdo->exec("CREATE TABLE IF NOT EXISTS shows (
         id INT AUTO_INCREMENT PRIMARY KEY,
         yt_playlist_id VARCHAR(255) UNIQUE,
@@ -99,7 +97,7 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )");
 
-    // Episodes Table
+    // Episodes table
     $pdo->exec("CREATE TABLE IF NOT EXISTS episodes (
         id INT AUTO_INCREMENT PRIMARY KEY,
         show_id INT,
@@ -113,7 +111,7 @@ try {
         FOREIGN KEY (show_id) REFERENCES shows(id) ON DELETE CASCADE
     )");
 
-    // Episode Playback Progress Table
+    // Episode progress table
     $pdo->exec("CREATE TABLE IF NOT EXISTS episode_playback_progress (
         id INT AUTO_INCREMENT PRIMARY KEY,
         profile_id INT,
@@ -126,7 +124,7 @@ try {
         UNIQUE(profile_id, episode_id)
     )");
 
-    // Safe Schema Migrations
+    // Schema migrations
     try { $pdo->exec("ALTER TABLE profiles ADD COLUMN avatar_url VARCHAR(500) DEFAULT '' AFTER color"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE profiles ADD COLUMN pin VARCHAR(4) DEFAULT '' AFTER avatar_url"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE movies ADD COLUMN rating VARCHAR(20) DEFAULT 'No Rating' AFTER release_year"); } catch (PDOException $e) {}
@@ -143,7 +141,7 @@ try {
     try { $pdo->exec("ALTER TABLE episodes ADD COLUMN thumbnail_path VARCHAR(255)"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE episodes ADD COLUMN duration INT DEFAULT 0"); } catch (PDOException $e) {}
 
-    // Insert default admin if no users exist
+    // Default admin user
     $stmt = $pdo->query("SELECT COUNT(*) FROM users");
     if ($stmt->fetchColumn() == 0) {
         $hash = password_hash('admin', PASSWORD_DEFAULT);
@@ -154,7 +152,7 @@ try {
     die("<h2 style='color:red; font-family:sans-serif;'>Database Connection Failed. Please ensure MySQL is running.</h2> Error: " . $e->getMessage());
 }
 
-// --- AJAX Endpoint for Pause Overlay Metadata ---
+// Pause overlay metadata AJAX
 if (isset($_GET['ajax_metadata']) && isset($_GET['type']) && isset($_GET['id'])) {
     header('Content-Type: application/json');
     $id = (int)$_GET['id'];
@@ -172,9 +170,7 @@ if (isset($_GET['ajax_metadata']) && isset($_GET['type']) && isset($_GET['id']))
     exit;
 }
 
-/* ===================================================================================
-   HELPER FUNCTIONS & API LOGIC
-   =================================================================================== */
+/* --- Helpers & API Logic --- */
 function fetchTMDB($titleInfo, $tmdbKey) {
     $tmdbKey = trim($tmdbKey);
     if(empty($tmdbKey)) return false;
@@ -237,10 +233,10 @@ function fetchTMDB($titleInfo, $tmdbKey) {
             foreach($detailData['genres'] as $g) { $genres[] = $g['name']; }
         }
 
-        // Flawless Certification Extraction
+        // Certification extraction
         $rating = 'No Rating';
         if (!empty($detailData['release_dates']['results'])) {
-            // Priority 1: Direct US Certification
+            // Direct US certification
             foreach ($detailData['release_dates']['results'] as $rd) {
                 if (isset($rd['iso_3166_1']) && $rd['iso_3166_1'] === 'US') {
                     if (!empty($rd['release_dates'])) {
@@ -253,7 +249,7 @@ function fetchTMDB($titleInfo, $tmdbKey) {
                     }
                 }
             }
-            // Priority 2: Fallback to ANY valid country certification
+            // Fallback certification
             if ($rating === 'No Rating') {
                 foreach ($detailData['release_dates']['results'] as $rd) {
                     if (!empty($rd['release_dates'])) {
@@ -325,7 +321,7 @@ function fetchTMDBById($tmdbId, $tmdbKey) {
             foreach($movieData['genres'] as $g) { $genres[] = $g['name']; }
         }
 
-        // Flawless Certification Extraction
+        // Certification extraction
         $rating = 'No Rating';
         if (!empty($detailData['release_dates']['results'])) {
             foreach ($detailData['release_dates']['results'] as $rd) {
@@ -373,14 +369,14 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
     $tmdbKey = trim($tmdbKey);
     if (empty($tmdbKey)) return false;
     
-    // Session-based caching to avoid duplicate TMDB requests (multibyte-safe)
+    // Session cache for TMDB
     $cacheKey = !empty($personId) ? 'id_' . (int)$personId : 'name_' . md5(mb_strtolower(trim($actorName), 'UTF-8'));
     if (isset($_SESSION['tmdb_actor_cache'][$cacheKey])) {
         return $_SESSION['tmdb_actor_cache'][$cacheKey];
     }
     
     if (empty($personId)) {
-        // 1. Search for person by name
+        // Search person by name
         $query = urlencode(trim($actorName));
         $searchUrl = "https://api.themoviedb.org/3/search/person?api_key={$tmdbKey}&query={$query}&include_adult=false";
         $ch = curl_init($searchUrl);
@@ -392,7 +388,7 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
         if (!empty($searchData["results"][0]["id"])) {
             $personId = (int)$searchData["results"][0]["id"];
         } else {
-            // Transliteration fallback if exact multibyte name search yields 0 results
+            // Transliteration fallback
             $translit = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $actorName);
             if (!empty($translit)) {
                 $cleanTranslit = trim(preg_replace('/[^a-zA-Z0-9\s]/', '', $translit));
@@ -412,7 +408,7 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
     }
     
     if (!empty($personId)) {
-        // 2. Fetch person details
+        // Fetch person details
         $detailUrl = "https://api.themoviedb.org/3/person/{$personId}?api_key={$tmdbKey}";
         $ch = curl_init($detailUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -425,7 +421,7 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
             $slug = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $name), '-'));
             $tmdbUrl = "https://www.themoviedb.org/person/{$personData['id']}-{$slug}";
             
-            // Format birthday & deathday separately
+            // Format birth & death dates
             $formattedBirthday = '';
             $formattedDeathday = '';
             $age = null;
@@ -449,7 +445,7 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
             
             $biography = !empty($personData["biography"]) ? trim($personData["biography"]) : "";
             
-            // If English biography is empty, query translations endpoint for native language biography
+            // Fallback to translated biography
             if (empty($biography)) {
                 $transUrl = "https://api.themoviedb.org/3/person/{$personId}/translations?api_key={$tmdbKey}";
                 $chT = curl_init($transUrl);
@@ -463,7 +459,7 @@ function fetchTMDBActorByName($actorName, $tmdbKey, $personId = null) {
                     foreach ($transData['translations'] as $tr) {
                         if (!empty($tr['data']['biography'])) {
                             $tBio = trim($tr['data']['biography']);
-                            // Prioritize Turkish or native translation if available
+                            // Prefer Turkish or native translation
                             if (($tr['iso_639_1'] ?? '') === 'tr') {
                                 $bestBio = $tBio;
                                 break;
@@ -524,9 +520,7 @@ function handleAvatarUpload($fileArray) {
     return '';
 }
 
-/* ===================================================================================
-   AUTHENTICATION & AUTO-LOGIN COOKIE LAYER
-   =================================================================================== */
+/* --- Auth & Auto-Login Cookies --- */
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['ytflix_user'])) {
     $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
     $stmt->execute([$_COOKIE['ytflix_user']]);
@@ -551,9 +545,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['profile_id'])) {
     }
 }
 
-/* ===================================================================================
-   AJAX ENDPOINTS & POST HANDLERS
-   =================================================================================== */
+/* --- AJAX Endpoints & POST --- */
 if (isset($_GET['ajax'])) {
     if ($_GET['ajax'] == 'toggle_watchlist' && isset($_SESSION['profile_id'])) {
         header('Content-Type: application/json');
@@ -618,7 +610,7 @@ if (isset($_POST['login'])) {
     $user = $stmt->fetch();
     if ($user && password_verify($_POST['password'], $user['password'])) {
         $_SESSION['user_id'] = $user['id'];
-        setcookie('ytflix_user', $user['id'], time() + (86400 * 30), "/"); // 30 Day Auto-Login
+        setcookie('ytflix_user', $user['id'], time() + (86400 * 30), "/"); // 30-day auto-login
         header("Location: ?p=profiles");
         exit;
     } else {
@@ -634,7 +626,7 @@ if (isset($_POST['login_profile_id'])) {
     $profPin = $stmt->fetchColumn();
     if ($profPin !== false && (empty($profPin) || $profPin === $pin)) {
         $_SESSION['profile_id'] = $pid;
-        setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/"); // 30 Day Session Lock
+        setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/"); // 30-day session lock
         $redirectTo = !empty($_POST['redirect_to']) ? $_POST['redirect_to'] : '?p=home';
         header("Location: " . $redirectTo);
         exit;
@@ -806,7 +798,7 @@ if (isset($_POST['sync_playlist']) && $is_main_profile) {
             } else break; 
         } while ($nextPageToken);
 
-        // Automatically clean up deleted videos
+        // Clean up removed videos
         if (!empty($fetchedVidIds)) {
             $placeholders = implode(',', array_fill(0, count($fetchedVidIds), '?'));
             $delStmt = $pdo->prepare("DELETE FROM movies WHERE yt_video_id NOT IN ($placeholders)");
@@ -817,9 +809,9 @@ if (isset($_POST['sync_playlist']) && $is_main_profile) {
     exit;
 }
 
-ob_start(); // Start outer output buffer to strictly control AJAX JSON responses
+ob_start(); // Buffer output for AJAX
 
-// 1. Session Persistence Fix (Lasts 30 Days)
+// 30-day session persistence
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 86400 * 30,
@@ -829,23 +821,21 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-/* ===================================================================================
-   YTFLIX - CORE CONFIGURATION & DATABASE SETUP
-   =================================================================================== */
+/* --- Database Setup --- */
 if (file_exists(__DIR__ . '/config.php')) {
     require_once __DIR__ . '/config.php';
 } else {
     die("Configuration file missing. Please copy config.example.php to config.php and add your database credentials.");
 }
 
-// Initialize Database
+// Init database
 try {
     $pdo = new PDO("mysql:host=$db_host;charset=utf8mb4", $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name`");
     $pdo->exec("USE `$db_name`");
 
-    // Create Tables
+    // Create tables
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) UNIQUE,
@@ -888,7 +878,7 @@ try {
         UNIQUE(profile_id, movie_id)
     )");
 
-    // Playback Progress Table
+    // Progress table
     $pdo->exec("CREATE TABLE IF NOT EXISTS playback_progress (
         id INT AUTO_INCREMENT PRIMARY KEY,
         profile_id INT,
@@ -901,7 +891,7 @@ try {
         UNIQUE(profile_id, movie_id)
     )");
 
-    // Shows Table
+    // Shows table
     $pdo->exec("CREATE TABLE IF NOT EXISTS shows (
         id INT AUTO_INCREMENT PRIMARY KEY,
         yt_playlist_id VARCHAR(255) UNIQUE,
@@ -917,7 +907,7 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )");
 
-    // Episodes Table
+    // Episodes table
     $pdo->exec("CREATE TABLE IF NOT EXISTS episodes (
         id INT AUTO_INCREMENT PRIMARY KEY,
         show_id INT,
@@ -931,7 +921,7 @@ try {
         FOREIGN KEY (show_id) REFERENCES shows(id) ON DELETE CASCADE
     )");
 
-    // Episode Playback Progress Table
+    // Episode progress table
     $pdo->exec("CREATE TABLE IF NOT EXISTS episode_playback_progress (
         id INT AUTO_INCREMENT PRIMARY KEY,
         profile_id INT,
@@ -944,7 +934,7 @@ try {
         UNIQUE(profile_id, episode_id)
     )");
 
-    // Safe Schema Migrations
+    // Schema migrations
     try { $pdo->exec("ALTER TABLE profiles ADD COLUMN avatar_url VARCHAR(500) DEFAULT '' AFTER color"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE profiles ADD COLUMN pin VARCHAR(4) DEFAULT '' AFTER avatar_url"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE movies ADD COLUMN rating VARCHAR(20) DEFAULT 'No Rating' AFTER release_year"); } catch (PDOException $e) {}
@@ -961,7 +951,7 @@ try {
     try { $pdo->exec("ALTER TABLE episodes ADD COLUMN thumbnail_path VARCHAR(255)"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE episodes ADD COLUMN duration INT DEFAULT 0"); } catch (PDOException $e) {}
 
-    // Insert default admin if no users exist
+    // Default admin user
     $stmt = $pdo->query("SELECT COUNT(*) FROM users");
     if ($stmt->fetchColumn() == 0) {
         $hash = password_hash('admin', PASSWORD_DEFAULT);
@@ -972,7 +962,7 @@ try {
     die("<h2 style='color:red; font-family:sans-serif;'>Database Connection Failed. Please ensure MySQL is running.</h2> Error: " . $e->getMessage());
 }
 
-// --- AJAX Endpoint for Pause Overlay Metadata ---
+// Pause overlay metadata AJAX
 if (isset($_GET['ajax_metadata']) && isset($_GET['type']) && isset($_GET['id'])) {
     header('Content-Type: application/json');
     $id = (int)$_GET['id'];
@@ -990,9 +980,7 @@ if (isset($_GET['ajax_metadata']) && isset($_GET['type']) && isset($_GET['id']))
     exit;
 }
 
-/* ===================================================================================
-   HELPER FUNCTIONS & API LOGIC
-   =================================================================================== */
+/* --- Helpers & API Logic --- */
 function fetchTMDB_dup1($titleInfo, $tmdbKey) {
     $tmdbKey = trim($tmdbKey);
     if(empty($tmdbKey)) return false;
@@ -1054,10 +1042,10 @@ function fetchTMDB_dup1($titleInfo, $tmdbKey) {
             foreach($detailData['genres'] as $g) { $genres[] = $g['name']; }
         }
 
-        // Flawless Certification Extraction
+        // Certification extraction
         $rating = 'No Rating';
         if (!empty($detailData['release_dates']['results'])) {
-            // Priority 1: Direct US Certification
+            // Direct US certification
             foreach ($detailData['release_dates']['results'] as $rd) {
                 if (isset($rd['iso_3166_1']) && $rd['iso_3166_1'] === 'US') {
                     if (!empty($rd['release_dates'])) {
@@ -1070,7 +1058,7 @@ function fetchTMDB_dup1($titleInfo, $tmdbKey) {
                     }
                 }
             }
-            // Priority 2: Fallback to ANY valid country certification
+            // Fallback certification
             if ($rating === 'No Rating') {
                 foreach ($detailData['release_dates']['results'] as $rd) {
                     if (!empty($rd['release_dates'])) {
@@ -1141,7 +1129,7 @@ function fetchTMDBById_dup1($tmdbId, $tmdbKey) {
             foreach($movieData['genres'] as $g) { $genres[] = $g['name']; }
         }
 
-        // Flawless Certification Extraction
+        // Certification extraction
         $rating = 'No Rating';
         if (!empty($detailData['release_dates']['results'])) {
             foreach ($detailData['release_dates']['results'] as $rd) {
@@ -1205,9 +1193,7 @@ function handleAvatarUpload_dup1($fileArray) {
     return '';
 }
 
-/* ===================================================================================
-   AUTHENTICATION & AUTO-LOGIN COOKIE LAYER
-   =================================================================================== */
+/* --- Auth & Auto-Login Cookies --- */
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['ytflix_user'])) {
     $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
     $stmt->execute([$_COOKIE['ytflix_user']]);
@@ -1232,9 +1218,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['profile_id'])) {
     }
 }
 
-/* ===================================================================================
-   AJAX ENDPOINTS & POST HANDLERS
-   =================================================================================== */
+/* --- AJAX Endpoints & POST --- */
 if (isset($_GET['ajax'])) {
     if ($_GET['ajax'] == 'toggle_watchlist' && isset($_SESSION['profile_id'])) {
         header('Content-Type: application/json');
@@ -1299,7 +1283,7 @@ if (isset($_POST['login'])) {
     $user = $stmt->fetch();
     if ($user && password_verify($_POST['password'], $user['password'])) {
         $_SESSION['user_id'] = $user['id'];
-        setcookie('ytflix_user', $user['id'], time() + (86400 * 30), "/"); // 30 Day Auto-Login
+        setcookie('ytflix_user', $user['id'], time() + (86400 * 30), "/"); // 30-day auto-login
         header("Location: ?p=profiles");
         exit;
     } else {
@@ -1315,7 +1299,7 @@ if (isset($_POST['login_profile_id'])) {
     $profPin = $stmt->fetchColumn();
     if ($profPin !== false && (empty($profPin) || $profPin === $pin)) {
         $_SESSION['profile_id'] = $pid;
-        setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/"); // 30 Day Session Lock
+        setcookie('ytflix_profile', $pid, time() + (86400 * 30), "/"); // 30-day session lock
         $redirectTo = !empty($_POST['redirect_to']) ? $_POST['redirect_to'] : '?p=home';
         header("Location: " . $redirectTo);
         exit;
@@ -1487,7 +1471,7 @@ if (isset($_POST['sync_playlist']) && $is_main_profile) {
             } else break; 
         } while ($nextPageToken);
 
-        // Automatically clean up deleted videos
+        // Clean up removed videos
         if (!empty($fetchedVidIds)) {
             $placeholders = implode(',', array_fill(0, count($fetchedVidIds), '?'));
             $delStmt = $pdo->prepare("DELETE FROM movies WHERE yt_video_id NOT IN ($placeholders)");
@@ -1543,9 +1527,7 @@ if (isset($_POST['delete_movie']) && $is_main_profile) {
     exit;
 }
 
-/* ===================================================================================
-   SHOWS MANAGEMENT BACKEND
-   =================================================================================== */
+/* --- Shows Backend --- */
 if (isset($_POST['add_show']) && $is_main_profile) {
     $ytPlaylistUrl = trim($_POST['yt_playlist']);
     $tmdbIdUrl = trim($_POST['tmdb_id'] ?? '');
@@ -1728,9 +1710,7 @@ if (isset($_POST['edit_episode']) && $is_main_profile) {
     exit;
 }
 
-/* ===================================================================================
-   ROUTING
-   =================================================================================== */
+/* --- Routing --- */
 $page = isset($_GET['p']) ? $_GET['p'] : 'home';
 if ($page == 'profiles') unset($_SESSION['profile_id']);
 
@@ -1750,7 +1730,7 @@ if (isset($_SESSION['user_id'])) {
     $stmt->execute([$_SESSION['user_id']]);
     $currentUser = $stmt->fetch();
     
-    // Fix: If the session has an invalid or legacy token, destroy it and force re-login
+    // Force re-login if session is invalid
     if (!$currentUser) {
         session_destroy();
         setcookie('ytflix_user', '', time() - 3600, "/");
@@ -1776,7 +1756,7 @@ if (isset($_SESSION['profile_id'])) {
     <meta name="theme-color" content="#000000">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ==================== GLOBAL STYLES ==================== */
+        /* Global Styles */
         :root {
             --bg: #141414;
             --primary: #E50914;
@@ -1814,7 +1794,7 @@ if (isset($_SESSION['profile_id'])) {
             transform: scale(1.01) !important;
         }
 
-        /* ==================== NAVBAR ==================== */
+        /* Navbar */
         nav {
             position: fixed; top: 0; width: 100%; padding: 15px 4%;
             display: flex; justify-content: space-between; align-items: center;
@@ -1825,7 +1805,7 @@ if (isset($_SESSION['profile_id'])) {
         .nav-links { display: flex; gap: 25px; align-items: center; }
         .nav-left { flex: 1; justify-content: flex-start; }
         
-        /* Updated Nav Center specific for Pill Shapes on Focus */
+        /* Nav center pill shapes */
         .nav-center {
             display: flex; gap: 6px; align-items: center; font-weight: 500; font-size: 1.05rem;
             flex: 2; justify-content: center;
@@ -1862,7 +1842,7 @@ if (isset($_SESSION['profile_id'])) {
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
 
-        /* Globally hide icons for links that have text labels (except Search) */
+        /* Hide icons for labeled links */
         .nav-center a span { display: inline-block; }
         .nav-center a:has(span) i { display: none; }
         
@@ -1885,7 +1865,7 @@ if (isset($_SESSION['profile_id'])) {
             box-shadow: 0 0 0 3px #ffffff, 0 0 22px rgba(255, 255, 255, 0.6) !important;
         }
 
-        /* Glassmorphism Mobile Dropdown Menu */
+        /* Mobile dropdown */
         .mobile-dropdown-menu {
             display: none;
             position: absolute;
@@ -2065,7 +2045,7 @@ if (isset($_SESSION['profile_id'])) {
         body.no-scroll { overflow: hidden !important; }
 
 
-        /* ==================== PROFILES ==================== */
+        /* Profiles */
         .auth-container {
             height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; z-index: 10;
@@ -2102,7 +2082,7 @@ if (isset($_SESSION['profile_id'])) {
         }
         .auth-box button:hover { background: #f40612; }
 
-        /* ==================== YTFLIX LOGIN ==================== */
+        /* Login */
         .auth-box.login-box {
             background: rgba(18, 18, 24, 0.78);
             backdrop-filter: blur(28px);
@@ -2224,7 +2204,7 @@ if (isset($_SESSION['profile_id'])) {
             }
         }
 
-        /* ==================== SWITCH PROFILE (WHO'S WATCHING) ==================== */
+        /* Switch Profile */
         .profiles-page-container {
             min-height: 100vh;
             min-height: 100svh;
@@ -2490,7 +2470,7 @@ if (isset($_SESSION['profile_id'])) {
             }
         }
 
-        /* ==================== PIN ENTRY MODAL ==================== */
+        /* PIN Modal */
         #pinLockModal.modal-overlay {
             background: rgba(0, 0, 0, 0.72);
             backdrop-filter: blur(14px);
@@ -2636,7 +2616,7 @@ if (isset($_SESSION['profile_id'])) {
             }
         }
 
-        /* ==================== HERO SECTION ==================== */
+        /* Hero Section */
         .hero-wrapper { padding: 85px 4% 30px 4%; }
         .hero-carousel { 
             position: relative; width: 100%; overflow: hidden; background: #111; 
@@ -2670,7 +2650,7 @@ if (isset($_SESSION['profile_id'])) {
         .btn-more { background: rgba(109, 109, 110, 0.4); color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
         .btn-more:hover, .btn-more:focus { background: rgba(109, 109, 110, 0.7); transform: scale(1.05); }
 
-        /* ==================== CAROUSELS ==================== */
+        /* Carousels */
         .slider-wrapper { margin: 15px 0 25px 0; }
         .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5em; padding: 0 4%; }
         .slider-title { font-size: clamp(18px, 2vw, 24px); font-weight: bold; margin-bottom: 0; }
@@ -2726,7 +2706,7 @@ if (isset($_SESSION['profile_id'])) {
             transform: scale(1.12);
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
         }
-        /* ==================== SLIDER & MOVIE CARDS ==================== */
+        /* Sliders & Cards */
         .slider { 
             --slider-h: max(23vw - 15px, 195px);
             display: flex; overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth; 
@@ -2811,9 +2791,9 @@ if (isset($_SESSION['profile_id'])) {
         .cw-title { font-weight: bold; font-size: 1rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
         .cw-meta { font-size: 0.9rem; color: #aaa; font-weight: 500; }
 
-        /* Hover expansion disabled globally */
+        /* Hover expansion disabled */
 
-        /* ==================== SEARCH PAGE ==================== */
+        /* Search Page */
         .search-page {
             padding: 85px 4% 40px 4%;
             display: flex; gap: 30px; min-height: 100vh;
@@ -2956,13 +2936,13 @@ if (isset($_SESSION['profile_id'])) {
             .search-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
         }
 
-        /* ==================== MODAL ==================== */
+        /* Modal */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000;
             display: none; align-items: center; justify-content: center;
             padding: 20px; 
         }
-        /* ==================== DEDICATED MOVIE & SHOW PAGES ==================== */
+        /* Movie & Show Pages */
         .content-top-nav {
             position: absolute;
             top: 0;
@@ -3131,7 +3111,7 @@ if (isset($_SESSION['profile_id'])) {
             font-size: 0.85rem;
         }
 
-        /* ==================== ACTOR PROFILE & KNOWN FOR ==================== */
+        /* Actor Profile & Known For */
         .actor-page-container {
             padding-top: 30px;
             min-height: 100vh;
@@ -3457,7 +3437,7 @@ if (isset($_SESSION['profile_id'])) {
             }
         }
 
-        /* ==================== PLAYER ==================== */
+        /* Player */
         .player-container {
             position: fixed; inset: 0; background: black; z-index: 2000; display: none; overflow: hidden;
         }
@@ -3499,7 +3479,7 @@ if (isset($_SESSION['profile_id'])) {
         .player-btn:hover, .player-btn:focus { background: rgba(255,255,255,0.2); }
         .cc-active { color: #E50914 !important; border-bottom: 2px solid #E50914; border-radius: 0 !important; }
 
-        /* ==================== ADMIN / SETTINGS PANEL ==================== */
+        /* Admin & Settings */
         .admin-panel { 
             padding: 105px 4% 60px 4%; 
             max-width: 1200px; 
@@ -4051,7 +4031,7 @@ if (isset($_SESSION['profile_id'])) {
             border-color: rgba(255, 255, 255, 0.18);
         }
 
-        /* Media Queries */
+        /* Media queries */
         @media (max-width: 1024px) {
             .slider { padding-bottom: 15px !important; }
             .slider-wrapper { margin-bottom: 10px !important; }
@@ -4095,7 +4075,7 @@ if (isset($_SESSION['profile_id'])) {
             .m-raw, .s-raw { display: none !important; }
             .player-controls { padding: 15px; }
 
-            /* Admin Panel Mobile Adjustments */
+            /* Admin panel mobile */
             .admin-panel { 
                 padding: 85px 18px 40px 18px !important; 
                 box-sizing: border-box;
@@ -4268,7 +4248,7 @@ if (isset($_SESSION['profile_id'])) {
             }
         }
 
-        /* Portrait Orientation Player Fixes */
+        /* Player portrait layout */
         @media (orientation: portrait) {
             #playerPauseOverlay {
                 padding: 0 5% !important;
@@ -4317,7 +4297,7 @@ if (isset($_SESSION['profile_id'])) {
             }
         }
 
-        /* Mobile Landscape Player Fixes (Prevent Overlap) */
+        /* Player mobile landscape layout */
         @media (max-height: 500px) and (orientation: landscape) {
             #playerPauseOverlay {
                 padding: 0 5% !important;
@@ -4362,7 +4342,7 @@ if (isset($_SESSION['profile_id'])) {
     </div>
     <div class="login-bg-overlay"></div>
 
-    <!-- LOGIN VIEW -->
+    <!-- Login view -->
     <div class="auth-container">
         <img src="ytflix.png" alt="YTFlix" class="logo-img" style="position:absolute; top: 20px; left: 4%; height: 45px;">
         <div class="auth-box login-box">
@@ -4407,7 +4387,7 @@ if (isset($_SESSION['profile_id'])) {
     <?php endif; ?>
     <div class="profiles-bg-overlay"></div>
 
-    <!-- PROFILES VIEW -->
+    <!-- Profiles view -->
     <div class="profiles-page-container">
         <div class="profiles-wrapper">
             <img src="ytflix.png" alt="YTFlix" class="logo-img profiles-logo">
@@ -4457,7 +4437,7 @@ if (isset($_SESSION['profile_id'])) {
         </div>
     </div>
     
-    <!-- Add Profile Modal -->
+    <!-- Add profile modal -->
     <div id="addProfileModal" class="modal-overlay" style="z-index: 3000;">
         <div class="auth-box pin-modal-box" style="margin:auto; text-align:left;">
             <div class="pin-modal-header" style="text-align:center;">
@@ -4477,7 +4457,7 @@ if (isset($_SESSION['profile_id'])) {
         </div>
     </div>
 
-    <!-- PIN Entry Modal -->
+    <!-- PIN entry modal -->
     <div id="pinLockModal" class="modal-overlay" style="z-index: 3000;">
         <div class="auth-box pin-modal-box" style="margin:auto;">
             <div class="pin-modal-header">
@@ -4504,9 +4484,9 @@ if (isset($_SESSION['profile_id'])) {
     </div>
 
 <?php elseif ($page == 'home' || $page == 'movies' || $page == 'shows'): ?>
-    <!-- HOME VIEW -->
+    <!-- Home view -->
     <nav id="navbar">
-        <!-- Desktop Nav Left -->
+        <!-- Desktop nav -->
         <div class="nav-links nav-left nav-left-desktop" style="display:flex; gap:15px; align-items:center;">
             <?php 
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
@@ -4520,7 +4500,7 @@ if (isset($_SESSION['profile_id'])) {
             </a>
         </div>
 
-        <!-- Mobile Nav Left (Dropdown) -->
+        <!-- Mobile nav dropdown -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
             <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
@@ -4764,7 +4744,7 @@ if (isset($_SESSION['profile_id'])) {
     </div>
     <?php endif; ?>
 
-    <!-- Continue Watching Redesign -->
+    <!-- Continue watching -->
     <?php if(!empty($continueWatching)): ?>
     <div class="slider-wrapper" id="continue-watching-section">
         <div class="slider-header">
@@ -4886,7 +4866,7 @@ if (isset($_SESSION['profile_id'])) {
 
 
 
-    <!-- Custom Video Player -->
+    <!-- Video player -->
     <div id="playerContainer" class="player-container">
         <div id="yt-iframe-wrapper" class="yt-iframe-wrapper">
             <div id="ytplayer"></div>
@@ -4950,9 +4930,9 @@ if (isset($_SESSION['profile_id'])) {
     </div>
 
 <?php elseif ($page == 'search'): ?>
-    <!-- SEARCH VIEW -->
+    <!-- Search view -->
     <nav id="navbar">
-        <!-- Desktop Nav Left -->
+        <!-- Desktop nav -->
         <div class="nav-links nav-left nav-left-desktop" style="display:flex; gap:15px; align-items:center;">
             <?php 
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
@@ -4966,7 +4946,7 @@ if (isset($_SESSION['profile_id'])) {
             </a>
         </div>
 
-        <!-- Mobile Nav Left (Dropdown) -->
+        <!-- Mobile nav dropdown -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
             <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
@@ -4998,15 +4978,15 @@ if (isset($_SESSION['profile_id'])) {
     </nav>
 
     <?php
-    // Fetch all movies
+    // Fetch movies
     $allSearchMovies = $pdo->query("SELECT * FROM movies ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
     
-    // Get continue watching IDs to exclude from recommendations
+    // Exclude continue watching IDs
     $cwExcludeStmt = $pdo->prepare("SELECT movie_id FROM playback_progress WHERE profile_id = ? AND progress_time > 0");
     $cwExcludeStmt->execute([$_SESSION['profile_id']]);
     $cwExcludeIds = $cwExcludeStmt->fetchAll(PDO::FETCH_COLUMN);
     
-    // Filter out continue watching movies for recommendations
+    // Filter out continue watching movies
     $recommendMovies = array_filter($allSearchMovies, function($m) use ($cwExcludeIds) {
         return !in_array($m['id'], $cwExcludeIds);
     });
@@ -5015,7 +4995,7 @@ if (isset($_SESSION['profile_id'])) {
     shuffle($recommendMovies);
     $recommendMovies = array_slice($recommendMovies, 0, 20);
     
-    // Get unique genres for the genre list
+    // Unique genres
     $searchGenres = [];
     foreach($allSearchMovies as $m) {
         if (!empty($m['genre'])) {
@@ -5082,11 +5062,10 @@ if (isset($_SESSION['profile_id'])) {
         $actorInfo = fetchTMDBActorByName($actorName, $tmdbKey, $personId);
     }
     
-    // If actorInfo is retrieved from TMDB, use the canonical name from TMDB
+    // Use canonical TMDB actor name
     $displayName = $actorInfo ? $actorInfo['name'] : $actorName;
 
-    // Search local YTFlix library for movies and shows featuring this actor
-    // Match by direct TMDB ID, raw UTF-8 name, and JSON-escaped unicode name (\uXXXX)
+    // Search library for actor by ID, name, or unicode
     $searchTerms = [$displayName];
     if (!empty($actorName) && $actorName !== $displayName) {
         $searchTerms[] = $actorName;
@@ -5108,7 +5087,7 @@ if (isset($_SESSION['profile_id'])) {
     }
     $whereSql = !empty($instrClauses) ? implode(" OR ", $instrClauses) : "1=0";
     
-    // Query Movies
+    // Query movies
     $stmtMovies = $pdo->prepare("SELECT id, clean_title as title, poster_path, genre, release_year as year, rating, actors, 'movie' as media_type FROM movies WHERE {$whereSql} ORDER BY release_year DESC");
     $stmtMovies->execute($instrParams);
     $moviesRaw = $stmtMovies->fetchAll(PDO::FETCH_ASSOC);
@@ -5135,7 +5114,7 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
     
-    // Query Shows
+    // Query shows
     $stmtShows = $pdo->prepare("SELECT id, clean_title as title, poster_path, genre, release_year as year, rating, actors, 'show' as media_type FROM shows WHERE {$whereSql} ORDER BY release_year DESC");
     $stmtShows->execute($instrParams);
     $showsRaw = $stmtShows->fetchAll(PDO::FETCH_ASSOC);
@@ -5166,23 +5145,23 @@ if (isset($_SESSION['profile_id'])) {
     ?>
 
     <div class="actor-page-container">
-        <!-- Top Back Navigation -->
+        <!-- Back navigation -->
         <div class="actor-top-nav">
             <button type="button" class="actor-back-btn tv-focusable" onclick="navBack('?p=home')" tabindex="0" title="Go Back">
                 <i class="fas fa-arrow-left"></i> <span>Back</span>
             </button>
         </div>
 
-        <!-- Main Actor Layout: 2-Column Desktop/TV Structure -->
+        <!-- Actor layout -->
         <div class="actor-main-layout">
-            <!-- Left Sidebar: Hi-res Profile Image -->
+            <!-- Profile image sidebar -->
             <div class="actor-sidebar-col">
                 <div class="actor-poster-wrapper">
                     <img src="<?= htmlspecialchars($actorInfo['profile_path'] ?? 'avatar-cast.jpg') ?>" class="actor-poster-img" alt="<?= htmlspecialchars($displayName) ?>" onerror="this.onerror=null; this.src='avatar-cast.jpg'">
                 </div>
             </div>
 
-            <!-- Right Content Column: Name, Meta, Biography, and directly underneath it, Known For -->
+            <!-- Actor details column -->
             <div class="actor-content-col">
                 <h1 class="actor-name-title"><?= htmlspecialchars($displayName) ?></h1>
                 
@@ -5244,7 +5223,7 @@ if (isset($_SESSION['profile_id'])) {
                     <?php endif; ?>
                 </div>
 
-                <!-- Known For Section (Underneath Biography in Content Column) -->
+                <!-- Known for section -->
                 <div class="known-for-section">
                     <h2 class="known-for-title">
                         <i class="fas fa-film"></i> Known For
@@ -5331,7 +5310,7 @@ if (isset($_SESSION['profile_id'])) {
     ?>
     
     <div class="movie-page-container">
-        <!-- Top Back Navigation (Non-floating, scrolls with page) -->
+        <!-- Back navigation -->
         <div class="content-top-nav">
             <button type="button" class="actor-back-btn tv-focusable" onclick="navBack('?p=home')" tabindex="0" title="Go Back">
                 <i class="fas fa-arrow-left"></i> <span>Back</span>
@@ -5395,7 +5374,7 @@ if (isset($_SESSION['profile_id'])) {
         </div>
     </div>
     
-    <!-- Custom Video Player (Movie page) -->
+    <!-- Video player -->
     <div id="playerContainer" class="player-container">
         <div id="yt-iframe-wrapper" class="yt-iframe-wrapper">
             <div id="ytplayer"></div>
@@ -5475,7 +5454,7 @@ if (isset($_SESSION['profile_id'])) {
     $epStmt->execute([$showId]);
     $episodes = $epStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch progress for all episodes
+    // Fetch episode progress
     $progressStmt = $pdo->prepare("SELECT episode_id, progress_time, duration, last_watched FROM episode_playback_progress WHERE profile_id = ?");
     $progressStmt->execute([$_SESSION['profile_id']]);
     $allProgress = $progressStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -5504,7 +5483,7 @@ if (isset($_SESSION['profile_id'])) {
         if(is_array($parsed)) $actors = $parsed;
     }
 
-    // Determine the episode to play when clicking the main "Play" button
+    // Next episode to play
     $mainPlayEpId = 0;
     $mainPlayYtId = '';
     $mainPlayTitle = '';
@@ -5543,7 +5522,7 @@ if (isset($_SESSION['profile_id'])) {
     ?>
     
     <div class="movie-page-container">
-        <!-- Top Back Navigation (Non-floating, scrolls with page) -->
+        <!-- Back navigation -->
         <div class="content-top-nav">
             <button type="button" class="actor-back-btn tv-focusable" onclick="navBack('?p=shows')" tabindex="0" title="Go Back">
                 <i class="fas fa-arrow-left"></i> <span>Back</span>
@@ -5646,7 +5625,7 @@ if (isset($_SESSION['profile_id'])) {
         </div>
     </div>
     
-    <!-- Custom Video Player (Show page) -->
+    <!-- Video player -->
     <div id="playerContainer" class="player-container">
         <div id="yt-iframe-wrapper" class="yt-iframe-wrapper">
             <div id="ytplayer"></div>
@@ -5708,9 +5687,9 @@ if (isset($_SESSION['profile_id'])) {
 
 <?php elseif ($page == 'admin'): ?>
     <?php $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'account'; ?>
-    <!-- ADMIN VIEW -->
+    <!-- Admin view -->
     <nav id="navbar">
-        <!-- Desktop Nav Left -->
+        <!-- Desktop nav -->
         <div class="nav-links nav-left nav-left-desktop" style="display:flex; gap:15px; align-items:center;">
             <?php 
                 $pBgStyle = !empty($currentProfile['avatar_url']) ? "background-image: url('".htmlspecialchars($currentProfile['avatar_url'])."'); background-color: transparent;" : "background-color: ".$currentProfile['color'];
@@ -5724,7 +5703,7 @@ if (isset($_SESSION['profile_id'])) {
             </a>
         </div>
 
-        <!-- Mobile Nav Left (Dropdown) -->
+        <!-- Mobile nav dropdown -->
         <div class="nav-links nav-left nav-left-mobile" style="display:none; position:relative; align-items:center; gap:10px;">
             <div class="profile-icon tv-focusable" tabindex="0" style="<?= $pBgStyle ?>;" onclick="toggleMobileDropdown()" title="Menu">
                 <?= htmlspecialchars($pAvatarContent) ?>
@@ -5806,7 +5785,7 @@ if (isset($_SESSION['profile_id'])) {
 
             <div class="admin-cards-grid">
                 <div class="admin-cards-col">
-                    <!-- Column 1, Card 1: Change Profile Name -->
+                    <!-- Change profile name -->
                     <div class="admin-card">
                         <h2><i class="fas fa-id-card" style="color:#0071eb;"></i> Change Profile Name</h2>
                         <form method="POST" class="admin-form">
@@ -5831,7 +5810,7 @@ if (isset($_SESSION['profile_id'])) {
                         </form>
                     </div>
 
-                    <!-- Column 1, Card 2: Profile PIN Lock -->
+                    <!-- Profile PIN lock -->
                     <div class="admin-card">
                         <h2><i class="fas fa-lock" style="color:#f59e0b;"></i> Profile PIN Lock</h2>
                         <form method="POST" class="admin-form">
@@ -5859,7 +5838,7 @@ if (isset($_SESSION['profile_id'])) {
                     </div>
 
                     <?php if ($is_main_profile): ?>
-                    <!-- Column 1, Card 3: Change Admin Password -->
+                    <!-- Change admin password -->
                     <div class="admin-card">
                         <h2><i class="fas fa-shield-alt" style="color:#ec4899;"></i> Change Admin Password</h2>
                         <form method="POST" class="admin-form">
@@ -5872,7 +5851,7 @@ if (isset($_SESSION['profile_id'])) {
                 </div>
 
                 <div class="admin-cards-col">
-                    <!-- Column 2, Card 1: Change Profile Picture -->
+                    <!-- Change profile picture -->
                     <?php
                     $stmtAvatarProfiles = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
                     $stmtAvatarProfiles->execute([$_SESSION['user_id']]);
@@ -5937,7 +5916,7 @@ if (isset($_SESSION['profile_id'])) {
                     </div>
 
                     <?php if ($is_main_profile): ?>
-                    <!-- Column 2, Card 2: Create Household Account -->
+                    <!-- Create household account -->
                     <div class="admin-card">
                         <h2><i class="fas fa-user-plus" style="color:#8b5cf6;"></i> Create Household Account</h2>
                         <p class="admin-card-subtitle">Add a new profile under your main account.</p>
@@ -5952,7 +5931,7 @@ if (isset($_SESSION['profile_id'])) {
                     </div>
                     <?php endif; ?>
 
-                    <!-- Column 2, Card 3: Delete Profile -->
+                    <!-- Delete profile -->
                     <div class="admin-card">
                         <h2><i class="fas fa-user-slash" style="color:#ef4444;"></i> Delete Profile</h2>
                         <form method="POST" class="admin-form">
@@ -5961,7 +5940,7 @@ if (isset($_SESSION['profile_id'])) {
                                 <label>Select Profile</label>
                                 <select name="target_profile_id" class="tv-focusable">
                                     <?php
-                                    // Exclude the main profile from the dropdown for safety
+                                    // Exclude main profile
                                     $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ? AND id != ?");
                                     $stmt->execute([$_SESSION['user_id'], $main_profile_id]);
                                     $household_profiles = $stmt->fetchAll();
@@ -6146,7 +6125,7 @@ if (isset($_SESSION['profile_id'])) {
         <?php endif; ?>
     </div>
 
-    <!-- Admin Edit Modal -->
+    <!-- Edit movie modal -->
     <div id="adminEditModal" class="modal-overlay" style="z-index: 3000;">
         <div class="auth-box admin-modal-box">
             <h2><i class="fas fa-edit" style="color:#e50914;"></i> Edit Movie Metadata</h2>
@@ -6176,7 +6155,7 @@ if (isset($_SESSION['profile_id'])) {
         </div>
     </div>
 
-    <!-- Admin Show Edit Modal -->
+    <!-- Edit show modal -->
     <div id="adminShowEditModal" class="modal-overlay" style="z-index: 3000;">
         <div class="auth-box admin-modal-box">
             <h2><i class="fas fa-edit" style="color:#0071eb;"></i> Edit Show Metadata</h2>
@@ -6201,7 +6180,7 @@ if (isset($_SESSION['profile_id'])) {
         </div>
     </div>
 
-    <!-- Admin Episode Edit Modal -->
+    <!-- Edit episode modal -->
     <div id="adminEpisodeEditModal" class="modal-overlay" style="z-index: 3000;">
         <div class="auth-box admin-modal-box">
             <h2><i class="fas fa-edit" style="color:#10b981;"></i> Edit Episode Metadata</h2>
@@ -6227,7 +6206,7 @@ if (isset($_SESSION['profile_id'])) {
 <?php endif; ?>
 
 <?php if ($page !== 'login' && $page !== 'profiles'): ?>
-    <!-- HAMBURGER SIDEBAR -->
+    <!-- Hamburger sidebar -->
     <div class="hamburger-overlay" onclick="toggleHamburgerMenu()" style="display:none;"></div>
     <div class="hamburger-sidebar" id="hamburgerMenu">
         <img src="ytflix.png" alt="YTFlix" style="height: 35px; margin-bottom: 20px; align-self: flex-start;">
@@ -6239,7 +6218,7 @@ if (isset($_SESSION['profile_id'])) {
     </div>
 <?php endif; ?>
 
-<!-- ==================== JAVASCRIPT LOGIC ==================== -->
+<!-- JavaScript Logic -->
 <script>
     function navBack(fallbackUrl) {
         fallbackUrl = fallbackUrl || '?p=home';
@@ -6254,14 +6233,14 @@ if (isset($_SESSION['profile_id'])) {
 
     let lastFocusedElement = null; 
     
-    // Global keyboard/mouse state for CSS DPAD isolation
+    // Input mode state for DPAD
     document.addEventListener('keydown', function(e) {
         if(e.key.startsWith('Arrow') || e.key === 'Enter') document.body.classList.add('is-keyboard');
     });
     document.addEventListener('mousedown', function() { document.body.classList.remove('is-keyboard'); });
     document.addEventListener('touchstart', function() { document.body.classList.remove('is-keyboard'); }, {passive: true});
 
-    /* ==================== INITIAL TV FOCUS ==================== */
+    /* Initial TV Focus */
     function restoreFocus() {
         let lastMovieId = sessionStorage.getItem('lastMovieId');
         let lastSection = sessionStorage.getItem('lastSection');
@@ -6284,7 +6263,7 @@ if (isset($_SESSION['profile_id'])) {
                     }
                 }
             } else if (lastSection === 'search') {
-                // If we specifically came from search recommendations, look in the results grid
+                // Search recommendations focus target
                 let grid = document.getElementById('searchResultsGrid');
                 if (grid) {
                     target = grid.querySelector(`.tv-focusable[data-movie-id="${lastMovieId}"]`);
@@ -6296,8 +6275,7 @@ if (isset($_SESSION['profile_id'])) {
                 }
             }
             
-            // Fallback: only use global search if no specific section was provided 
-            // OR if it's an old index-based restoration
+            // Global search fallback target
             if (!target && !lastSection && lastSliderIdx && lastSliderIdx !== '-1') {
                 let wrappers = document.querySelectorAll('.slider-wrapper');
                 let targetWrapper = wrappers[lastSliderIdx];
@@ -6345,7 +6323,7 @@ if (isset($_SESSION['profile_id'])) {
         setTimeout(restoreFocus, 150); 
     });
 
-    // Handle bfcache or back button restorations
+    // Restore on bfcache or back navigation
     window.addEventListener('pageshow', (e) => {
         if (e.persisted) {
             setTimeout(restoreFocus, 50);
@@ -6383,9 +6361,8 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
 
-    // Dropdown toggle logic removed
-
-    /* ==================== SEARCH PAGE LOGIC ==================== */
+    
+    /* Search Page Logic */
     const allSearchMoviesData = <?php echo isset($allSearchMovies) ? json_encode($allSearchMovies) : '[]'; ?>;
     let activeGenreFilter = null;
     let lastSearchQuery = "";
@@ -6395,7 +6372,7 @@ if (isset($_SESSION['profile_id'])) {
         const input = document.getElementById('searchInput');
         if (!vk || !input) return;
 
-        // Virtual keyboard click handler
+        // Virtual keyboard click
         vk.addEventListener('click', function(e) {
             let key = e.target.closest('.vk-key');
             if (!key) return;
@@ -6412,12 +6389,12 @@ if (isset($_SESSION['profile_id'])) {
             performSearch();
         });
 
-        // Also allow physical keyboard typing if input is focused
+        // Physical keyboard input
         input.addEventListener('input', function() {
             performSearch();
         });
 
-        // Genre filter click handler
+        // Genre filter click
         const genreList = document.getElementById('genreList');
         if (genreList) {
             genreList.addEventListener('click', function(e) {
@@ -6425,7 +6402,7 @@ if (isset($_SESSION['profile_id'])) {
                 if (!item) return;
                 let genre = item.dataset.genre;
                 
-                // Toggle active genre
+                // Toggle genre
                 if (activeGenreFilter === genre) {
                     activeGenreFilter = null;
                     item.classList.remove('active');
@@ -6435,7 +6412,7 @@ if (isset($_SESSION['profile_id'])) {
                     item.classList.add('active');
                 }
                 
-                // Clear search input when selecting genre
+                // Clear search input
                 input.value = '';
                 performSearch();
             });
@@ -6450,7 +6427,7 @@ if (isset($_SESSION['profile_id'])) {
 
         let query = input.value.trim().toLowerCase();
         
-        // Fix for shuffle bug: Don't reshuffle if query is empty and was already empty
+        // Skip reshuffle if query unchanged
         if (query === "" && lastSearchQuery === "" && !activeGenreFilter && title.textContent === 'Your Search Recommendations') {
             return;
         }
@@ -6475,14 +6452,14 @@ if (isset($_SESSION['profile_id'])) {
             });
             title.textContent = activeGenreFilter;
         } else {
-            // Default: show recommendations (already rendered server-side)
+            // Show default recommendations
             title.textContent = 'Your Search Recommendations';
-            // Rebuild the default recommendations grid
+            // Rebuild recommendations grid
             let recs = allSearchMoviesData.filter(m => {
                 let cwIds = <?php echo isset($cwExcludeIds) ? json_encode(array_map('intval', $cwExcludeIds)) : '[]'; ?>;
                 return !cwIds.includes(parseInt(m.id));
             });
-            // Shuffle
+            // Shuffle items
             for (let i = recs.length - 1; i > 0; i--) {
                 let j = Math.floor(Math.random() * (i + 1));
                 [recs[i], recs[j]] = [recs[j], recs[i]];
@@ -6510,7 +6487,7 @@ if (isset($_SESSION['profile_id'])) {
         }).join('');
     }
 
-    // Initialize search page on DOMContentLoaded
+    // Init search page on load
     window.addEventListener('DOMContentLoaded', () => {
         initSearchPage();
     });
@@ -6760,7 +6737,7 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
 
-    /* ==================== YOUTUBE PLAYER LOGIC ==================== */
+    /* YouTube Player Logic */
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -6934,7 +6911,7 @@ if (isset($_SESSION['profile_id'])) {
                 }
             }
 
-            // Dynamically update Dedicated Movie Page Play/Resume button if open
+            // Update movie Play button state
             let moviePageBtn = document.getElementById('moviePagePlayBtn');
             if (moviePageBtn && currentDbType === 'movie' && parseInt(moviePageBtn.dataset.movieId) === currentDbMovieId) {
                 let playText = time > 0 ? 'Resume' : 'Play';
@@ -6944,7 +6921,7 @@ if (isset($_SESSION['profile_id'])) {
                 moviePageBtn.onclick = () => openPlayer(vidId, title, time, currentDbMovieId, 'movie');
             }
 
-            // Dynamically update Dedicated Show Page Play/Resume button if open
+            // Update show Play button state
             let showPageBtn = document.getElementById('showPagePlayBtn');
             if (showPageBtn && currentDbType === 'episode' && parseInt(showPageBtn.dataset.episodeId) === currentDbMovieId) {
                 let vidId = showPageBtn.dataset.videoId;
@@ -7018,7 +6995,7 @@ if (isset($_SESSION['profile_id'])) {
         progressInterval = setInterval(() => { saveProgress(); }, 5000); 
     }
 
-    // Persist progress when navigating away, switching tabs, or backgrounding
+    // Save progress on leave
     window.addEventListener('pagehide', function() {
         if (player && currentDbMovieId) {
             saveProgress();
@@ -7056,7 +7033,7 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
 
-    // Fine-tune centering offset for iOS landscape safe area
+    // iOS landscape safe area offset
     function updateIframeSafeOffset() {
         var isLandscape = false;
         if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) {
@@ -7134,7 +7111,7 @@ if (isset($_SESSION['profile_id'])) {
         menu.dataset.menuType = 'cc';
         menu.innerHTML = '<div style="color:white; font-weight:bold; margin-bottom:5px;">Subtitles / CC</div>';
         
-        // Ensure 'Off' button is ALWAYS appended first so users can disable auto-generated subs
+        // Off button for subtitles
         let offBtn = document.createElement('button');
         offBtn.className = 'tv-focusable player-btn';
         offBtn.style.justifyContent = 'flex-start';
@@ -7295,11 +7272,11 @@ if (isset($_SESSION['profile_id'])) {
         playerContainerEl.addEventListener('click', wakeUpPlayerControls);
     }
 
-    /* ==================== TV/DPAD NAVIGATION ENGINE ==================== */
+    /* TV/DPAD Navigation */
     window.addEventListener('keydown', function(e) {
         let pinModal = document.getElementById('pinLockModal');
 
-        // Search page: physical keyboard passthrough for typing
+        // Search keyboard passthrough
         let searchInput = document.getElementById('searchInput');
         if (searchInput && document.activeElement !== searchInput) {
             let playerContainer = document.getElementById('playerContainer');
@@ -7309,7 +7286,7 @@ if (isset($_SESSION['profile_id'])) {
             
             if (!isPlayerOpen && !isModalOpen) {
                 if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                    // Single character key — type it into search
+                    // Type character key
                     searchInput.value += e.key.toLowerCase();
                     performSearch();
                     e.preventDefault();
@@ -7517,14 +7494,14 @@ if (isset($_SESSION['profile_id'])) {
 
         if (current.closest('.modal-content') && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
             if (current.classList.contains('modal-desc')) {
-                // allow native scroll inside text description
+                // Allow native text scroll
             } else {
                return; 
             }
         }
 
         if (current.closest('.auth-box') && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-            // Allows normal up/down math, but we don't return early unless needed
+            // Allow vertical navigation
         } else if (current.closest('.modal-content') && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
             if (!current.classList.contains('modal-desc')) return;
         }
@@ -7560,7 +7537,7 @@ if (isset($_SESSION['profile_id'])) {
             return; 
         }
 
-        // Dedicated row-by-row navigation for Manage Movies & Shows grids
+        // Row navigation for admin grids
         let currentGridItem = current.closest('.movie-grid-item');
         let currentGrid = currentGridItem ? currentGridItem.closest('.movies-grid') : null;
         if (currentGrid && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
@@ -7707,10 +7684,10 @@ if (isset($_SESSION['profile_id'])) {
             if (e.key === 'ArrowUp' && elCY < cY) isDirectionMatch = true;
 
             if (isDirectionMatch) {
-                // Inside admin cards grid on multi-column screens:
+                // Admin cards multi-column navigation:
                 if (current.closest('.admin-cards-grid') && el.closest('.admin-cards-grid')) {
                     let colOverlap = (rect.right > elRect.left) && (rect.left < elRect.right);
-                    // 1. Vertical navigation (Up/Down) must stay strictly within the same column
+                    // Keep vertical navigation within column
                     if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !colOverlap) {
                         return;
                     }
@@ -7729,7 +7706,7 @@ if (isset($_SESSION['profile_id'])) {
                     distance = xDist + (yDist * 10) + overlapPenalty + Math.abs(elCY - cY);
                 } else {
                     let overlapPenalty = xOverlap ? 0 : 10000;
-                    // Changed spatial mapping here to calculate strictly by left alignment, neutralizing center-bias
+                    // Align strictly by left edge
                     distance = yDist + (xDist * 10) + overlapPenalty + Math.abs(elRect.left - rect.left);
                 }
 
@@ -7740,7 +7717,7 @@ if (isset($_SESSION['profile_id'])) {
             }
         });
 
-        // Handle admin panel navigation boundaries to prevent skipping Admin/Settings Tabs:
+        // Boundary checks for admin tabs
         if (current.closest('.admin-panel') && !current.closest('.admin-nav-tabs')) {
             if (e.key === 'ArrowUp' && (!closest || closest.closest('nav'))) {
                 let activeTab = document.querySelector('.admin-nav-tabs .admin-tab.active') || document.querySelector('.admin-nav-tabs .admin-tab');
@@ -7767,7 +7744,7 @@ if (isset($_SESSION['profile_id'])) {
                 } else if (closest.closest('.modal-content')) {
                     closest.scrollIntoView({behavior: "smooth", block: "center"});
                 } else if (closest.closest('.search-left')) {
-                    // Don't scroll page when navigating within the keyboard panel
+                    // Prevent page scroll in virtual keyboard
                 } else if (closest.closest('.search-page')) {
                     closest.scrollIntoView({behavior: "smooth", block: "center"});
                 } else if (closest.closest('nav')) {
@@ -7779,7 +7756,7 @@ if (isset($_SESSION['profile_id'])) {
         }
     });
 
-    /* ==================== PWA INSTALLATION LOGIC ==================== */
+    /* PWA Installation */
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').catch(err => console.log('Service Worker registration failed', err));
@@ -7818,7 +7795,7 @@ if (isset($_SESSION['profile_id'])) {
         installBtns.forEach(btn => { if(btn) btn.style.display = 'none'; });
     });
 
-    // Updated mobile layout styling - Sidebar Hamburger Menu
+    // Hamburger sidebar menu toggle
     function toggleHamburgerMenu() {
         var sidebar = document.getElementById('hamburgerMenu');
         var overlay = document.querySelector('.hamburger-overlay');

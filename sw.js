@@ -5,7 +5,7 @@ const ASSETS = [
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// Install Service Worker
+// Install SW
 self.addEventListener('install', (e) => {
     self.skipWaiting();
     e.waitUntil(
@@ -15,7 +15,7 @@ self.addEventListener('install', (e) => {
     );
 });
 
-// Activate Service Worker
+// Activate SW
 self.addEventListener('activate', (e) => {
     e.waitUntil(
         caches.keys().then((keys) => {
@@ -27,16 +27,16 @@ self.addEventListener('activate', (e) => {
     self.clients.claim();
 });
 
-// Fetch events
+// Fetch requests
 self.addEventListener('fetch', (e) => {
-    // Network-first approach for all dynamic requests
+    // Network-first for dynamic requests
     e.respondWith(
         fetch(e.request).catch(() => {
             return caches.match(e.request).then((response) => {
                 if (response) {
                     return response;
                 }
-                // Return a graceful offline response rather than throwing an error or returning null
+                // Graceful offline response
                 return new Response('YTFlix is offline. Please check your internet connection.', {
                     status: 503,
                     statusText: 'Service Unavailable',
