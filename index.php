@@ -30,6 +30,7 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) UNIQUE,
         password VARCHAR(255),
+        force_password_change TINYINT(1) DEFAULT 0,
         yt_api_key VARCHAR(255) DEFAULT '',
         tmdb_api_key VARCHAR(255) DEFAULT '',
         yt_playlist_id VARCHAR(255) DEFAULT ''
@@ -125,6 +126,7 @@ try {
     )");
 
     // Schema migrations
+    try { $pdo->exec("ALTER TABLE users ADD COLUMN force_password_change TINYINT(1) DEFAULT 0 AFTER password"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE profiles ADD COLUMN avatar_url VARCHAR(500) DEFAULT '' AFTER color"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE profiles ADD COLUMN pin VARCHAR(4) DEFAULT '' AFTER avatar_url"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE movies ADD COLUMN rating VARCHAR(20) DEFAULT 'No Rating' AFTER release_year"); } catch (PDOException $e) {}
@@ -145,7 +147,7 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM users");
     if ($stmt->fetchColumn() == 0) {
         $hash = password_hash('admin', PASSWORD_DEFAULT);
-        $pdo->exec("INSERT INTO users (username, password) VALUES ('admin', '$hash')");
+        $pdo->exec("INSERT INTO users (username, password, force_password_change) VALUES ('admin', '$hash', 1)");
     }
 
 } catch (PDOException $e) {
@@ -618,6 +620,37 @@ if (isset($_POST['login'])) {
     }
 }
 
+if (isset($_POST['submit_force_password_change']) && isset($_SESSION['user_id'])) {
+    $currentPw = $_POST['current_password'] ?? '';
+    $newPw = $_POST['new_password'] ?? '';
+    $confirmPw = $_POST['confirm_password'] ?? '';
+
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $u = $stmt->fetch();
+
+    if (!$u || !password_verify($currentPw, $u['password'])) {
+        $change_pw_error = "Current password is incorrect.";
+    } elseif (strlen($newPw) < 4) {
+        $change_pw_error = "New password must be at least 4 characters long.";
+    } elseif ($newPw !== $confirmPw) {
+        $change_pw_error = "New passwords do not match.";
+    } elseif (strtolower(trim($newPw)) === 'admin') {
+        $change_pw_error = "You cannot use 'admin' as your new password.";
+    } else {
+        $newHash = password_hash($newPw, PASSWORD_DEFAULT);
+        $updateStmt = $pdo->prepare("UPDATE users SET password = ?, force_password_change = 0 WHERE id = ?");
+        $updateStmt->execute([$newHash, $_SESSION['user_id']]);
+        
+        if (isset($currentUser)) {
+            $currentUser['force_password_change'] = 0;
+            $currentUser['password'] = $newHash;
+        }
+        header("Location: ?p=profiles");
+        exit;
+    }
+}
+
 if (isset($_POST['login_profile_id'])) {
     $pid = $_POST['login_profile_id'];
     $pin = $_POST['login_pin'] ?? '';
@@ -737,7 +770,7 @@ if (isset($_POST['delete_profile'])) {
 
 if (isset($_POST['update_password']) && $is_main_profile) {
     $hash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare("UPDATE users SET password=? WHERE id=?");
+    $stmt = $pdo->prepare("UPDATE users SET password=?, force_password_change=0 WHERE id=?");
     $stmt->execute([$hash, $_SESSION['user_id']]);
     header("Location: ?p=admin&tab=account&pw_saved=1");
     exit;
@@ -840,6 +873,7 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) UNIQUE,
         password VARCHAR(255),
+        force_password_change TINYINT(1) DEFAULT 0,
         yt_api_key VARCHAR(255) DEFAULT '',
         tmdb_api_key VARCHAR(255) DEFAULT '',
         yt_playlist_id VARCHAR(255) DEFAULT ''
@@ -935,6 +969,7 @@ try {
     )");
 
     // Schema migrations
+    try { $pdo->exec("ALTER TABLE users ADD COLUMN force_password_change TINYINT(1) DEFAULT 0 AFTER password"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE profiles ADD COLUMN avatar_url VARCHAR(500) DEFAULT '' AFTER color"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE profiles ADD COLUMN pin VARCHAR(4) DEFAULT '' AFTER avatar_url"); } catch (PDOException $e) {}
     try { $pdo->exec("ALTER TABLE movies ADD COLUMN rating VARCHAR(20) DEFAULT 'No Rating' AFTER release_year"); } catch (PDOException $e) {}
@@ -955,7 +990,7 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM users");
     if ($stmt->fetchColumn() == 0) {
         $hash = password_hash('admin', PASSWORD_DEFAULT);
-        $pdo->exec("INSERT INTO users (username, password) VALUES ('admin', '$hash')");
+        $pdo->exec("INSERT INTO users (username, password, force_password_change) VALUES ('admin', '$hash', 1)");
     }
 
 } catch (PDOException $e) {
@@ -1291,6 +1326,37 @@ if (isset($_POST['login'])) {
     }
 }
 
+if (isset($_POST['submit_force_password_change']) && isset($_SESSION['user_id'])) {
+    $currentPw = $_POST['current_password'] ?? '';
+    $newPw = $_POST['new_password'] ?? '';
+    $confirmPw = $_POST['confirm_password'] ?? '';
+
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $u = $stmt->fetch();
+
+    if (!$u || !password_verify($currentPw, $u['password'])) {
+        $change_pw_error = "Current password is incorrect.";
+    } elseif (strlen($newPw) < 4) {
+        $change_pw_error = "New password must be at least 4 characters long.";
+    } elseif ($newPw !== $confirmPw) {
+        $change_pw_error = "New passwords do not match.";
+    } elseif (strtolower(trim($newPw)) === 'admin') {
+        $change_pw_error = "You cannot use 'admin' as your new password.";
+    } else {
+        $newHash = password_hash($newPw, PASSWORD_DEFAULT);
+        $updateStmt = $pdo->prepare("UPDATE users SET password = ?, force_password_change = 0 WHERE id = ?");
+        $updateStmt->execute([$newHash, $_SESSION['user_id']]);
+        
+        if (isset($currentUser)) {
+            $currentUser['force_password_change'] = 0;
+            $currentUser['password'] = $newHash;
+        }
+        header("Location: ?p=profiles");
+        exit;
+    }
+}
+
 if (isset($_POST['login_profile_id'])) {
     $pid = $_POST['login_profile_id'];
     $pin = $_POST['login_pin'] ?? '';
@@ -1410,7 +1476,7 @@ if (isset($_POST['delete_profile'])) {
 
 if (isset($_POST['update_password']) && $is_main_profile) {
     $hash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare("UPDATE users SET password=? WHERE id=?");
+    $stmt = $pdo->prepare("UPDATE users SET password=?, force_password_change=0 WHERE id=?");
     $stmt->execute([$hash, $_SESSION['user_id']]);
     header("Location: ?p=admin&tab=account&pw_saved=1");
     exit;
@@ -1718,10 +1784,6 @@ if (!isset($_SESSION['user_id']) && $page != 'login') {
     header("Location: ?p=login");
     exit;
 }
-if (isset($_SESSION['user_id']) && !isset($_SESSION['profile_id']) && $page != 'profiles' && $page != 'login') {
-    header("Location: ?p=profiles");
-    exit;
-}
 
 $currentUser = null;
 $currentProfile = null;
@@ -1737,7 +1799,18 @@ if (isset($_SESSION['user_id'])) {
         header("Location: ?p=login");
         exit;
     }
+
+    // Force password change lock if required
+    if ((int)($currentUser['force_password_change'] ?? 0) === 1) {
+        $page = 'force_change_password';
+    }
 }
+
+if (isset($_SESSION['user_id']) && !isset($_SESSION['profile_id']) && $page != 'profiles' && $page != 'login' && $page != 'force_change_password') {
+    header("Location: ?p=profiles");
+    exit;
+}
+
 if (isset($_SESSION['profile_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM profiles WHERE id = ?");
     $stmt->execute([$_SESSION['profile_id']]);
@@ -2078,7 +2151,7 @@ if (isset($_SESSION['profile_id'])) {
         }
         .auth-box button {
             width: 100%; padding: 16px; background: #e50914; color: white;
-            font-size: 1rem; font-weight: bold; border-radius: 4px; margin-top: 24px; transition: background 0.2s;
+            font-size: 1rem; font-weight: bold; border-radius: 4px; transition: background 0.2s;
         }
         .auth-box button:hover { background: #f40612; }
 
@@ -2416,6 +2489,106 @@ if (isset($_SESSION['profile_id'])) {
             background: rgba(30, 30, 30, 0.95);
             box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
             transform: scale(1.06);
+        }
+
+        .profile-admin-crown {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            border: 1.5px solid rgba(255, 215, 0, 0.55);
+            box-sizing: border-box;
+            z-index: 3;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .profile-admin-crown i.crown-icon {
+            color: #FFD700;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+            display: block;
+        }
+        .profile-admin-crown i.lock-icon {
+            color: #ffffff;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+            display: none;
+        }
+        .profile-card:hover .profile-admin-crown,
+        .profile-card:focus .profile-admin-crown,
+        .profile-card:focus-visible .profile-admin-crown,
+        body.is-keyboard .profile-card.tv-focusable:focus .profile-admin-crown,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible .profile-admin-crown {
+            border-color: #FFD700;
+            background: rgba(30, 30, 30, 0.95);
+            box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+            transform: scale(1.08);
+        }
+
+        /* Replace crown with lock icon on hover or DPAD focus when profile has PIN */
+        .profile-card:hover .profile-admin-crown.has-pin i.crown-icon,
+        .profile-card:focus .profile-admin-crown.has-pin i.crown-icon,
+        .profile-card:focus-visible .profile-admin-crown.has-pin i.crown-icon,
+        body.is-keyboard .profile-card.tv-focusable:focus .profile-admin-crown.has-pin i.crown-icon,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible .profile-admin-crown.has-pin i.crown-icon {
+            display: none !important;
+        }
+        .profile-card:hover .profile-admin-crown.has-pin i.lock-icon,
+        .profile-card:focus .profile-admin-crown.has-pin i.lock-icon,
+        .profile-card:focus-visible .profile-admin-crown.has-pin i.lock-icon,
+        body.is-keyboard .profile-card.tv-focusable:focus .profile-admin-crown.has-pin i.lock-icon,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible .profile-admin-crown.has-pin i.lock-icon {
+            display: block !important;
+            color: #ffffff;
+        }
+        .profile-card:hover .profile-admin-crown.has-pin,
+        .profile-card:focus .profile-admin-crown.has-pin,
+        .profile-card:focus-visible .profile-admin-crown.has-pin,
+        body.is-keyboard .profile-card.tv-focusable:focus .profile-admin-crown.has-pin,
+        body.is-keyboard .profile-card.tv-focusable:focus-visible .profile-admin-crown.has-pin {
+            border-color: #ffffff !important;
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.5) !important;
+        }
+        .profile-onboarding-banner {
+            max-width: 540px;
+            margin: 0 auto 30px;
+            background: rgba(20, 20, 20, 0.82);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.35);
+            border-radius: 18px;
+            padding: 20px 24px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+        .profile-onboarding-banner h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .profile-onboarding-banner h2 i {
+            color: #FFD700;
+        }
+        .profile-onboarding-banner p {
+            font-size: 0.92rem;
+            color: #d1d5db;
+            line-height: 1.5;
+            margin: 0;
         }
 
         .profiles-manage-btn {
@@ -4365,6 +4538,64 @@ if (isset($_SESSION['profile_id'])) {
         </div>
     </div>
 
+<?php elseif ($page == 'force_change_password'): ?>
+    <?php
+        $bgMoviesQ = $pdo->query("SELECT poster_path FROM movies WHERE poster_path IS NOT NULL AND poster_path != ''");
+        $bgShowsQ = $pdo->query("SELECT poster_path FROM shows WHERE poster_path IS NOT NULL AND poster_path != ''");
+        $bgPosters = array_merge($bgMoviesQ->fetchAll(PDO::FETCH_COLUMN), $bgShowsQ->fetchAll(PDO::FETCH_COLUMN));
+        shuffle($bgPosters);
+        if (!empty($bgPosters)) {
+            while(count($bgPosters) < 250) {
+                $bgPosters = array_merge($bgPosters, $bgPosters);
+            }
+            $bgPosters = array_slice($bgPosters, 0, 250);
+        }
+    ?>
+    <div class="login-bg-grid">
+        <?php foreach($bgPosters as $poster): ?>
+            <img src="<?= htmlspecialchars($poster) ?>" alt="" loading="lazy">
+        <?php endforeach; ?>
+    </div>
+    <div class="login-bg-overlay"></div>
+
+    <!-- Force change password view -->
+    <div class="auth-container">
+        <img src="ytflix.png" alt="YTFlix" class="logo-img" style="position:absolute; top: 20px; left: 4%; height: 45px;">
+        <div class="auth-box login-box" style="max-width: 480px;">
+            <h1 class="login-title"><i class="fas fa-shield-alt"></i> Change Password</h1>
+            
+            <div style="background: rgba(229, 9, 20, 0.15); border: 1px solid rgba(229, 9, 20, 0.35); border-radius: 12px; padding: 12px 16px; color: #fca5a5; font-size: 0.9rem; line-height: 1.4; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
+                <i class="fas fa-exclamation-triangle" style="margin-top: 2px; color: #e50914;"></i>
+                <span>For your security, you must change the default administrator password before continuing.</span>
+            </div>
+
+            <?php if(isset($change_pw_error)): ?>
+                <div class="login-error-alert"><i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($change_pw_error) ?></div>
+            <?php endif; ?>
+
+            <form method="POST">
+                <div class="login-input-group">
+                    <input type="password" name="current_password" placeholder="Current Password" required class="tv-focusable" autocomplete="current-password">
+                </div>
+                <div class="login-input-group">
+                    <input type="password" name="new_password" placeholder="New Password (min. 4 characters)" required minlength="4" class="tv-focusable" autocomplete="new-password">
+                </div>
+                <div class="login-input-group">
+                    <input type="password" name="confirm_password" placeholder="Confirm New Password" required minlength="4" class="tv-focusable" autocomplete="new-password">
+                </div>
+                <button type="submit" name="submit_force_password_change" class="tv-focusable login-submit-btn">
+                    <span>Update Password & Continue</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="?logout=1" class="tv-focusable" style="color: #9ca3af; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </a>
+            </div>
+        </div>
+    </div>
+
 <?php elseif ($page == 'profiles'): ?>
     <?php
         $bgMoviesQ = $pdo->query("SELECT poster_path FROM movies WHERE poster_path IS NOT NULL AND poster_path != '' LIMIT 60");
@@ -4394,19 +4625,31 @@ if (isset($_SESSION['profile_id'])) {
             <h1 class="profiles-title">Who's watching?</h1>
             <?php if(isset($pin_error)) echo "<p style='color:var(--primary); margin-bottom:20px; font-weight:bold; font-size: 1.2rem;'>$pin_error</p>"; ?>
             
+            <?php
+            $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ? ORDER BY id ASC");
+            $stmt->execute([$_SESSION['user_id']]);
+            $profiles = $stmt->fetchAll();
+            $mainProfile = !empty($profiles) ? $profiles[0] : null;
+            $mainProfileId = $mainProfile ? (int)$mainProfile['id'] : 0;
+            $mainHasPin = ($mainProfile && !empty($mainProfile['pin'])) ? 'true' : 'false';
+            $isFirstProfile = empty($profiles);
+            ?>
+
+            <?php if ($isFirstProfile): ?>
+                <div class="profile-onboarding-banner">
+                    <h2><i class="fas fa-crown"></i> Primary Admin Profile Setup</h2>
+                    <p>Welcome to YTFlix! Because this is a fresh setup, the first profile you create will be the <strong>Primary Account Holder</strong> with full administrator privileges to manage the library, playlists, and settings.</p>
+                </div>
+            <?php endif; ?>
+
             <div class="profiles-list">
                 <?php
-                $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ? ORDER BY id ASC");
-                $stmt->execute([$_SESSION['user_id']]);
-                $profiles = $stmt->fetchAll();
-                $mainProfile = !empty($profiles) ? $profiles[0] : null;
-                $mainProfileId = $mainProfile ? (int)$mainProfile['id'] : 0;
-                $mainHasPin = ($mainProfile && !empty($mainProfile['pin'])) ? 'true' : 'false';
                 foreach ($profiles as $p): 
                     $hasAvatar = !empty($p['avatar_url']);
                     $avatarContent = !$hasAvatar ? substr($p['name'], 0, 1) : '';
                     $hasPin = !empty($p['pin']) ? 'true' : 'false';
                     $bgStyle = !$hasAvatar ? "background-color: ".$p['color'].";" : "";
+                    $isMain = ($p['id'] == $mainProfileId);
                 ?>
                     <div class="profile-card tv-focusable" tabindex="0" onclick="handleProfileClick(<?= $p['id'] ?>, <?= $hasPin ?>)">
                         <div class="profile-avatar" style="<?= $bgStyle ?>">
@@ -4415,7 +4658,14 @@ if (isset($_SESSION['profile_id'])) {
                             <?php else: ?>
                                 <?= htmlspecialchars($avatarContent) ?>
                             <?php endif; ?>
-                            <?php if($hasPin === 'true'): ?>
+                            <?php if ($isMain): ?>
+                                <div class="profile-admin-crown <?= ($hasPin === 'true') ? 'has-pin' : '' ?>" title="<?= ($hasPin === 'true') ? 'Primary Administrator (PIN Protected)' : 'Primary Administrator' ?>">
+                                    <i class="fas fa-crown crown-icon"></i>
+                                    <?php if ($hasPin === 'true'): ?>
+                                        <i class="fas fa-lock lock-icon"></i>
+                                    <?php endif; ?>
+                                </div>
+                            <?php elseif ($hasPin === 'true'): ?>
                                 <div class="profile-lock" title="PIN Protected">
                                     <i class="fas fa-lock"></i>
                                 </div>
@@ -4426,14 +4676,16 @@ if (isset($_SESSION['profile_id'])) {
                 <?php endforeach; ?>
                 
                 <div class="profile-card tv-focusable" tabindex="0" onclick="document.getElementById('addProfileModal').style.display='flex'">
-                    <div class="profile-avatar profile-avatar-add"><i class="fas fa-plus"></i></div>
-                    <span>Add Profile</span>
+                    <div class="profile-avatar profile-avatar-add" <?= $isFirstProfile ? 'style="border-color: rgba(255, 215, 0, 0.45) !important; color: #FFD700 !important;"' : '' ?>><i class="fas <?= $isFirstProfile ? 'fa-user-plus' : 'fa-plus' ?>"></i></div>
+                    <span <?= $isFirstProfile ? 'style="color: #FFD700; font-weight: 600;"' : '' ?>><?= $isFirstProfile ? 'Create Primary Profile' : 'Add Profile' ?></span>
                 </div>
             </div>
 
+            <?php if (!$isFirstProfile): ?>
             <button type="button" class="profiles-manage-btn tv-focusable" tabindex="0" onclick="handleManageProfilesClick(<?= $mainProfileId ?>, <?= $mainHasPin ?>)">
                 <i class="fas fa-sliders-h"></i> Manage Profiles
             </button>
+            <?php endif; ?>
         </div>
     </div>
     
@@ -4441,17 +4693,25 @@ if (isset($_SESSION['profile_id'])) {
     <div id="addProfileModal" class="modal-overlay" style="z-index: 3000;">
         <div class="auth-box pin-modal-box" style="margin:auto; text-align:left;">
             <div class="pin-modal-header" style="text-align:center;">
-                <div class="pin-lock-icon-badge" style="background: rgba(229, 9, 20, 0.15); border-color: rgba(229, 9, 20, 0.35); color: #e50914;">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <h2 class="pin-modal-title">Add Profile</h2>
-                <p class="pin-modal-subtitle">Add a profile for another person watching YTFlix</p>
+                <?php if ($isFirstProfile): ?>
+                    <div class="pin-lock-icon-badge" style="background: rgba(255, 215, 0, 0.15); border-color: rgba(255, 215, 0, 0.4); color: #FFD700;">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h2 class="pin-modal-title">Create Primary Admin Profile</h2>
+                    <p class="pin-modal-subtitle">This profile will have administrative privileges to manage movies, shows, and settings.</p>
+                <?php else: ?>
+                    <div class="pin-lock-icon-badge" style="background: rgba(229, 9, 20, 0.15); border-color: rgba(229, 9, 20, 0.35); color: #e50914;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h2 class="pin-modal-title">Add Profile</h2>
+                    <p class="pin-modal-subtitle">Add a profile for another person watching YTFlix</p>
+                <?php endif; ?>
             </div>
             <form method="POST" enctype="multipart/form-data">
-                <input type="text" name="profile_name" placeholder="Profile Name" required class="tv-focusable search-input-box" style="margin-bottom: 14px; border-radius: 10px;">
+                <input type="text" name="profile_name" placeholder="<?= $isFirstProfile ? 'Primary Admin Name' : 'Profile Name' ?>" required class="tv-focusable search-input-box" style="margin-bottom: 14px; border-radius: 10px;">
                 <label style="color:#a3a3a3; font-size:0.9rem; display:block; margin-bottom:6px;">Upload Avatar Image (Optional)</label>
                 <input type="file" name="avatar_file" accept="image/*" class="tv-focusable" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); padding:10px 14px; width:100%; border-radius:10px; color:#ddd; margin-bottom: 16px;">
-                <button type="submit" name="create_profile" class="tv-focusable" style="width:100%; padding:14px; background:var(--primary); color:white; font-size:1rem; font-weight:bold; border-radius:10px; border:none; cursor:pointer; box-shadow: 0 4px 15px rgba(229,9,20,0.4); transition: 0.2s;">Create Profile</button>
+                <button type="submit" name="create_profile" class="tv-focusable" style="width:100%; padding:14px; background:var(--primary); color:white; font-size:1rem; font-weight:bold; border-radius:10px; border:none; cursor:pointer; box-shadow: 0 4px 15px rgba(229,9,20,0.4); transition: 0.2s;"><?= $isFirstProfile ? 'Create Primary Profile & Finish Setup' : 'Create Profile' ?></button>
                 <button type="button" onclick="document.getElementById('addProfileModal').style.display='none'" class="btn pin-cancel-btn tv-focusable" style="margin-top:10px;"><i class="fas fa-times"></i> Cancel</button>
             </form>
         </div>
@@ -5796,7 +6056,8 @@ if (isset($_SESSION['profile_id'])) {
                                     $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
                                     $stmt->execute([$_SESSION['user_id']]);
                                     foreach ($stmt->fetchAll() as $p) {
-                                        echo "<option value='{$p['id']}'>{$p['name']}</option>";
+                                        $adminTag = ($p['id'] == $main_profile_id) ? ' (Primary Admin)' : '';
+                                        echo "<option value='{$p['id']}'>" . htmlspecialchars($p['name']) . "$adminTag</option>";
                                     }
                                     ?>
                                 </select>
@@ -5822,7 +6083,8 @@ if (isset($_SESSION['profile_id'])) {
                                     $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ?");
                                     $stmt->execute([$_SESSION['user_id']]);
                                     foreach ($stmt->fetchAll() as $p) {
-                                        echo "<option value='{$p['id']}'>{$p['name']}</option>";
+                                        $adminTag = ($p['id'] == $main_profile_id) ? ' (Primary Admin)' : '';
+                                        echo "<option value='{$p['id']}'>" . htmlspecialchars($p['name']) . "$adminTag</option>";
                                     }
                                     ?>
                                 </select>
@@ -5897,7 +6159,8 @@ if (isset($_SESSION['profile_id'])) {
                                         $dataAvatar = htmlspecialchars($p['avatar_url'] ?? '', ENT_QUOTES);
                                         $dataColor = htmlspecialchars($p['color'] ?? '#e50914', ENT_QUOTES);
                                         $dataName = htmlspecialchars($p['name'] ?? '', ENT_QUOTES);
-                                        echo "<option value='{$p['id']}' data-avatar='{$dataAvatar}' data-color='{$dataColor}' data-name='{$dataName}' {$isSel}>".htmlspecialchars($p['name'])."</option>";
+                                        $adminTag = ($p['id'] == $main_profile_id) ? ' (Primary Admin)' : '';
+                                        echo "<option value='{$p['id']}' data-avatar='{$dataAvatar}' data-color='{$dataColor}' data-name='{$dataName}' {$isSel}>".htmlspecialchars($p['name'])."$adminTag</option>";
                                     }
                                     ?>
                                 </select>
@@ -6205,7 +6468,7 @@ if (isset($_SESSION['profile_id'])) {
     </div>
 <?php endif; ?>
 
-<?php if ($page !== 'login' && $page !== 'profiles'): ?>
+<?php if ($page !== 'login' && $page !== 'profiles' && $page !== 'force_change_password'): ?>
     <!-- Hamburger sidebar -->
     <div class="hamburger-overlay" onclick="toggleHamburgerMenu()" style="display:none;"></div>
     <div class="hamburger-sidebar" id="hamburgerMenu">
