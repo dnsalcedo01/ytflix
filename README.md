@@ -67,7 +67,7 @@ While YTFlix strives to provide a seamless, custom cinematic player interface, y
 2. Duplicate `config.example.php` and rename it to `config.php`.
 3. Update `config.php` with your local database credentials.
 4. Open the site in your browser. The application will automatically create the required database and tables.
-5. Log in with the default admin account (Username: `admin`, Password: `admin`).
+5. Log in with the default admin account (Username: `admin`, Password: `admin`). You will be prompted to set a new password on first login for security.
 6. Navigate to the **Account Settings** tab in the header and provide your **YouTube API v3 Key** and **TMDB API Key**.
 
 ---
