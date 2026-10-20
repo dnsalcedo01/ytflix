@@ -3893,26 +3893,112 @@ if (isset($_SESSION['profile_id'])) {
             background: #1a1a1d;
             color: #ffffff;
         }
+        /* Custom Glassmorphic File Upload Input */
+        .custom-file-input,
         .admin-form input[type="file"] {
             width: 100%;
-            padding: 11px 14px;
+            padding: 9px 12px;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            color: #cccccc;
-            border-radius: 10px;
-            font-size: 0.95rem;
+            border: 1.5px dashed rgba(255, 255, 255, 0.22);
+            color: #a3a3a3;
+            border-radius: 12px;
+            font-size: 0.92rem;
             box-sizing: border-box;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
             outline: none !important;
+            display: block;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
+        .custom-file-input:hover,
+        .admin-form input[type="file"]:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.45);
+            color: #ffffff;
+        }
+
+        /* Browse / Choose File Button Inside */
+        .custom-file-input::file-selector-button,
+        .admin-form input[type="file"]::file-selector-button {
+            margin-right: 14px;
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .custom-file-input::-webkit-file-upload-button,
+        .admin-form input[type="file"]::-webkit-file-upload-button {
+            margin-right: 14px;
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Hover & Focus state on the selector button */
+        .custom-file-input:hover::file-selector-button,
+        .admin-form input[type="file"]:hover::file-selector-button,
+        .custom-file-input:hover::-webkit-file-upload-button,
+        .admin-form input[type="file"]:hover::-webkit-file-upload-button {
+            background: linear-gradient(135deg, #E50914 0%, #b20710 100%);
+            border-color: #E50914;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(229, 9, 20, 0.45);
+        }
+
+        /* TV / Keyboard D-PAD Focus */
+        .custom-file-input:focus,
+        .custom-file-input:focus-visible,
+        .admin-form input[type="file"]:focus,
+        .admin-form input[type="file"]:focus-visible,
+        body.is-keyboard .custom-file-input.tv-focusable:focus-visible,
+        body.is-keyboard .admin-form input[type="file"].tv-focusable:focus-visible {
+            outline: none !important;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1.5px dashed #ffffff !important;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4) !important;
+            transform: scale(1.01) !important;
+            color: #ffffff;
+        }
+        .custom-file-input:focus::file-selector-button,
+        .custom-file-input:focus-visible::file-selector-button,
+        .admin-form input[type="file"]:focus::file-selector-button,
+        .admin-form input[type="file"]:focus-visible::file-selector-button,
+        body.is-keyboard .custom-file-input.tv-focusable:focus-visible::file-selector-button,
+        body.is-keyboard .admin-form input[type="file"].tv-focusable:focus-visible::file-selector-button,
+        .custom-file-input:focus::-webkit-file-upload-button,
+        .custom-file-input:focus-visible::-webkit-file-upload-button,
+        .admin-form input[type="file"]:focus::-webkit-file-upload-button,
+        .admin-form input[type="file"]:focus-visible::-webkit-file-upload-button,
+        body.is-keyboard .custom-file-input.tv-focusable:focus-visible::-webkit-file-upload-button,
+        body.is-keyboard .admin-form input[type="file"].tv-focusable:focus-visible::-webkit-file-upload-button {
+            background: linear-gradient(135deg, #E50914 0%, #b20710 100%);
+            border-color: #ffffff;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(229, 9, 20, 0.5);
+        }
+
         .admin-form input:focus,
         .admin-form textarea:focus,
         .admin-form select:focus,
         body.is-keyboard .admin-form input.tv-focusable:focus-visible,
         body.is-keyboard .admin-form textarea.tv-focusable:focus-visible,
-        body.is-keyboard .admin-form select.tv-focusable:focus-visible,
-        body.is-keyboard .admin-form input[type="file"].tv-focusable:focus-visible {
+        body.is-keyboard .admin-form select.tv-focusable:focus-visible {
             outline: none !important;
             background: rgba(255, 255, 255, 0.09);
             border-color: rgba(255, 255, 255, 0.5);
@@ -4709,10 +4795,11 @@ if (isset($_SESSION['profile_id'])) {
             </div>
             <form method="POST" enctype="multipart/form-data">
                 <input type="text" name="profile_name" placeholder="<?= $isFirstProfile ? 'Primary Admin Name' : 'Profile Name' ?>" required class="tv-focusable search-input-box" style="margin-bottom: 14px; border-radius: 10px;">
-                <label style="color:#a3a3a3; font-size:0.9rem; display:block; margin-bottom:6px;">Upload Avatar Image (Optional)</label>
-                <input type="file" name="avatar_file" accept="image/*" class="tv-focusable" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); padding:10px 14px; width:100%; border-radius:10px; color:#ddd; margin-bottom: 16px;">
+                <label style="color:#a3a3a3; font-size:0.9rem; display:block; margin-bottom:8px;"><i class="fas fa-image" style="color:#e50914; margin-right:6px;"></i> Upload Avatar Image (Optional)</label>
+                <div id="addProfileAvatarPreview" style="display:none; width: 72px; height: 72px; border-radius: 18px; margin: 0 auto 14px; background-size: cover; background-position: center; border: 2.5px solid rgba(255,255,255,0.4); box-shadow: 0 6px 20px rgba(0,0,0,0.6);"></div>
+                <input type="file" name="avatar_file" accept="image/*" class="tv-focusable custom-file-input" onchange="previewAddProfileAvatar(this)" style="margin-bottom: 18px;">
                 <button type="submit" name="create_profile" class="tv-focusable" style="width:100%; padding:14px; background:var(--primary); color:white; font-size:1rem; font-weight:bold; border-radius:10px; border:none; cursor:pointer; box-shadow: 0 4px 15px rgba(229,9,20,0.4); transition: 0.2s;"><?= $isFirstProfile ? 'Create Primary Profile & Finish Setup' : 'Create Profile' ?></button>
-                <button type="button" onclick="document.getElementById('addProfileModal').style.display='none'" class="btn pin-cancel-btn tv-focusable" style="margin-top:10px;"><i class="fas fa-times"></i> Cancel</button>
+                <button type="button" onclick="document.getElementById('addProfileModal').style.display='none'; var p=document.getElementById('addProfileAvatarPreview'); if(p){p.style.display='none';p.style.backgroundImage='none';}" class="btn pin-cancel-btn tv-focusable" style="margin-top:10px;"><i class="fas fa-times"></i> Cancel</button>
             </form>
         </div>
     </div>
@@ -6170,7 +6257,7 @@ if (isset($_SESSION['profile_id'])) {
                             <?php endif; ?>
                             
                             <label>Upload Avatar Image</label>
-                            <input type="file" name="avatar_file" accept="image/*" class="tv-focusable" onchange="previewSelectedAvatar(this)">
+                            <input type="file" name="avatar_file" accept="image/*" class="tv-focusable custom-file-input" onchange="previewSelectedAvatar(this)">
                             <div class="admin-btn-row">
                                 <button type="submit" name="update_profile_pic" class="btn-primary tv-focusable"><i class="fas fa-upload"></i> <span class="tab-label-full">Update Picture</span><span class="tab-label-short">Update</span></button>
                                 <button type="submit" name="delete_profile_pic" class="btn-danger tv-focusable" onclick="return confirm('Are you sure you want to remove the avatar picture?');"><i class="fas fa-trash-alt"></i> <span class="tab-label-full">Remove Picture</span><span class="tab-label-short">Remove</span></button>
@@ -6188,7 +6275,7 @@ if (isset($_SESSION['profile_id'])) {
                             <label>Profile Name</label>
                             <input type="text" name="profile_name" placeholder="Name" required class="tv-focusable">
                             <label>Upload Avatar Image (Optional)</label>
-                            <input type="file" name="avatar_file" accept="image/*" class="tv-focusable">
+                            <input type="file" name="avatar_file" accept="image/*" class="tv-focusable custom-file-input">
                             <button type="submit" name="create_profile" class="btn-success tv-focusable" style="margin-top:14px;"><i class="fas fa-plus"></i> Create Profile</button>
                         </form>
                     </div>
@@ -8157,6 +8244,22 @@ if (isset($_SESSION['profile_id'])) {
             if (selectElem) {
                 updateProfilePicPreview(selectElem);
             }
+        }
+    }
+
+    function previewAddProfileAvatar(input) {
+        var preview = document.getElementById('addProfileAvatarPreview');
+        if (!preview) return;
+        if (input && input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                preview.style.backgroundImage = 'url("' + e.target.result + '")';
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.style.display = 'none';
+            preview.style.backgroundImage = 'none';
         }
     }
 
