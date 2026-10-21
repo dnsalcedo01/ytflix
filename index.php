@@ -4761,7 +4761,7 @@ if (isset($_SESSION['profile_id'])) {
                     </div>
                 <?php endforeach; ?>
                 
-                <div class="profile-card tv-focusable" tabindex="0" onclick="document.getElementById('addProfileModal').style.display='flex'">
+                <div class="profile-card tv-focusable" tabindex="0" onclick="openAddProfileModal()">
                     <div class="profile-avatar profile-avatar-add" <?= $isFirstProfile ? 'style="border-color: rgba(255, 215, 0, 0.45) !important; color: #FFD700 !important;"' : '' ?>><i class="fas <?= $isFirstProfile ? 'fa-user-plus' : 'fa-plus' ?>"></i></div>
                     <span <?= $isFirstProfile ? 'style="color: #FFD700; font-weight: 600;"' : '' ?>><?= $isFirstProfile ? 'Create Primary Profile' : 'Add Profile' ?></span>
                 </div>
@@ -4780,14 +4780,14 @@ if (isset($_SESSION['profile_id'])) {
         <div class="auth-box pin-modal-box" style="margin:auto; text-align:left;">
             <div class="pin-modal-header" style="text-align:center;">
                 <?php if ($isFirstProfile): ?>
-                    <div class="pin-lock-icon-badge" style="background: rgba(255, 215, 0, 0.15); border-color: rgba(255, 215, 0, 0.4); color: #FFD700;">
-                        <i class="fas fa-crown"></i>
+                    <div class="pin-lock-icon-badge" id="addProfileHeaderBadge" style="width: 58px; height: 58px; font-size: 1.4rem; transition: all 0.25s ease; background: rgba(255, 215, 0, 0.15); border-color: rgba(255, 215, 0, 0.4); color: #FFD700;">
+                        <i class="fas fa-crown" id="addProfileHeaderIcon"></i>
                     </div>
                     <h2 class="pin-modal-title">Create Primary Admin Profile</h2>
                     <p class="pin-modal-subtitle">This profile will have administrative privileges to manage movies, shows, and settings.</p>
                 <?php else: ?>
-                    <div class="pin-lock-icon-badge" style="background: rgba(229, 9, 20, 0.15); border-color: rgba(229, 9, 20, 0.35); color: #e50914;">
-                        <i class="fas fa-user-plus"></i>
+                    <div class="pin-lock-icon-badge" id="addProfileHeaderBadge" style="width: 58px; height: 58px; font-size: 1.4rem; transition: all 0.25s ease; background: rgba(229, 9, 20, 0.15); border-color: rgba(229, 9, 20, 0.35); color: #e50914;">
+                        <i class="fas fa-user-plus" id="addProfileHeaderIcon"></i>
                     </div>
                     <h2 class="pin-modal-title">Add Profile</h2>
                     <p class="pin-modal-subtitle">Add a profile for another person watching YTFlix</p>
@@ -4796,10 +4796,9 @@ if (isset($_SESSION['profile_id'])) {
             <form method="POST" enctype="multipart/form-data">
                 <input type="text" name="profile_name" placeholder="<?= $isFirstProfile ? 'Primary Admin Name' : 'Profile Name' ?>" required class="tv-focusable search-input-box" style="margin-bottom: 14px; border-radius: 10px;">
                 <label style="color:#a3a3a3; font-size:0.9rem; display:block; margin-bottom:8px;"><i class="fas fa-image" style="color:#e50914; margin-right:6px;"></i> Upload Avatar Image (Optional)</label>
-                <div id="addProfileAvatarPreview" style="display:none; width: 72px; height: 72px; border-radius: 18px; margin: 0 auto 14px; background-size: cover; background-position: center; border: 2.5px solid rgba(255,255,255,0.4); box-shadow: 0 6px 20px rgba(0,0,0,0.6);"></div>
                 <input type="file" name="avatar_file" accept="image/*" class="tv-focusable custom-file-input" onchange="previewAddProfileAvatar(this)" style="margin-bottom: 18px;">
                 <button type="submit" name="create_profile" class="tv-focusable" style="width:100%; padding:14px; background:var(--primary); color:white; font-size:1rem; font-weight:bold; border-radius:10px; border:none; cursor:pointer; box-shadow: 0 4px 15px rgba(229,9,20,0.4); transition: 0.2s;"><?= $isFirstProfile ? 'Create Primary Profile & Finish Setup' : 'Create Profile' ?></button>
-                <button type="button" onclick="document.getElementById('addProfileModal').style.display='none'; var p=document.getElementById('addProfileAvatarPreview'); if(p){p.style.display='none';p.style.backgroundImage='none';}" class="btn pin-cancel-btn tv-focusable" style="margin-top:10px;"><i class="fas fa-times"></i> Cancel</button>
+                <button type="button" onclick="closeAddProfileModal()" class="btn pin-cancel-btn tv-focusable" style="margin-top:10px;"><i class="fas fa-times"></i> Cancel</button>
             </form>
         </div>
     </div>
@@ -7681,7 +7680,7 @@ if (isset($_SESSION['profile_id'])) {
                 return;
             }
             else if (addProfileModal && addProfileModal.style.display === 'flex') {
-                addProfileModal.style.display = 'none';
+                closeAddProfileModal();
                 return;
             }
             else if (adminEditModal && adminEditModal.style.display === 'flex') {
@@ -8247,19 +8246,62 @@ if (isset($_SESSION['profile_id'])) {
         }
     }
 
+    function openAddProfileModal() {
+        var modal = document.getElementById('addProfileModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            var nameInput = modal.querySelector('input[name="profile_name"]');
+            if (nameInput) nameInput.focus();
+        }
+    }
+
+    function closeAddProfileModal() {
+        var modal = document.getElementById('addProfileModal');
+        if (modal) modal.style.display = 'none';
+        var fileInput = modal ? modal.querySelector('input[type="file"]') : null;
+        if (fileInput) fileInput.value = '';
+        var nameInput = modal ? modal.querySelector('input[name="profile_name"]') : null;
+        if (nameInput) nameInput.value = '';
+        resetAddProfileAvatarPreview();
+    }
+
     function previewAddProfileAvatar(input) {
-        var preview = document.getElementById('addProfileAvatarPreview');
-        if (!preview) return;
+        var badge = document.getElementById('addProfileHeaderBadge');
+        var icon = document.getElementById('addProfileHeaderIcon');
+        if (!badge) return;
+
         if (input && input.files && input.files[0]) {
             var reader = new FileReader();
             reader.onload = function(e) {
-                preview.style.backgroundImage = 'url("' + e.target.result + '")';
-                preview.style.display = 'block';
+                badge.style.backgroundImage = 'url("' + e.target.result + '")';
+                badge.style.backgroundSize = 'cover';
+                badge.style.backgroundPosition = 'center';
+                badge.style.backgroundRepeat = 'no-repeat';
+                badge.style.borderRadius = '16px';
+                badge.style.borderColor = 'rgba(255, 255, 255, 0.45)';
+                badge.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.6)';
+                if (icon) icon.style.display = 'none';
             };
             reader.readAsDataURL(input.files[0]);
         } else {
-            preview.style.display = 'none';
-            preview.style.backgroundImage = 'none';
+            resetAddProfileAvatarPreview();
+        }
+    }
+
+    function resetAddProfileAvatarPreview() {
+        var badge = document.getElementById('addProfileHeaderBadge');
+        var icon = document.getElementById('addProfileHeaderIcon');
+        if (badge) {
+            badge.style.backgroundImage = '';
+            badge.style.backgroundSize = '';
+            badge.style.backgroundPosition = '';
+            badge.style.backgroundRepeat = '';
+            badge.style.borderRadius = '';
+            badge.style.borderColor = '';
+            badge.style.boxShadow = '';
+        }
+        if (icon) {
+            icon.style.display = '';
         }
     }
 
